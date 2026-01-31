@@ -1,55 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Search - Aria{% endblock %}
 
-{% block content %}
-<div class="page-header">
-    <h1>🔍 Global Search</h1>
-    <p>Search across all Aria data: activities, thoughts, memories, and more</p>
-</div>
-
-<div class="search-section">
-    <form id="searchForm" onsubmit="performSearch(event)">
-        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
-            <div class="search-box" style="flex: 1; max-width: none;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                </svg>
-                <input type="text" class="input" id="searchQuery" placeholder="Enter your search query..." autofocus>
-            </div>
-            <button type="submit" class="btn btn-primary">Search</button>
-        </div>
-        
-        <div class="filters" style="background: var(--bg-secondary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 2rem;">
-            <div class="filter-group">
-                <label><input type="checkbox" id="searchActivities" checked> Activities</label>
-            </div>
-            <div class="filter-group">
-                <label><input type="checkbox" id="searchThoughts" checked> Thoughts</label>
-            </div>
-            <div class="filter-group">
-                <label><input type="checkbox" id="searchMemories" checked> Memories</label>
-            </div>
-            <div class="filter-group">
-                <label class="filter-label">Date Range:</label>
-                <input type="date" id="dateFrom" class="input" style="width: auto;">
-                <span style="color: var(--text-muted);">to</span>
-                <input type="date" id="dateTo" class="input" style="width: auto;">
-            </div>
-        </div>
-    </form>
-</div>
-
-<div id="resultsContainer">
-    <div class="empty-state">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-        </svg>
-        <p>Enter a search query to find data across all Aria records</p>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
+{% block extra_css %}
 <style>
 .search-section { margin-bottom: 2rem; }
 .result-section { margin-bottom: 2rem; }
@@ -117,7 +69,57 @@
     accent-color: var(--accent-blue);
 }
 </style>
+{% endblock %}
 
+{% block content %}
+<div class="page-header">
+    <h1>🔍 Global Search</h1>
+    <p>Search across all Aria data: activities, thoughts, memories, and more</p>
+</div>
+
+<div class="search-section">
+    <form id="searchForm" onsubmit="performSearch(event)">
+        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+            <div class="search-box" style="flex: 1; max-width: none;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input type="text" class="input" id="searchQuery" placeholder="Enter your search query..." autofocus>
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+        
+        <div class="filters" style="background: var(--bg-secondary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 2rem;">
+            <div class="filter-group">
+                <label><input type="checkbox" id="searchActivities" checked> Activities</label>
+            </div>
+            <div class="filter-group">
+                <label><input type="checkbox" id="searchThoughts" checked> Thoughts</label>
+            </div>
+            <div class="filter-group">
+                <label><input type="checkbox" id="searchMemories" checked> Memories</label>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Date Range:</label>
+                <input type="date" id="dateFrom" class="input" style="width: auto;">
+                <span style="color: var(--text-muted);">to</span>
+                <input type="date" id="dateTo" class="input" style="width: auto;">
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="resultsContainer">
+    <div class="empty-state">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <p>Enter a search query to find data across all Aria records</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script data-page-script>
 async function performSearch(event) {
     event.preventDefault();

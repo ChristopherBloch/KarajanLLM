@@ -1,35 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Services - Aria{% endblock %}
 
-{% block content %}
-<div class="page-header">
-    <h1>🖥️ Services</h1>
-    <p>Monitor and manage all Aria stack services</p>
-</div>
-
-<div class="filters">
-    <button class="btn btn-primary" onclick="refreshAllStatus()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 12a9 9 0 11-6.22-8.56"/>
-        </svg>
-        Refresh All
-    </button>
-    <div class="filter-group">
-        <label class="filter-label">Filter:</label>
-        <select id="statusFilter" onchange="filterServices()">
-            <option value="">All Services</option>
-            <option value="online">Online</option>
-            <option value="offline">Offline</option>
-        </select>
-    </div>
-</div>
-
-<div class="grid-3" id="servicesGrid">
-    <!-- Services will be loaded here -->
-</div>
-{% endblock %}
-
-{% block extra_js %}
+{% block extra_css %}
 <style>
 .service-card-large {
     background: var(--bg-secondary);
@@ -96,7 +68,37 @@
     margin-top: 1rem;
 }
 </style>
+{% endblock %}
 
+{% block content %}
+<div class="page-header">
+    <h1>🖥️ Services</h1>
+    <p>Monitor and manage all Aria stack services</p>
+</div>
+
+<div class="filters">
+    <button class="btn btn-primary" onclick="refreshAllStatus()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12a9 9 0 11-6.22-8.56"/>
+        </svg>
+        Refresh All
+    </button>
+    <div class="filter-group">
+        <label class="filter-label">Filter:</label>
+        <select id="statusFilter" onchange="filterServices()">
+            <option value="">All Services</option>
+            <option value="online">Online</option>
+            <option value="offline">Offline</option>
+        </select>
+    </div>
+</div>
+
+<div class="grid-3" id="servicesGrid">
+    <!-- Services will be loaded here -->
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script data-page-script>
 const serviceHost = "{{ service_host }}";
 const baseUrl = `https://${serviceHost}`;

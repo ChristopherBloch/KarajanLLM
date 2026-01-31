@@ -1,6 +1,41 @@
 {% extends "base.html" %}
 {% block title %}Thoughts - Aria{% endblock %}
 
+{% block extra_css %}
+<style>
+.thought-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    transition: transform 0.2s;
+}
+.thought-card:hover { transform: translateY(-2px); }
+.thought-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+.thought-category {
+    padding: 0.25rem 0.75rem;
+    background: rgba(124, 58, 237, 0.15);
+    color: var(--accent-purple);
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+.thought-time {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+.thought-content {
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+.thought-content strong { color: var(--text-primary); }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="page-header">
     <h1>💭 Aria's Thoughts</h1>
@@ -38,39 +73,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<style>
-.thought-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    transition: transform 0.2s;
-}
-.thought-card:hover { transform: translateY(-2px); }
-.thought-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-}
-.thought-category {
-    padding: 0.25rem 0.75rem;
-    background: rgba(124, 58, 237, 0.15);
-    color: var(--accent-purple);
-    border-radius: 20px;
-    font-size: 0.8rem;
-}
-.thought-time {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-}
-.thought-content {
-    color: var(--text-secondary);
-    line-height: 1.7;
-}
-.thought-content strong { color: var(--text-primary); }
-</style>
-
 <script data-page-script>
 async function loadThoughts() {
     const container = document.getElementById('thoughtsContainer');
