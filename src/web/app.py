@@ -3,7 +3,7 @@
 # Flask app with GraphQL, Grid, Search for Aria activities and records
 # =============================================================================
 
-from flask import Flask, render_template
+from flask import Flask, render_template, make_response
 import os
 
 def create_app():
@@ -24,6 +24,12 @@ def create_app():
             'api_base_url': api_base_url,
             'clawdbot_public_url': clawdbot_public_url,
         }
+    
+    @app.after_request
+    def add_header(response):
+        # Disable Chrome's speculative loading that causes prefetch storms
+        response.headers['Supports-Loading-Mode'] = 'fenced-frame'
+        return response
     
     # =========================================================================
     # Routes - Pages
