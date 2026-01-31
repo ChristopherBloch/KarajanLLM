@@ -99,6 +99,7 @@ services:
     command:
       - "--api=true"
       - "--api.dashboard=true"
+      - "--ping=true"
       - "--providers.file.filename=/etc/traefik/dynamic.yaml"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"

@@ -27,13 +27,16 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is required")
 
+# Service URLs with specific health check paths
 SERVICE_URLS = {
-    "grafana": os.getenv("GRAFANA_URL", "http://grafana:3000"),
-    "prometheus": os.getenv("PROMETHEUS_URL", "http://prometheus:9090"),
-    "ollama": os.getenv("OLLAMA_URL", "http://ollama:11434"),
-    "litellm": os.getenv("LITELLM_URL", "http://litellm:4000"),
-    "clawdbot": os.getenv("CLAWDBOT_URL", "http://clawdbot:18789"),
-    "pgadmin": os.getenv("PGADMIN_URL", "http://aria-pgadmin:80"),
+    "grafana": (os.getenv("GRAFANA_URL", "http://grafana:3000"), "/api/health"),
+    "prometheus": (os.getenv("PROMETHEUS_URL", "http://prometheus:9090"), "/-/healthy"),
+    "ollama": (os.getenv("OLLAMA_URL", "http://host.docker.internal:11434"), "/api/tags"),
+    "litellm": (os.getenv("LITELLM_URL", "http://litellm:4000"), "/health"),
+    "clawdbot": (os.getenv("CLAWDBOT_URL", "http://clawdbot:18789"), "/health"),
+    "pgadmin": (os.getenv("PGADMIN_URL", "http://aria-pgadmin:80"), "/misc/ping"),
+    "traefik": ("http://traefik:8080", "/ping"),
+    "browser": ("http://aria-browser:3000", "/"),
 }
 
 STARTUP_TIME = datetime.utcnow()
@@ -112,23 +115,26 @@ async def health_check():
 @app.get("/api/status")
 async def api_status():
     results = {}
-    async with httpx.AsyncClient(timeout=2.0) as client:
-        for name, url in SERVICE_URLS.items():
+    async with httpx.AsyncClient(timeout=3.0) as client:
+        for name, (base_url, health_path) in SERVICE_URLS.items():
             try:
+                url = base_url.rstrip('/') + health_path
                 resp = await client.get(url)
                 results[name] = {"status": "up", "code": resp.status_code}
-            except Exception:
-                results[name] = {"status": "down", "code": None}
+            except Exception as e:
+                results[name] = {"status": "down", "code": None, "error": str(e)[:50]}
     return results
 
 
 @app.get("/api/status/{service_id}")
 async def api_status_service(service_id: str):
-    url = SERVICE_URLS.get(service_id)
-    if not url:
+    service_info = SERVICE_URLS.get(service_id)
+    if not service_info:
         raise HTTPException(status_code=404, detail="Unknown service")
+    base_url, health_path = service_info
     try:
-        async with httpx.AsyncClient(timeout=2.0) as client:
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            url = base_url.rstrip('/') + health_path
             resp = await client.get(url)
         return {"status": "online", "code": resp.status_code}
     except Exception:
