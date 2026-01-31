@@ -144,7 +144,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script data-page-script>
     // Load stats
     fetch(`${window.ARIA_API_BASE_URL}/stats`)
         .then(r => r.json())
