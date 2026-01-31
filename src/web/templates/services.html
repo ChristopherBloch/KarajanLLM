@@ -118,9 +118,16 @@ const services = [
 
 const statusCache = {};
 
+let isRefreshing = false;
+
 async function checkServiceStatus(service) {
     try {
-        const response = await fetch(`${window.ARIA_API_BASE_URL}/status/${service.id}`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const response = await fetch(`${window.ARIA_API_BASE_URL}/status/${service.id}`, {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
         const data = await response.json();
         return data.status === 'online';
     } catch {
@@ -128,7 +135,13 @@ async function checkServiceStatus(service) {
     }
 }
 
+// Delay helper
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 async function refreshAllStatus() {
+    if (isRefreshing) return; // Prevent concurrent refreshes
+    isRefreshing = true;
+    
     const grid = document.getElementById('servicesGrid');
     grid.innerHTML = services.map(s => renderServiceCard(s, null)).join('');
     
@@ -136,7 +149,10 @@ async function refreshAllStatus() {
         const online = await checkServiceStatus(service);
         statusCache[service.id] = online;
         updateServiceCard(service.id, online);
+        await delay(100); // Small delay between checks to avoid overwhelming server
     }
+    
+    isRefreshing = false;
 }
 
 function renderServiceCard(service, online) {
