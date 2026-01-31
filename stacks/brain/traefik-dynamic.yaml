@@ -217,7 +217,7 @@ http:
     ollama:
       loadBalancer:
         servers:
-          - url: "http://ollama:11434"
+          - url: "http://host.docker.internal:11434"
     litellm:
       loadBalancer:
         servers:
