@@ -17,6 +17,7 @@ import httpx
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from prometheus_fastapi_instrumentator import Instrumentator
 
 from schema import ensure_schema
 
@@ -67,6 +68,9 @@ app = FastAPI(
     version="2.1.0",
     lifespan=lifespan,
 )
+
+# Prometheus metrics instrumentation - exposes /metrics endpoint
+Instrumentator().instrument(app).expose(app)
 
 app.add_middleware(
     CORSMiddleware,
