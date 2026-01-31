@@ -37,6 +37,7 @@ SERVICE_URLS = {
     "clawdbot": (os.getenv("CLAWDBOT_URL", "http://clawdbot:18789"), "/"),
     "pgadmin": (os.getenv("PGADMIN_URL", "http://aria-pgadmin:80"), "/"),
     "browser": ("http://aria-browser:3000", "/"),
+    "traefik": (os.getenv("TRAEFIK_URL", "http://traefik:8080"), "/api/overview"),
 }
 
 STARTUP_TIME = datetime.utcnow()
@@ -135,6 +136,8 @@ async def health_check():
 @app.get("/status")
 async def api_status():
     results = {}
+    
+    # Check HTTP services
     async with httpx.AsyncClient(timeout=3.0) as client:
         for name, (base_url, health_path) in SERVICE_URLS.items():
             try:
@@ -143,11 +146,35 @@ async def api_status():
                 results[name] = {"status": "up", "code": resp.status_code}
             except Exception as e:
                 results[name] = {"status": "down", "code": None, "error": str(e)[:50]}
+    
+    # Check PostgreSQL via DB pool
+    if db_pool:
+        try:
+            async with db_pool.acquire() as conn:
+                await conn.execute("SELECT 1")
+            results["postgres"] = {"status": "up", "code": 200}
+        except Exception:
+            results["postgres"] = {"status": "down", "code": None}
+    else:
+        results["postgres"] = {"status": "down", "code": None}
+    
     return results
 
 
 @app.get("/status/{service_id}")
 async def api_status_service(service_id: str):
+    # Special handling for postgres
+    if service_id == "postgres":
+        if db_pool:
+            try:
+                async with db_pool.acquire() as conn:
+                    await conn.execute("SELECT 1")
+                return {"status": "online", "code": 200}
+            except Exception:
+                return {"status": "offline", "code": None}
+        return {"status": "offline", "code": None}
+    
+    # HTTP services
     service_info = SERVICE_URLS.get(service_id)
     if not service_info:
         raise HTTPException(status_code=404, detail="Unknown service")
