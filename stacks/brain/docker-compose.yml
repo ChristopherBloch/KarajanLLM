@@ -41,6 +41,7 @@ services:
 
   # Clawdbot Gateway - AI Assistant Control UI
   # Uses LiteLLM as backend to route to local Ollama (qwen3-vl) or cloud models
+  # Mounts aria_mind/ as workspace with aria_skills/, aria_agents/ for Python skill execution
   clawdbot:
     image: node:22-bookworm
     container_name: clawdbot
@@ -59,14 +60,32 @@ services:
       # Cloud fallbacks
       GOOGLE_GEMINI_KEY: ${GOOGLE_GEMINI_KEY}
       MOONSHOT_KIMI_KEY: ${MOONSHOT_KIMI_KEY}
+      # Database connection for Python skills
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@aria-db:5432/${DB_NAME}
+      # Ollama for local LLM
+      OLLAMA_URL: http://host.docker.internal:11434
+      OLLAMA_MODEL: qwen3-vl:8b
+      # Moltbook credentials
+      MOLTBOOK_TOKEN: ${MOLTBOOK_TOKEN}
+      MOLTBOOK_API_URL: ${MOLTBOOK_API_URL}
+      # Python path for Aria modules
+      PYTHONPATH: /root/.openclaw/workspace:/root/.openclaw/workspace/skills
     volumes:
       - openclaw_data:/root/.openclaw
-      - ../../aria_mind:/root/.openclaw/workspace:ro
+      # Mount aria_mind as the OpenClaw workspace (read-write for memory)
+      - ../../aria_mind:/root/.openclaw/workspace
+      # Mount Python skill modules into workspace/skills/
+      - ../../aria_skills:/root/.openclaw/workspace/skills/aria_skills:ro
+      - ../../aria_agents:/root/.openclaw/workspace/skills/aria_agents:ro
+      - ../../skills:/root/.openclaw/workspace/skills/legacy:ro
       - ./openclaw-entrypoint.sh:/openclaw-entrypoint.sh:ro
     ports:
       - "18789:18789"
     depends_on:
-      - litellm
+      aria-db:
+        condition: service_healthy
+      litellm:
+        condition: service_started
     command: ["bash", "/openclaw-entrypoint.sh"]
     networks:
       - aria-net

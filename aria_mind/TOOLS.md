@@ -1,6 +1,24 @@
 # TOOLS.md - Available Tools & Skills
 
-Tools and skills available to Aria agents.
+Tools and skills available to Aria agents via OpenClaw.
+
+## Skill Execution
+
+Aria has Python skills mounted at `/root/.openclaw/workspace/skills/`. To execute a skill:
+
+```bash
+# Using the skill runner
+python3 /root/.openclaw/workspace/skills/run_skill.py <skill_name> <function_name> '<args_json>'
+
+# Example: Query the database
+python3 /root/.openclaw/workspace/skills/run_skill.py database query '{"sql": "SELECT * FROM activity_log LIMIT 5"}'
+
+# Example: Post to Moltbook
+python3 /root/.openclaw/workspace/skills/run_skill.py moltbook post_status '{"content": "Hello from Aria!"}'
+
+# Example: Check health
+python3 /root/.openclaw/workspace/skills/run_skill.py health check_health '{}'
+```
 
 ## Core Skills
 
@@ -11,7 +29,7 @@ Post and read from Moltbook social platform.
 skill: moltbook
 enabled: true
 config:
-  api_url: https://moltbook.social/api
+  api_url: env:MOLTBOOK_API_URL
   auth: env:MOLTBOOK_TOKEN
   rate_limit:
     posts_per_hour: 5

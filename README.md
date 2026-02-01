@@ -2,122 +2,229 @@
 
 > An autonomous AI agent with sharp, efficient, and secure vibes.
 
-Aria is an autonomous AI agent built on the [OpenClaw](https://github.com/openclaw/openclaw) architecture. She integrates with Moltbook social platform, manages her own memory, and operates with a layered skill system.
+Aria is an autonomous AI agent built on the [OpenClaw](https://openclaw.ai) gateway architecture. She runs **local-first** with Qwen3-VL on Apple Silicon (Metal GPU), with Gemini cloud fallback. She integrates with Moltbook social platform, manages her own memory, and operates with a layered skill system.
 
 ## 🏗️ Architecture
 
 ```
-aria_mind/           # Core identity & configuration (OpenClaw workspace)
-├── SOUL.md          # Persona, boundaries, guidelines
-├── IDENTITY.md      # Name, emoji, avatar, handles
-├── AGENTS.md        # Sub-agent definitions
-├── TOOLS.md         # Available skills configuration
-├── HEARTBEAT.md     # Scheduled tasks, health checks
-├── BOOTSTRAP.md     # Initialization sequence
-├── MEMORY.md        # Long-term knowledge
-└── USER.md          # User profile
-
-aria_skills/         # API-safe skill interfaces
-├── base.py          # BaseSkill, SkillConfig, SkillResult
-├── registry.py      # SkillRegistry with TOOLS.md parser
-├── moltbook.py      # Moltbook social platform
-├── database.py      # PostgreSQL with asyncpg
-├── llm.py           # LLM skills (local + cloud)
-├── health.py        # Health monitoring
-└── goals.py         # Goal & task scheduling
-
-aria_agents/         # Multi-agent orchestration
-├── base.py          # BaseAgent, AgentConfig, AgentMessage
-├── loader.py        # AGENTS.md parser
-└── coordinator.py   # Agent lifecycle & routing
-
-tests/               # pytest test suite
-├── conftest.py      # Fixtures
-├── test_skills.py   # Skill unit tests
-├── test_agents.py   # Agent unit tests
-└── test_integration.py  # End-to-end tests
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         OpenClaw Gateway (clawdbot:18789)                │
+│  ┌────────────────────────────────────────────────────────────────┐     │
+│  │  aria_mind/ (Workspace - mounted read-only)                    │     │
+│  │  ├── SOUL.md        # Persona, boundaries, model preferences   │     │
+│  │  ├── IDENTITY.md    # Name: Aria Blue ⚡️                       │     │
+│  │  ├── AGENTS.md      # Sub-agent definitions                    │     │
+│  │  ├── TOOLS.md       # Available skills configuration           │     │
+│  │  ├── HEARTBEAT.md   # Scheduled tasks checklist                │     │
+│  │  ├── MEMORY.md      # Long-term curated knowledge              │     │
+│  │  └── USER.md        # User profile (Najia)                     │     │
+│  └────────────────────────────────────────────────────────────────┘     │
+│                                    │                                     │
+│                      Model: litellm/qwen3-local                         │
+│                      Fallbacks: gemini-2.0-flash, gemini-2.5-flash      │
+└─────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           LiteLLM Router (:18793)                        │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │  qwen3-local     → ollama/qwen3-vl:8b (Metal GPU, ~20 tok/s)    │    │
+│  │  gpt-4o          → ollama/qwen3-vl:8b (alias)                   │    │
+│  │  local-default   → ollama/qwen3-vl:8b (alias)                   │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    PostgreSQL 16 (aria-db:5432)                          │
+│  ┌─────────────────────────┐    ┌─────────────────────────┐             │
+│  │    aria_warehouse       │    │       litellm           │             │
+│  │  ├── activity_log       │    │  ├── LiteLLM_* tables   │             │
+│  │  ├── memories           │    │  └── (Prisma managed)   │             │
+│  │  ├── thoughts           │    └─────────────────────────┘             │
+│  │  ├── goals              │                                            │
+│  │  ├── social_posts       │    ⚠️ SEPARATE databases prevent           │
+│  │  └── heartbeat_log      │       LiteLLM Prisma from dropping        │
+│  └─────────────────────────┘       Aria's tables!                       │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Infrastructure
+### Directory Structure
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Docker Stack                             │
-├─────────────────────────────────────────────────────────────┤
-│  traefik          │ HTTPS reverse proxy                     │
-│  aria-db          │ PostgreSQL database                     │
-│  aria-api         │ FastAPI data API                        │
-│  aria-web         │ Flask UI portal                         │
-│  aria-brain       │ Main agent container                    │
-│  litellm          │ LLM router                              │
-│  grafana          │ Monitoring dashboards                   │
-│  prometheus       │ Metrics collection                      │
-│  pgadmin          │ Database admin UI                       │
-│  clawdbot         │ OpenClaw gateway                        │
-└─────────────────────────────────────────────────────────────┘
+Aria_moltbot/
+├── aria_mind/           # OpenClaw workspace (mounted to clawdbot)
+│   ├── SOUL.md          # Persona, boundaries, model preferences
+│   ├── IDENTITY.md      # Name: Aria Blue, emoji: ⚡️
+│   ├── AGENTS.md        # Sub-agent definitions
+│   ├── TOOLS.md         # Available skills & execution guide
+│   ├── HEARTBEAT.md     # Scheduled tasks checklist
+│   ├── MEMORY.md        # Long-term curated knowledge
+│   ├── USER.md          # User profile (Najia)
+│   ├── soul/            # Python soul implementation
+│   │   ├── identity.py
+│   │   ├── values.py
+│   │   └── boundaries.py
+│   └── skills/          # Python skill modules (mounted at runtime)
+│       ├── aria_skills/ # Core skill implementations
+│       ├── aria_agents/ # Multi-agent orchestration
+│       └── legacy/      # Original skill implementations
+│
+├── aria_skills/         # Skill implementations (Python)
+│   ├── base.py          # BaseSkill, SkillConfig, SkillResult
+│   ├── registry.py      # SkillRegistry with TOOLS.md parser
+│   ├── moltbook.py      # Moltbook social platform integration
+│   ├── database.py      # PostgreSQL with asyncpg
+│   ├── llm.py           # LLM routing (local Ollama + cloud fallback)
+│   ├── health.py        # Health monitoring
+│   ├── knowledge_graph.py # Knowledge graph
+│   └── goals.py         # Goal & task scheduling
+│
+├── aria_agents/         # Multi-agent orchestration
+│   ├── base.py          # BaseAgent, AgentConfig, AgentMessage
+│   ├── loader.py        # AGENTS.md parser
+│   └── coordinator.py   # Agent lifecycle & routing
+│
+├── skills/              # Legacy skill implementations
+│   ├── moltbook_poster.py
+│   ├── goal_scheduler.py
+│   ├── health_monitor.py
+│   └── knowledge_graph.py
+│
+├── stacks/brain/        # Docker deployment (PRIMARY)
+│   ├── docker-compose.yml        # Full stack orchestration
+│   ├── openclaw-entrypoint.sh    # OpenClaw startup with Python skills
+│   ├── openclaw-config.json      # OpenClaw provider template
+│   ├── litellm-config.yaml       # Model routing (qwen3 → Ollama)
+│   ├── init-scripts/             # PostgreSQL initialization
+│   │   ├── 00-create-litellm-db.sh  # Creates separate litellm database
+│   │   └── 01-schema.sql            # Aria's 8 core tables
+│   ├── prometheus.yml            # Prometheus scrape config
+│   └── .env                      # Environment configuration
+│
+└── tests/               # pytest test suite
+    ├── conftest.py      # Fixtures
+    ├── test_skills.py   # Skill unit tests
+    └── test_agents.py   # Agent unit tests
+```
 
-Native Ollama (Metal GPU) runs alongside Docker for optimal performance.
+## 🧠 Model Configuration
+
+Aria uses **local-first** LLM routing through LiteLLM:
+
+| Priority | Model Alias | Routes To | Provider |
+|----------|-------------|-----------|----------|
+| 1 (Primary) | `litellm/qwen3-local` | `ollama/qwen3-vl:8b` | Local Ollama (Metal GPU) |
+| 2 (Fallback) | `google/gemini-2.0-flash` | Gemini API | Google Cloud |
+| 3 (Fallback) | `google/gemini-2.5-flash` | Gemini API | Google Cloud |
+
+OpenClaw configuration (generated by `openclaw-entrypoint.sh`):
+```json
+{
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "litellm/qwen3-local",
+        "fallbacks": ["google/gemini-2.0-flash", "google/gemini-2.5-flash"]
+      }
+    }
+  },
+  "models": {
+    "providers": {
+      "litellm": {
+        "baseUrl": "http://litellm:4000/v1/",
+        "apiKey": "${CLAWDBOT_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+## 🐳 Infrastructure
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Docker Stack (stacks/brain)                  │
+├─────────────────────────────────────────────────────────────────┤
+│  traefik          │ HTTPS reverse proxy (ports 80/443)          │
+│  aria-db          │ PostgreSQL 16 (aria_warehouse + litellm)    │
+│  aria-api         │ FastAPI data API (port 8000)                │
+│  aria-web         │ Flask UI portal (port 5000)                 │
+│  aria-brain       │ Python agent container                      │
+│  litellm          │ LLM router (port 18793 → internal 4000)     │
+│  clawdbot         │ OpenClaw gateway (port 18789)               │
+│  grafana          │ Monitoring dashboards (port 3001)           │
+│  prometheus       │ Metrics collection (port 9090)              │
+│  pgadmin          │ Database admin UI (port 5050)               │
+└─────────────────────────────────────────────────────────────────┘
+
+Native Service (macOS host @ 192.168.1.53):
+┌─────────────────────────────────────────────────────────────────┐
+│  Ollama           │ Metal GPU acceleration (~20 tok/s)          │
+│                   │ OLLAMA_HOST=0.0.0.0:11434                   │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Python 3.10+
+- macOS with Apple Silicon (M1/M2/M3/M4) for Metal GPU acceleration
 - Docker & Docker Compose
-- macOS with Apple Silicon (for native Ollama with Metal GPU)
+- Git
 
-### Installation
+### One-Button Deploy
 
 ```bash
-# Clone the repository
-git clone https://github.com/aria-blue/aria.git
-cd aria
+# 1. Clone the repository
+git clone https://github.com/Najia-afk/Aria_moltbot.git
+cd Aria_moltbot/stacks/brain
 
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+# 2. Configure environment
+cp .env.example .env
+nano .env  # Add your API keys
 
-# Install dependencies
-pip install -e ".[dev]"
+# 3. Start native Ollama on Mac (Metal GPU - REQUIRED)
+ssh your-mac "OLLAMA_HOST=0.0.0.0:11434 nohup ollama serve > /dev/null 2>&1 &"
+ssh your-mac "ollama pull qwen3-vl:8b"
+
+# 4. Deploy everything
+docker compose up -d
+
+# 5. Verify
+docker compose ps
+curl http://localhost:18789/health
 ```
 
-### Configuration
-
-Copy `stacks/brain/.env.example` to `stacks/brain/.env` and fill in your values:
+### Configuration (.env)
 
 ```env
-# Database
+# Database (creates TWO databases: aria_warehouse + litellm)
 DB_USER=aria_admin
-DB_PASSWORD=YOUR_PASSWORD
+DB_PASSWORD=your_secure_password
 DB_NAME=aria_warehouse
 
-# Native Ollama (Metal GPU - runs on host, not Docker)
-OLLAMA_URL=http://host.docker.internal:11434
-OLLAMA_MODEL=qwen3-vl:8b
+# LiteLLM (routes to local Ollama)
+LITELLM_MASTER_KEY=sk-aria-local-key
 
-# LLM APIs (fallback)
+# Cloud fallbacks (required for gemini fallback)
 GOOGLE_GEMINI_KEY=your_gemini_key
-MOONSHOT_KIMI_KEY=your_moonshot_key
+MOONSHOT_KIMI_KEY=your_moonshot_key  # Optional
+
+# OpenClaw Gateway
+CLAWDBOT_TOKEN=your_secure_gateway_token
+
+# Host configuration
+SERVICE_HOST=192.168.1.53
 ```
 
-### Running Native Ollama (Metal GPU)
-
-On macOS with Apple Silicon, run Ollama natively for GPU acceleration:
-
-```bash
-# Start native Ollama (Metal GPU)
-OLLAMA_HOST=0.0.0.0:11434 ollama serve
-
-# In another terminal, pull the model
-ollama pull qwen3-vl:8b
-```
-
-### Running Docker Stack
+### Fresh Deploy (Nuke & Rebuild)
 
 ```bash
 cd stacks/brain
-docker compose up -d
+docker compose down -v          # Remove containers AND volumes
+docker compose up -d            # Rebuild from scratch
+docker compose ps               # Verify all 12 services healthy
 ```
 
 ## 🧪 Testing
@@ -140,7 +247,7 @@ pytest tests/test_skills.py -v
 | Traefik | 80/443 | HTTPS routing |
 | API | 8000 | FastAPI backend |
 | Web | 5000 | Flask UI |
-| LiteLLM | 18793 | LLM router |
+| LiteLLM | 18793 | LLM router (→ Ollama) |
 | Grafana | 3001 | Monitoring |
 | PGAdmin | 5050 | DB admin |
 | Clawdbot | 18789 | OpenClaw gateway |
@@ -160,16 +267,56 @@ Agents defined in `aria_mind/AGENTS.md`:
 
 ## 📝 Skills
 
-Available skills in `aria_mind/TOOLS.md`:
+Available skills in `aria_mind/TOOLS.md` (executed via Python):
 
-| Skill | Description | Rate Limit |
-|-------|-------------|------------|
-| `moltbook` | Social platform | 5/hr, 20/day |
-| `database` | PostgreSQL | - |
-| `gemini` | Google LLM | 60/min |
-| `moonshot` | Moonshot LLM | 10/min |
-| `health_monitor` | System health | - |
-| `goal_scheduler` | Task scheduling | - |
+| Skill | Description | Execution |
+|-------|-------------|-----------|
+| `moltbook` | Social platform | `python3 run_skill.py moltbook post_status '{...}'` |
+| `database` | PostgreSQL queries | `python3 run_skill.py database query '{...}'` |
+| `knowledge_graph` | Entity relationships | `python3 run_skill.py knowledge_graph add_entity '{...}'` |
+| `health` | System monitoring | `python3 run_skill.py health check_health '{}'` |
+| `goals` | Task scheduling | `python3 run_skill.py goals create_goal '{...}'` |
+| `llm` | Local LLM calls | `python3 run_skill.py llm generate '{...}'` |
+
+### Skill Architecture
+
+```
+OpenClaw exec tool
+       │
+       ▼
+python3 run_skill.py <skill> <function> '<args_json>'
+       │
+       ▼
+┌──────────────────────────────────────────────────┐
+│  /root/.openclaw/workspace/skills/               │
+│  ├── aria_skills/     # Core Python skills       │
+│  │   ├── base.py      # BaseSkill class          │
+│  │   ├── database.py  # PostgreSQL operations    │
+│  │   ├── moltbook.py  # Social platform          │
+│  │   ├── llm.py       # LLM routing              │
+│  │   ├── health.py    # Health monitoring        │
+│  │   ├── goals.py     # Goal tracking            │
+│  │   └── knowledge_graph.py                      │
+│  ├── aria_agents/     # Agent orchestration      │
+│  │   ├── base.py      # BaseAgent class          │
+│  │   ├── loader.py    # AGENTS.md parser         │
+│  │   └── coordinator.py                          │
+│  └── legacy/          # Original skills          │
+└──────────────────────────────────────────────────┘
+```
+
+## 🔧 OpenClaw Features
+
+OpenClaw provides Aria with powerful capabilities:
+
+- **Exec Tool**: Run shell commands with background process support
+- **Process Tool**: Manage long-running sessions (poll, kill, clear)
+- **Heartbeat**: Periodic agent turns every 30 minutes (configurable)
+- **Memory Search**: Vector-based semantic search over MEMORY.md and memory/ files
+- **Session Management**: Auto-compaction when context window fills up
+- **Multi-Agent Routing**: Route different channels to different agents
+
+See [OpenClaw documentation](https://openclaw.ai/docs) for full details.
 
 ## 📄 License
 
