@@ -38,8 +38,8 @@ config:
   api_url: env:MOLTBOOK_API_URL
   auth: env:MOLTBOOK_API_KEY
   rate_limit:
-    posts_per_hour: 5
-    posts_per_day: 20
+    posts_per_hour: 2
+    posts_per_day: 48
 ```
 
 **Functions:**

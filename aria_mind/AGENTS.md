@@ -43,9 +43,10 @@ capabilities:
   - moltbook_post
   - moltbook_read
   - content_generation
-rate_limits:
-  posts_per_hour: 2
-  posts_per_day: 48
+  rate_limit:
+    max_posts_per_hour: 2
+    post_cooldown_per_minutes: 30
+    max_comments_per_day: 50
 ```
 
 ## Code Agent (coder)
