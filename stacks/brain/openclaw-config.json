@@ -16,11 +16,11 @@
     "defaults": {
       "maxConcurrent": 4,
       "model": {
-        "primary": "litellm/qwen3-local",
+        "primary": "litellm/glm-local",
         "fallbacks": ["litellm/kimi-local"]
       },
       "models": {
-        "litellm/qwen3-local": { "alias": "Qwen3 Local" },
+        "litellm/glm-local": { "alias": "GLM-4.7 Local" },
         "litellm/kimi-local": { "alias": "Kimi K2 Local" }
       },
       "subagents": {
@@ -37,12 +37,12 @@
         "api": "openai-responses",
         "models": [
           {
-            "id": "qwen3-local",
-            "name": "Qwen3-VL 8B via LiteLLM",
+            "id": "glm-local",
+            "name": "GLM-4.7-Flash-REAP 23B via LiteLLM",
             "reasoning": false,
-            "input": ["text", "image"],
+            "input": ["text"],
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 32768,
+            "contextWindow": 202752,
             "maxTokens": 8192
           }
         ]
