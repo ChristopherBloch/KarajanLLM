@@ -209,12 +209,12 @@ cat > /root/.openclaw/openclaw.json << EOF
       "maxConcurrent": 4,
       "workspace": "/root/.openclaw/workspace",
       "model": {
-        "primary": "ollama/hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S",
-        "fallbacks": ["ollama/qwen3-vl:8b"]
+        "primary": "litellm/glm-local",
+        "fallbacks": ["litellm/qwen3-vl"]
       },
       "models": {
-        "ollama/hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S": { "alias": "GLM-4.7 Flash" },
-        "ollama/qwen3-vl:8b": { "alias": "Qwen3-VL" }
+        "litellm/glm-local": { "alias": "GLM-4.7 Flash" },
+        "litellm/qwen3-vl": { "alias": "Qwen3-VL" }
       },
       "subagents": {
         "maxConcurrent": 8
@@ -225,8 +225,7 @@ cat > /root/.openclaw/openclaw.json << EOF
         "prompt": "Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK."
       },
       "memorySearch": {
-        "enabled": true,
-        "provider": "openai",
+        "enabled": false,
         "fallback": "none"
       }
     },
@@ -254,13 +253,13 @@ cat > /root/.openclaw/openclaw.json << EOF
   "models": {
     "mode": "merge",
     "providers": {
-      "ollama": {
-        "baseUrl": "http://host.docker.internal:11434/v1",
-        "apiKey": "ollama",
-        "api": "openai-responses",
+      "litellm": {
+        "baseUrl": "http://litellm:4000/v1",
+        "apiKey": "sk-aria-local-key",
+        "api": "openai-completions",
         "models": [
           {
-            "id": "hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S",
+            "id": "glm-local",
             "name": "GLM-4.7 Flash REAP",
             "reasoning": false,
             "input": ["text"],
@@ -269,7 +268,7 @@ cat > /root/.openclaw/openclaw.json << EOF
             "maxTokens": 8192
           },
           {
-            "id": "qwen3-vl:8b",
+            "id": "qwen3-vl",
             "name": "Qwen3-VL",
             "reasoning": false,
             "input": ["text", "image"],
