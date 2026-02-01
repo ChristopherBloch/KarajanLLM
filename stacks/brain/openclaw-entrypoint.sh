@@ -200,12 +200,12 @@ cat > /root/.openclaw/openclaw.json << EOF
       "maxConcurrent": 4,
       "workspace": "/root/.openclaw/workspace",
       "model": {
-        "primary": "litellm/qwen3-local",
+        "primary": "litellm/qwen-local",
         "fallbacks": ["litellm/kimi-local"]
       },
       "models": {
-        "litellm/qwen3-local": { "alias": "Qwen3-VL 8B Local" },
-        "litellm/kimi-local": { "alias": "Kimi K2 Local" }
+        "litellm/qwen-local": { "alias": "Qwen2.5 7B Local" },
+        "litellm/kimi-local": { "alias": "Kimi K2.5 Fallback" }
       },
       "subagents": {
         "maxConcurrent": 8
@@ -248,13 +248,13 @@ cat > /root/.openclaw/openclaw.json << EOF
       "litellm": {
         "baseUrl": "http://litellm:4000/v1",
         "apiKey": "${LITELLM_MASTER_KEY}",
-        "api": "openai-completions",
+        "api": "openai-responses",
         "models": [
           {
-            "id": "qwen3-local",
-            "name": "Qwen3-VL 8B via LiteLLM",
-            "reasoning": true,
-            "input": ["text", "image"],
+            "id": "qwen-local",
+            "name": "Qwen2.5 7B via LiteLLM",
+            "reasoning": false,
+            "input": ["text"],
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
             "contextWindow": 32768,
             "maxTokens": 8192

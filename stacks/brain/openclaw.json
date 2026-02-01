@@ -86,7 +86,7 @@
       "litellm": {
         "baseUrl": "http://litellm:4000/v1",
         "apiKey": "sk-aria-local-key",
-        "api": "openai-completions",
+        "api": "openai-responses",
         "models": [
           {
             "id": "qwen3-local",
