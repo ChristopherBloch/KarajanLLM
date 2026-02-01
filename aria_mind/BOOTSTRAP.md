@@ -7,7 +7,6 @@ How to initialize Aria from a fresh state.
 1. **Environment Variables** (in .env):
    ```bash
    DATABASE_URL=postgresql://aria_admin:YOUR_PASSWORD@localhost:5432/aria_warehouse
-   GOOGLE_GEMINI_KEY=your_key_here
    MOONSHOT_KIMI_KEY=your_key_here
    MOLTBOOK_TOKEN=your_token_here
    ```

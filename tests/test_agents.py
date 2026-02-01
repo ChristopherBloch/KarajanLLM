@@ -19,7 +19,7 @@ class TestAgentConfig:
             id="test",
             name="Test Agent",
             role=AgentRole.COORDINATOR,
-            model="gemini-pro",
+            model="moonshot-v1-8k",
         )
         
         assert config.id == "test"
@@ -34,7 +34,7 @@ class TestAgentConfig:
             id="child",
             name="Child Agent",
             role=AgentRole.RESEARCHER,
-            model="gemini-pro",
+            model="moonshot-v1-8k",
             parent="parent_agent",
         )
         
@@ -74,12 +74,12 @@ class TestAgentLoader:
         content = """# Agents
 
 ## Aria
-- model: gemini-pro
+    - model: moonshot-v1-8k
 - role: coordinator
-- skills: [gemini, database]
+    - skills: [moonshot, database]
 
 ## Researcher
-- model: gemini-pro
+    - model: moonshot-v1-8k
 - parent: aria
 - role: researcher
 - capabilities: [search, summarize]
@@ -90,7 +90,7 @@ class TestAgentLoader:
         assert "aria" in agents
         assert "researcher" in agents
         assert agents["researcher"].parent == "aria"
-        assert agents["aria"].model == "gemini-pro"
+        assert agents["aria"].model == "moonshot-v1-8k"
     
     def test_get_agent_hierarchy(self):
         """Test building agent hierarchy."""
@@ -99,20 +99,20 @@ class TestAgentLoader:
                 id="aria",
                 name="Aria",
                 role=AgentRole.COORDINATOR,
-                model="gemini-pro",
+                model="moonshot-v1-8k",
             ),
             "researcher": AgentConfig(
                 id="researcher",
                 name="Researcher",
                 role=AgentRole.RESEARCHER,
-                model="gemini-pro",
+                model="moonshot-v1-8k",
                 parent="aria",
             ),
             "coder": AgentConfig(
                 id="coder",
                 name="Coder",
                 role=AgentRole.CODER,
-                model="gemini-pro",
+                model="moonshot-v1-8k",
                 parent="aria",
             ),
         }
@@ -140,7 +140,7 @@ class TestLLMAgent:
     @pytest.mark.asyncio
     async def test_process_with_llm(self, mock_agent_config, mock_llm_skill, skill_registry):
         """Test processing with LLM skill."""
-        skill_registry._skills["gemini"] = mock_llm_skill
+        skill_registry._skills["moonshot"] = mock_llm_skill
         
         agent = LLMAgent(mock_agent_config, skill_registry)
         response = await agent.process("Hello")
@@ -199,7 +199,7 @@ class TestAgentCoordinator:
     @pytest.mark.asyncio
     async def test_process_message(self, aria_mind_path, skill_registry, mock_llm_skill):
         """Test processing a message."""
-        skill_registry._skills["gemini"] = mock_llm_skill
+        skill_registry._skills["moonshot"] = mock_llm_skill
         
         coordinator = AgentCoordinator(skill_registry)
         await coordinator.load_from_file(f"{aria_mind_path}/AGENTS.md")
@@ -231,7 +231,7 @@ class TestAgentDelegation:
             id="child",
             name="Child",
             role=AgentRole.RESEARCHER,
-            model="gemini-pro",
+            model="moonshot-v1-8k",
             parent="test_agent",
         )
         child = LLMAgent(child_config)
@@ -250,7 +250,7 @@ class TestAgentDelegation:
             id="child",
             name="Child",
             role=AgentRole.RESEARCHER,
-            model="gemini-pro",
+            model="moonshot-v1-8k",
         )
         child = LLMAgent(child_config)
         parent.add_sub_agent(child)

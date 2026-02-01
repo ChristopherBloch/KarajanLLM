@@ -73,12 +73,12 @@ class TestSkillAgentInteraction:
         from aria_agents.coordinator import LLMAgent
         
         registry = SkillRegistry()
-        registry._skills["gemini"] = mock_llm_skill
+        registry._skills["moonshot"] = mock_llm_skill
         
         agent = LLMAgent(mock_agent_config, registry)
         
         # Use skill directly
-        result = await agent.use_skill("gemini", "generate", prompt="Test")
+        result = await agent.use_skill("moonshot", "generate", prompt="Test")
         
         assert result.success
         assert "text" in result.data

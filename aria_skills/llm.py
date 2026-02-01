@@ -1,6 +1,5 @@
 # aria_skills/llm.py
-"""
-LLM skills for Gemini and Moonshot.
+"""LLM skills for Moonshot and Ollama.
 
 Handles model selection, prompting, and response parsing.
 """
@@ -41,208 +40,6 @@ class BaseLLMSkill(BaseSkill):
     ) -> SkillResult:
         """Multi-turn chat with the model."""
         pass
-
-
-@SkillRegistry.register
-class GeminiSkill(BaseLLMSkill):
-    """
-    Google Gemini API skill.
-    
-    Config:
-        api_key: Gemini API key (use env:GOOGLE_GEMINI_KEY)
-        model: Model name (default: gemini-3-flash)
-        
-    Uses:
-        - General conversation
-        - Fact-based answers
-        - Social media content
-    """
-    
-    MODELS = {
-        "gemini-3-pro": "Most capable",
-        "gemini-3-flash": "Fast, efficient (recommended)",
-        "gemini-2.5-flash": "Strong quality/speed",
-        "gemini-2.0-flash": "Stable, fast",
-        "gemini-banana": "Alias (experimental)",
-    }
-    
-    def __init__(self, config: SkillConfig):
-        super().__init__(config)
-        self._model = config.config.get("model", "gemini-3-flash")
-        self._base_url = "https://generativelanguage.googleapis.com/v1beta"
-    
-    @property
-    def name(self) -> str:
-        return "gemini"
-    
-    async def initialize(self) -> bool:
-        """Initialize Gemini API."""
-        self._api_key = self._get_env_value("api_key")
-        
-        if not self._api_key:
-            self.logger.error("No API key configured")
-            self._status = SkillStatus.UNAVAILABLE
-            return False
-        
-        status = await self.health_check()
-        return status == SkillStatus.AVAILABLE
-    
-    async def health_check(self) -> SkillStatus:
-        """Verify API key works."""
-        if not self._api_key:
-            self._status = SkillStatus.UNAVAILABLE
-            return self._status
-        
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    f"{self._base_url}/models",
-                    params={"key": self._api_key},
-                    timeout=10,
-                )
-                
-                if response.status_code == 200:
-                    self._status = SkillStatus.AVAILABLE
-                elif response.status_code == 401:
-                    self.logger.error("Invalid API key")
-                    self._status = SkillStatus.UNAVAILABLE
-                elif response.status_code == 429:
-                    self._status = SkillStatus.RATE_LIMITED
-                else:
-                    self._status = SkillStatus.ERROR
-                    
-        except Exception as e:
-            self.logger.error(f"Health check failed: {e}")
-            self._status = SkillStatus.ERROR
-        
-        return self._status
-    
-    async def generate(
-        self,
-        prompt: str,
-        system_prompt: Optional[str] = None,
-        temperature: float = 0.7,
-        max_tokens: int = 1024,
-    ) -> SkillResult:
-        """
-        Generate content with Gemini.
-        
-        Args:
-            prompt: User prompt
-            system_prompt: Optional system instruction
-            temperature: Creativity (0-1)
-            max_tokens: Max response length
-            
-        Returns:
-            SkillResult with generated text
-        """
-        if not self.is_available:
-            return SkillResult.fail("Gemini not available")
-        
-        # Build content
-        contents = []
-        if system_prompt:
-            contents.append({"role": "user", "parts": [{"text": system_prompt}]})
-            contents.append({"role": "model", "parts": [{"text": "Understood."}]})
-        contents.append({"role": "user", "parts": [{"text": prompt}]})
-        
-        payload = {
-            "contents": contents,
-            "generationConfig": {
-                "temperature": temperature,
-                "maxOutputTokens": max_tokens,
-            },
-        }
-        
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{self._base_url}/models/{self._model}:generateContent",
-                    params={"key": self._api_key},
-                    json=payload,
-                    timeout=60,
-                )
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    text = data["candidates"][0]["content"]["parts"][0]["text"]
-                    self._log_usage("generate", True)
-                    
-                    return SkillResult.ok({
-                        "text": text,
-                        "model": self._model,
-                        "usage": data.get("usageMetadata", {}),
-                    })
-                elif response.status_code == 429:
-                    self._status = SkillStatus.RATE_LIMITED
-                    return SkillResult.fail("Rate limited")
-                else:
-                    self._log_usage("generate", False)
-                    return SkillResult.fail(f"HTTP {response.status_code}: {response.text}")
-                    
-        except Exception as e:
-            self._log_usage("generate", False)
-            return SkillResult.fail(str(e))
-    
-    async def chat(
-        self,
-        messages: List[Dict[str, str]],
-        temperature: float = 0.7,
-        max_tokens: int = 1024,
-    ) -> SkillResult:
-        """
-        Multi-turn chat with Gemini.
-        
-        Args:
-            messages: List of {"role": "user"|"model", "content": "..."}
-            temperature: Creativity (0-1)
-            max_tokens: Max response length
-            
-        Returns:
-            SkillResult with model response
-        """
-        if not self.is_available:
-            return SkillResult.fail("Gemini not available")
-        
-        # Convert to Gemini format
-        contents = [
-            {"role": msg["role"], "parts": [{"text": msg["content"]}]}
-            for msg in messages
-        ]
-        
-        payload = {
-            "contents": contents,
-            "generationConfig": {
-                "temperature": temperature,
-                "maxOutputTokens": max_tokens,
-            },
-        }
-        
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{self._base_url}/models/{self._model}:generateContent",
-                    params={"key": self._api_key},
-                    json=payload,
-                    timeout=60,
-                )
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    text = data["candidates"][0]["content"]["parts"][0]["text"]
-                    self._log_usage("chat", True)
-                    
-                    return SkillResult.ok({
-                        "text": text,
-                        "model": self._model,
-                    })
-                else:
-                    self._log_usage("chat", False)
-                    return SkillResult.fail(f"HTTP {response.status_code}")
-                    
-        except Exception as e:
-            self._log_usage("chat", False)
-            return SkillResult.fail(str(e))
 
 
 @SkillRegistry.register
@@ -426,7 +223,7 @@ class OllamaSkill(BaseLLMSkill):
     
     Config:
         url: Ollama server URL (default: http://ollama:11434)
-        model: Model name (default from env:OLLAMA_MODEL or qwen3-vl:8b)
+        model: Model name (default from env:OLLAMA_MODEL or GLM-4.7 Q3_K_S)
         
     This is Aria's primary thinking engine - local, private, fast.
     """
@@ -441,7 +238,13 @@ class OllamaSkill(BaseLLMSkill):
     def __init__(self, config: SkillConfig):
         super().__init__(config)
         # Respect environment config first, then SOUL.md defaults
-        self._model = os.getenv("OLLAMA_MODEL", config.config.get("model", "qwen3-vl:8b"))
+        self._model = os.getenv(
+            "OLLAMA_MODEL",
+            config.config.get(
+                "model",
+                "hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S",
+            ),
+        )
         self._base_url = os.getenv("OLLAMA_URL", config.config.get("url", "http://ollama:11434"))
     
     @property

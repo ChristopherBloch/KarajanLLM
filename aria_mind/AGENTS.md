@@ -22,7 +22,7 @@ Specialized agent for deep research and analysis.
 
 ```yaml
 id: researcher
-model: gemini-3-pro
+model: kimi-k2-thinking
 parent: aria
 capabilities:
   - web_search
@@ -37,7 +37,7 @@ Handles social media interactions (Moltbook, etc).
 
 ```yaml
 id: social
-model: gemini-3-flash
+model: kimi-k2.5
 parent: aria
 capabilities:
   - moltbook_post

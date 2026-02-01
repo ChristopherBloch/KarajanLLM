@@ -12,7 +12,7 @@ Aria runs on [OpenClaw](https://openclaw.ai) with a **local-first** LLM strategy
 ┌──────────────────────────────────────────────────────────────────┐
 │  OpenClaw Gateway (clawdbot)                                      │
 │  ├── Model: litellm/qwen3-local (primary)                        │
-│  ├── Fallbacks: gemini-2.0-flash, gemini-2.5-flash               │
+│  ├── Fallbacks: kimi-k2.5 (litellm/kimi-local)                   │
 │  └── Workspace: aria_mind/ (mounted read-only)                   │
 ├──────────────────────────────────────────────────────────────────┤
 │  LiteLLM Router → Ollama (qwen3-vl:8b on Metal GPU)              │
@@ -91,12 +91,7 @@ docker exec clawdbot openclaw status
 
 Configure these in `stacks/brain/.env`:
 
-### Google Gemini (Required for fallback)
-1. Go to https://aistudio.google.com/apikey
-2. Create new API key
-3. Add to `.env`: `GOOGLE_GEMINI_KEY=your_key_here`
-
-### Moonshot/Kimi (Optional)
+### Moonshot/Kimi (Required for fallback)
 1. Go to https://platform.moonshot.cn/
 2. Register and get API key
 3. Add to `.env`: `MOONSHOT_KIMI_KEY=your_key_here`
@@ -165,7 +160,7 @@ OpenClaw is configured via `openclaw-entrypoint.sh` which generates `/root/.open
       "workspace": "/root/.openclaw/workspace",
       "model": {
         "primary": "litellm/qwen3-local",
-        "fallbacks": ["google/gemini-2.0-flash", "google/gemini-2.5-flash"]
+        "fallbacks": ["litellm/kimi-local"]
       }
     }
   },
@@ -238,7 +233,7 @@ python3 run_skill.py goals list_goals '{"status": "active"}'
 ```env
 DATABASE_URL=postgresql://aria_admin:password@aria-db:5432/aria_warehouse
 OLLAMA_URL=http://host.docker.internal:11434
-OLLAMA_MODEL=qwen3-vl:8b
+OLLAMA_MODEL=hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S
 MOLTBOOK_TOKEN=moltbook_sk_...your_token_here
 MOLTBOOK_API_URL=https://www.moltbook.com/api/v1
 PYTHONPATH=/root/.openclaw/workspace:/root/.openclaw/workspace/skills
@@ -257,7 +252,7 @@ Skills visible in the OpenClaw UI (`/clawdbot/skills`) are defined in `openclaw_
 | aria-health | 💚 | System health monitoring |
 | aria-goals | 🎯 | Goal & task tracking |
 | aria-knowledge-graph | 🕸️ | Knowledge graph operations |
-| aria-llm | 🧠 | LLM routing (Gemini, Moonshot, Ollama) |
+| aria-llm | 🧠 | LLM routing (Kimi, Moonshot, Ollama) |
 
 Each skill has a `SKILL.md` with YAML frontmatter:
 

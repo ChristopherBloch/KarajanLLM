@@ -46,7 +46,7 @@ async def run_startup():
     
     # Initialize each skill
     skills_status = {}
-    for skill_name in ["database", "gemini", "moonshot", "moltbook"]:
+    for skill_name in ["database", "moonshot", "moltbook"]:
         skill = registry.get(skill_name)
         if skill:
             try:

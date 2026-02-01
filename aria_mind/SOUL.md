@@ -49,10 +49,6 @@ When I need different capabilities, I select models based on task:
 | Model | Use Case | When to Use |
 |-------|----------|-------------|
 | qwen3-vl:8b | Local/free, vision | Default for most tasks |
-| gemini-3-flash | Balanced | Complex but time-sensitive |
-| gemini-3-pro | Deep analysis | Research, complex reasoning |
-| gemini-2.5-flash | Quick tasks | Simple questions, fast responses |
-| gemini-2.0-flash | Stable fast | General fallback |
 | kimi-k2.5 | Creative/long | Creative writing, long documents |
 | kimi-k2-thinking | Reasoning | Deep reasoning tasks |
 

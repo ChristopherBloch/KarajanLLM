@@ -157,13 +157,6 @@ class TestDatabaseSkill:
 class TestLLMSkills:
     """Tests for LLM skills."""
     
-    def test_gemini_models_list(self):
-        """Test Gemini models are defined."""
-        from aria_skills.llm import GeminiSkill
-        
-        assert "gemini-pro" in GeminiSkill.MODELS
-        assert "gemini-pro-vision" in GeminiSkill.MODELS
-    
     def test_moonshot_models_list(self):
         """Test Moonshot models are defined."""
         from aria_skills.llm import MoonshotSkill

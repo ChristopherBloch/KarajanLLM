@@ -58,13 +58,12 @@ services:
       # LiteLLM credentials for local model routing
       LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY}
       # Cloud fallbacks
-      GOOGLE_GEMINI_KEY: ${GOOGLE_GEMINI_KEY}
       MOONSHOT_KIMI_KEY: ${MOONSHOT_KIMI_KEY}
       # Database connection for Python skills
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@aria-db:5432/${DB_NAME}
       # Ollama for local LLM
       OLLAMA_URL: http://host.docker.internal:11434
-      OLLAMA_MODEL: qwen3-vl:8b
+      OLLAMA_MODEL: hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S
       # Moltbook credentials
       MOLTBOOK_TOKEN: ${MOLTBOOK_TOKEN}
       MOLTBOOK_API_URL: ${MOLTBOOK_API_URL}
@@ -80,6 +79,11 @@ services:
       - ../../skills:/root/.openclaw/workspace/skills/legacy:ro
       # Mount OpenClaw native skill manifests
       - ../../openclaw_skills:/root/.openclaw/skills:ro
+      # Mount patch artifacts
+      - ../../patch:/root/.openclaw/patches:ro
+      # Mount tests + config for pytest skill
+      - ../../tests:/root/.openclaw/workspace/tests:ro
+      - ../../pyproject.toml:/root/.openclaw/workspace/pyproject.toml:ro
       - ./openclaw-entrypoint.sh:/openclaw-entrypoint.sh:ro
     ports:
       - "18789:18789"
@@ -165,7 +169,6 @@ services:
     restart: unless-stopped
     environment:
       LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY?LITELLM_MASTER_KEY is required}
-      GOOGLE_GEMINI_KEY: ${GOOGLE_GEMINI_KEY}
       MOONSHOT_KIMI_KEY: ${MOONSHOT_KIMI_KEY}
       # Use separate database for LiteLLM to prevent schema conflicts with Aria tables
       LITELLM_DATABASE_URL: postgresql://${DB_USER?DB_USER is required}:${DB_PASSWORD?DB_PASSWORD is required}@aria-db:5432/litellm
@@ -234,9 +237,8 @@ services:
       DATABASE_URL: postgresql://${DB_USER?DB_USER is required}:${DB_PASSWORD?DB_PASSWORD is required}@aria-db:5432/${DB_NAME?DB_NAME is required}
       # Local LLM (Ollama - native on host)
       OLLAMA_URL: http://host.docker.internal:11434
-      OLLAMA_MODEL: qwen3-vl:8b
+      OLLAMA_MODEL: hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S
       # LLM APIs (fallback)
-      GEMINI_API_KEY: ${GOOGLE_GEMINI_KEY}
       MOONSHOT_API_KEY: ${MOONSHOT_KIMI_KEY}
       # Moltbook
       MOLTBOOK_TOKEN: ${MOLTBOOK_TOKEN}

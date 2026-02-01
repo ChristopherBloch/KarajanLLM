@@ -79,16 +79,16 @@ async def mock_database_skill() -> AsyncMock:
 async def mock_llm_skill() -> AsyncMock:
     """Create a mock LLM skill."""
     skill = AsyncMock()
-    skill.name = "gemini"
+    skill.name = "moonshot"
     skill.is_available = True
     skill.health_check = AsyncMock(return_value=SkillStatus.AVAILABLE)
     skill.generate = AsyncMock(return_value=MagicMock(
         success=True,
-        data={"text": "Test response", "model": "gemini-pro"},
+        data={"text": "Test response", "model": "moonshot-v1-8k"},
     ))
     skill.chat = AsyncMock(return_value=MagicMock(
         success=True,
-        data={"text": "Test chat response", "model": "gemini-pro"},
+        data={"text": "Test chat response", "model": "moonshot-v1-8k"},
     ))
     return skill
 
@@ -104,9 +104,9 @@ def mock_agent_config() -> AgentConfig:
         id="test_agent",
         name="Test Agent",
         role=AgentRole.COORDINATOR,
-        model="gemini-pro",
+        model="moonshot-v1-8k",
         capabilities=["chat", "analyze"],
-        skills=["gemini", "database"],
+        skills=["moonshot", "database"],
     )
 
 
@@ -117,9 +117,9 @@ def aria_agent_config() -> AgentConfig:
         id="aria",
         name="Aria Blue",
         role=AgentRole.COORDINATOR,
-        model="gemini-pro",
+        model="moonshot-v1-8k",
         capabilities=["orchestrate", "delegate", "synthesize"],
-        skills=["gemini", "moonshot", "moltbook", "database"],
+        skills=["moonshot", "moltbook", "database"],
         temperature=0.7,
     )
 
@@ -131,7 +131,6 @@ def aria_agent_config() -> AgentConfig:
 @pytest.fixture
 def mock_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """Set up mock environment variables."""
-    monkeypatch.setenv("GEMINI_API_KEY", "test-gemini-key")
     monkeypatch.setenv("MOONSHOT_API_KEY", "test-moonshot-key")
     monkeypatch.setenv("MOLTBOOK_TOKEN", "test-moltbook-token")
     monkeypatch.setenv("DATABASE_URL", "postgresql://test:test@localhost/test")
@@ -183,15 +182,15 @@ database:
     agents_md.write_text("""# Agents
 
 ## Aria
-- model: gemini-pro
+- model: moonshot-v1-8k
 - role: coordinator
-- skills: [gemini, moltbook, database]
+- skills: [moonshot, moltbook, database]
 
 ## Researcher
-- model: gemini-pro
+- model: moonshot-v1-8k
 - parent: aria
 - role: researcher
-- skills: [gemini]
+- skills: [moonshot]
 """)
     
     return str(mind_dir)

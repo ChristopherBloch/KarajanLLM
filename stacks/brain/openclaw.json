@@ -11,7 +11,8 @@
       "aria-database": { "enabled": true },
       "aria-moltbook": { "enabled": true },
       "aria-goals": { "enabled": true },
-      "aria-health": { "enabled": true }
+      "aria-health": { "enabled": true },
+      "aria-pytest": { "enabled": true }
     }
   },
   "gateway": {
@@ -38,12 +39,11 @@
       "workspace": "/root/.openclaw/workspace",
       "model": {
         "primary": "litellm/qwen3-local",
-        "fallbacks": ["google/gemini-2.0-flash", "google/gemini-2.5-flash"]
+        "fallbacks": ["litellm/kimi-local"]
       },
       "models": {
         "litellm/qwen3-local": { "alias": "Qwen3-VL 8B Local" },
-        "google/gemini-2.0-flash": { "alias": "Gemini 2.0 Flash" },
-        "google/gemini-2.5-flash": { "alias": "Gemini 2.5 Flash" }
+        "litellm/kimi-local": { "alias": "Kimi K2 Local" }
       },
       "subagents": {
         "maxConcurrent": 8

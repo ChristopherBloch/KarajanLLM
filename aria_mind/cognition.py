@@ -103,14 +103,12 @@ class Cognition:
         
         Respects SOUL.md model hierarchy:
         1. ollama (qwen3-vl:8b) - Local, free, private, vision (DEFAULT per SOUL.md)
-        2. gemini - Cloud fallback for quick tasks
-        3. moonshot - Cloud fallback for creative/long tasks
+        2. moonshot - Cloud fallback for creative/long tasks
         """
         if self._skills:
             # SOUL.md says: local first (qwen/ollama), then cloud fallback
             llm = (
                 self._skills.get("ollama") or  # Local first (Aria's preference)
-                self._skills.get("gemini") or  # Cloud fallback
                 self._skills.get("moonshot")   # Alternative cloud
             )
             if llm and llm.is_available:

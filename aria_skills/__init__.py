@@ -30,10 +30,11 @@ from aria_skills.registry import SkillRegistry
 # Import skill implementations to register them
 from aria_skills.moltbook import MoltbookSkill
 from aria_skills.database import DatabaseSkill
-from aria_skills.llm import GeminiSkill, MoonshotSkill, OllamaSkill
+from aria_skills.llm import MoonshotSkill, OllamaSkill
 from aria_skills.health import HealthMonitorSkill
 from aria_skills.goals import GoalSchedulerSkill, Goal, ScheduledTask, TaskPriority, TaskStatus
 from aria_skills.knowledge_graph import KnowledgeGraphSkill
+from aria_skills.pytest_runner import PytestSkill
 
 __all__ = [
     # Base classes
@@ -46,11 +47,11 @@ __all__ = [
     "MoltbookSkill",
     "DatabaseSkill",
     "OllamaSkill",  # Default LLM (local)
-    "GeminiSkill",
     "MoonshotSkill",
     "KnowledgeGraphSkill",
     "HealthMonitorSkill",
     "GoalSchedulerSkill",
+    "PytestSkill",
     # Goal types
     "Goal",
     "ScheduledTask",

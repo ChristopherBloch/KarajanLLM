@@ -25,7 +25,24 @@ pip3 install --break-system-packages --quiet \
     pydantic \
     python-dateutil \
     httpx \
-    tenacity || echo "Warning: Some Python packages failed to install"
+  tenacity \
+  pytest \
+  pytest-asyncio \
+  pytest-cov || echo "Warning: Some Python packages failed to install"
+
+# Apply OpenClaw patch if present (idempotent)
+PATCH_MARKER_DIR="/root/.openclaw/.patches"
+PATCH_MARKER="$PATCH_MARKER_DIR/openclaw-litellm-fix"
+PATCH_SCRIPT="/root/.openclaw/patches/openclaw_patch.js"
+if [ -f "$PATCH_SCRIPT" ]; then
+  mkdir -p "$PATCH_MARKER_DIR"
+  if [ ! -f "$PATCH_MARKER" ]; then
+    echo "Applying OpenClaw patch..."
+    node "$PATCH_SCRIPT" && touch "$PATCH_MARKER"
+  else
+    echo "OpenClaw patch already applied"
+  fi
+fi
 
 # Create a Python skill runner script
 cat > /root/.openclaw/workspace/skills/run_skill.py << 'PYEOF'
@@ -79,7 +96,7 @@ async def run_skill(skill_name: str, function_name: str, args: dict):
             from aria_skills.base import SkillConfig
             config = SkillConfig(name='llm', config={
                 'ollama_url': os.environ.get('OLLAMA_URL'),
-                'model': os.environ.get('OLLAMA_MODEL', 'qwen3-vl:8b')
+                'model': os.environ.get('OLLAMA_MODEL', 'hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S')
             })
             skill = LLMSkill(config)
             await skill.initialize()
@@ -95,6 +112,16 @@ async def run_skill(skill_name: str, function_name: str, args: dict):
             config = SkillConfig(name='goals', config={'dsn': os.environ.get('DATABASE_URL')})
             skill = GoalSkill(config)
             await skill.initialize()
+        elif skill_name == 'pytest':
+          from aria_skills.pytest_runner import PytestSkill
+          from aria_skills.base import SkillConfig
+          config = SkillConfig(name='pytest', config={
+            'workspace': os.environ.get('PYTEST_WORKSPACE', '/root/.openclaw/workspace'),
+            'timeout_sec': int(os.environ.get('PYTEST_TIMEOUT_SEC', '600')),
+            'default_args': os.environ.get('PYTEST_DEFAULT_ARGS', '-q')
+          })
+          skill = PytestSkill(config)
+          await skill.initialize()
         else:
             return {'error': f'Unknown skill: {skill_name}'}
         
@@ -146,7 +173,8 @@ cat > /root/.openclaw/openclaw.json << EOF
       "aria-database": { "enabled": true },
       "aria-moltbook": { "enabled": true },
       "aria-goals": { "enabled": true },
-      "aria-health": { "enabled": true }
+      "aria-health": { "enabled": true },
+      "aria-pytest": { "enabled": true }
     }
   },
   "gateway": {
@@ -173,12 +201,11 @@ cat > /root/.openclaw/openclaw.json << EOF
       "workspace": "/root/.openclaw/workspace",
       "model": {
         "primary": "litellm/qwen3-local",
-        "fallbacks": ["google/gemini-2.0-flash", "google/gemini-2.5-flash"]
+        "fallbacks": ["litellm/kimi-local"]
       },
       "models": {
         "litellm/qwen3-local": { "alias": "Qwen3-VL 8B Local" },
-        "google/gemini-2.0-flash": { "alias": "Gemini 2.0 Flash" },
-        "google/gemini-2.5-flash": { "alias": "Gemini 2.5 Flash" }
+        "litellm/kimi-local": { "alias": "Kimi K2 Local" }
       },
       "subagents": {
         "maxConcurrent": 8

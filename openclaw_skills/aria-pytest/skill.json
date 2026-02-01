@@ -1,0 +1,67 @@
+{
+  "name": "aria-pytest",
+  "version": "1.0.0",
+  "description": "Run pytest for Aria codebase and return structured results.",
+  "author": "Aria Team",
+  "tools": [
+    {
+      "name": "run_pytest",
+      "description": "Run pytest and return stdout/stderr with exit code.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "paths": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Test paths to run (default: tests)"
+          },
+          "markers": {
+            "type": "string",
+            "description": "Pytest marker expression"
+          },
+          "keyword": {
+            "type": "string",
+            "description": "Pytest -k expression"
+          },
+          "extra_args": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Additional pytest args"
+          },
+          "timeout_sec": {
+            "type": "integer",
+            "description": "Timeout in seconds"
+          }
+        }
+      }
+    },
+    {
+      "name": "collect_pytest",
+      "description": "Collect pytest tests without running them.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "paths": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Test paths to collect (default: tests)"
+          },
+          "markers": {
+            "type": "string",
+            "description": "Pytest marker expression"
+          },
+          "keyword": {
+            "type": "string",
+            "description": "Pytest -k expression"
+          },
+          "extra_args": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Additional pytest args"
+          }
+        }
+      }
+    }
+  ],
+  "run": "python3 /root/.openclaw/workspace/skills/run_skill.py pytest {{tool}} '{{args_json}}'"
+}

@@ -32,13 +32,14 @@ class LLMAgent(BaseAgent):
         llm_skill = None
         if self._skill_registry:
             # Prefer model specified in config
-            if "gemini" in self.config.model.lower():
-                llm_skill = self._skill_registry.get("gemini")
-            elif "moonshot" in self.config.model.lower():
+            model_lower = self.config.model.lower()
+            if "moonshot" in model_lower or "kimi" in model_lower:
                 llm_skill = self._skill_registry.get("moonshot")
+            elif "ollama" in model_lower or "qwen" in model_lower:
+                llm_skill = self._skill_registry.get("ollama")
             else:
                 # Try to get any available LLM
-                llm_skill = self._skill_registry.get("gemini") or self._skill_registry.get("moonshot")
+                llm_skill = self._skill_registry.get("ollama") or self._skill_registry.get("moonshot")
         
         if not llm_skill:
             self.logger.warning("No LLM skill available, returning placeholder")

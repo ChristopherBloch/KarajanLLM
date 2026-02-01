@@ -94,7 +94,9 @@ Aria_moltbot/
 │   │   └── SKILL.md
 │   ├── aria-knowledge-graph/     # 🕸️ Knowledge graph
 │   │   └── SKILL.md
-│   └── aria-llm/                 # 🧠 LLM routing
+│   ├── aria-llm/                 # 🧠 LLM routing
+│   │   └── SKILL.md
+│   └── aria-pytest/              # 🧪 Pytest runner
 │       └── SKILL.md
 │
 ├── tests/                        # pytest test suite

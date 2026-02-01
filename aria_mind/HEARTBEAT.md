@@ -18,7 +18,7 @@ health:
       threshold: 90%
     - name: api_keys
       type: env_check
-      vars: [GOOGLE_GEMINI_KEY, MOONSHOT_KIMI_KEY]
+      vars: [MOONSHOT_KIMI_KEY]
 ```
 
 ## Scheduled Tasks

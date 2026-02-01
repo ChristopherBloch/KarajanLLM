@@ -1,12 +1,12 @@
 ---
 name: aria-llm
-description: Access multiple LLM providers (Gemini, Moonshot, Ollama) for text generation and chat.
-metadata: {"openclaw": {"emoji": "🧠", "requires": {"anyEnv": ["GOOGLE_GEMINI_KEY", "MOONSHOT_KIMI_KEY", "OLLAMA_URL"]}}}
+description: Access multiple LLM providers (Moonshot/Kimi, Ollama) for text generation and chat.
+metadata: {"openclaw": {"emoji": "🧠", "requires": {"anyEnv": ["MOONSHOT_KIMI_KEY", "OLLAMA_URL"]}}}
 ---
 
 # aria-llm
 
-Access multiple LLM providers (Gemini, Moonshot, local Ollama) for text generation, chat, and analysis.
+Access multiple LLM providers (Moonshot/Kimi, local Ollama) for text generation, chat, and analysis.
 
 ## Usage
 
@@ -20,14 +20,14 @@ exec python3 /root/.openclaw/workspace/skills/run_skill.py llm <function> '<json
 Generate text from a prompt using specified model.
 
 ```bash
-exec python3 /root/.openclaw/workspace/skills/run_skill.py llm generate '{"prompt": "Explain quantum computing simply", "model": "gemini", "temperature": 0.7}'
+exec python3 /root/.openclaw/workspace/skills/run_skill.py llm generate '{"prompt": "Explain quantum computing simply", "model": "moonshot", "temperature": 0.7}'
 ```
 
 ### chat
 Multi-turn conversation with message history.
 
 ```bash
-exec python3 /root/.openclaw/workspace/skills/run_skill.py llm chat '{"messages": [{"role": "user", "content": "Hello!"}], "model": "gemini"}'
+exec python3 /root/.openclaw/workspace/skills/run_skill.py llm chat '{"messages": [{"role": "user", "content": "Hello!"}], "model": "moonshot"}'
 ```
 
 ### analyze
@@ -38,15 +38,6 @@ exec python3 /root/.openclaw/workspace/skills/run_skill.py llm analyze '{"text":
 ```
 
 ## Available Models
-
-### Gemini (Google)
-Per SOUL.md, use for: Social media, fact-based answers, general conversation
-
-| Model | Description |
-|-------|-------------|
-| `gemini-3-flash` | Fast, efficient (recommended) |
-| `gemini-3-pro` | Most capable |
-| `gemini-2.5-flash` | Strong quality/speed |
 
 ### Moonshot/Kimi
 Per SOUL.md, use for: Chinese language, philosophical discussions, technical debates
@@ -69,12 +60,10 @@ Per SOUL.md: **PREFER LOCAL MODELS** for privacy and speed
 ```
 IF task = creative_writing OR personal_reflection:
     USE ollama/qwen3-vl:8b (local, private)
-ELIF task = social_media OR factual_query:
-    USE gemini-3-flash (fast, current)
 ELIF task = philosophical OR chinese_language:
     USE moonshot-v1-8k
 ELIF task = complex_reasoning:
-    USE gemini-3-pro
+    USE moonshot-v1-32k
 ELSE:
     USE ollama/qwen3-vl:8b (default local)
 ```
@@ -82,7 +71,6 @@ ELSE:
 ## API Configuration
 
 Required environment variables:
-- `GOOGLE_GEMINI_KEY` - Gemini API key
 - `MOONSHOT_KIMI_KEY` - Moonshot API key
 - `OLLAMA_URL` - Ollama endpoint (default: http://host.docker.internal:11434)
 

@@ -100,6 +100,22 @@ config:
 - `get_metrics()` - Get system metrics
 - `report_error(error, context?)` - Report an error
 
+### pytest
+Run the Aria test suite with pytest.
+
+```yaml
+skill: pytest
+enabled: true
+config:
+  workspace: /root/.openclaw/workspace
+  timeout_sec: 600
+  default_args: -q
+```
+
+**Functions:**
+- `run_pytest(paths?, markers?, keyword?, extra_args?, timeout_sec?)` - Run tests
+- `collect_pytest(paths?, markers?, keyword?, extra_args?)` - Collect tests only
+
 ### goal_scheduler
 Goal tracking and scheduling.
 
@@ -130,7 +146,7 @@ enabled: true
 priority: 1  # Try first (as per SOUL.md)
 config:
   url: env:OLLAMA_URL
-  model: env:OLLAMA_MODEL  # Default: qwen3-vl:8b (SOUL.md)
+  model: env:OLLAMA_MODEL  # Default: GLM-4.7-Flash-REAP-23B-A3B Q3_K_S (SOUL.md)
 ```
 
 Available local models (examples): qwen3-vl:8b, qwen2.5:14b, llama3.2:8b.
@@ -139,27 +155,13 @@ Available local models (examples): qwen3-vl:8b, qwen2.5:14b, llama3.2:8b.
 - `generate(prompt, system_prompt?)` - Generate text
 - `chat(messages)` - Multi-turn conversation
 
-### gemini (Cloud Fallback)
-Google Gemini API - fallback when local unavailable.
-
-```yaml
-skill: gemini
-enabled: true
-priority: 2  # Fallback
-config:
-  api_key: env:GOOGLE_GEMINI_KEY
-  model: gemini-3-flash
-```
-
-Available Gemini models: gemini-3-pro, gemini-3-flash, gemini-2.5-flash, gemini-2.0-flash, gemini-banana.
-
-### moonshot (Creative Fallback)
-Moonshot/Kimi API for creative tasks.
+### moonshot (Cloud Fallback)
+Moonshot/Kimi API for creative tasks and long context.
 
 ```yaml
 skill: moonshot
 enabled: true
-priority: 3  # Creative/long tasks
+priority: 2  # Fallback
 config:
   api_key: env:MOONSHOT_KIMI_KEY
   model: kimi-k2.5
