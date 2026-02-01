@@ -1,16 +1,28 @@
 model_list:
-  # Local Ollama model (native Metal GPU on host)
-  # Primary model - GLM-4.7-Flash-REAP - smart text reasoning (per SOUL.md)
+  # Primary model - Qwen2.5:7b with NATIVE function calling support
+  # This is critical - GLM/qwen3-vl do NOT support OpenAI tool format
   - model_name: local-default
     litellm_params:
-      model: ollama/hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S
+      model: ollama/qwen2.5:7b
       api_base: http://host.docker.internal:11434
     model_info:
       max_tokens: 32768
+      supports_function_calling: true
       input_cost_per_token: 0
       output_cost_per_token: 0
 
-  # GLM-4.7 - Primary brain for Aria (smart text reasoning)
+  # Qwen2.5 - Primary brain for Aria (native function calling)
+  - model_name: qwen-local
+    litellm_params:
+      model: ollama/qwen2.5:7b
+      api_base: http://host.docker.internal:11434
+    model_info:
+      max_tokens: 32768
+      supports_function_calling: true
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+
+  # GLM-4.7 - For text reasoning tasks (NO function calling)
   - model_name: glm-local
     litellm_params:
       model: ollama/hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S
@@ -30,23 +42,14 @@ model_list:
       input_cost_per_token: 0
       output_cost_per_token: 0
 
-  # Alias for backwards compatibility - routes qwen-local to GLM
-  - model_name: qwen-local
-    litellm_params:
-      model: ollama/hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S
-      api_base: http://host.docker.internal:11434
-    model_info:
-      max_tokens: 32768
-      input_cost_per_token: 0
-      output_cost_per_token: 0
-
-  # Alias for OpenClaw - routes gpt-4o requests to local GLM
+  # Alias for OpenClaw - must use qwen2.5 for function calling
   - model_name: gpt-4o
     litellm_params:
-      model: ollama/hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S
+      model: ollama/qwen2.5:7b
       api_base: http://host.docker.internal:11434
     model_info:
       max_tokens: 32768
+      supports_function_calling: true
       input_cost_per_token: 0
       output_cost_per_token: 0
 
