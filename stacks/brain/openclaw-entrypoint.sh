@@ -142,14 +142,11 @@ cat > /root/.openclaw/openclaw.json << EOF
     "port": 18789,
     "mode": "local",
     "bind": "lan",
-    "auth": {
-      "mode": "token",
-      "token": "${OPENCLAW_GATEWAY_TOKEN}"
-    },
-    "trustedProxies": ["0.0.0.0/0", "::/0", "172.16.0.0/12", "10.0.0.0/8", "192.168.0.0/16"],
+    "trustedProxies": ["0.0.0.0/0", "::/0"],
     "controlUi": {
       "basePath": "/clawdbot",
-      "allowInsecureAuth": true
+      "allowInsecureAuth": true,
+      "dangerouslyDisableDeviceAuth": true
     }
   },
   "agents": {

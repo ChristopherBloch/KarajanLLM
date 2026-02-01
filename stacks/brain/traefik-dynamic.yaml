@@ -15,7 +15,7 @@ http:
     
     # OpenClaw WebSocket at root - higher priority than portal for WS upgrades
     clawdbot-ws-http:
-      rule: "PathPrefix(`/`) && HeadersRegexp(`Connection`, `(?i).*upgrade.*`) && HeadersRegexp(`Upgrade`, `(?i)websocket`)"
+      rule: "PathPrefix(`/`) && Header(`Connection`, `Upgrade`) && Header(`Upgrade`, `websocket`)"
       priority: 95
       entryPoints:
         - web
@@ -107,7 +107,7 @@ http:
     
     # OpenClaw WebSocket at root - higher priority than portal for WS upgrades
     clawdbot-ws:
-      rule: "PathPrefix(`/`) && HeadersRegexp(`Connection`, `(?i).*upgrade.*`) && HeadersRegexp(`Upgrade`, `(?i)websocket`)"
+      rule: "PathPrefix(`/`) && Header(`Connection`, `Upgrade`) && Header(`Upgrade`, `websocket`)"
       priority: 95
       entryPoints:
         - websecure
