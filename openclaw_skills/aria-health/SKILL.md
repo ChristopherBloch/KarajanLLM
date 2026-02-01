@@ -1,3 +1,9 @@
+---
+name: aria-health
+description: System health monitoring for Aria services. Check database, LLM, and API connectivity.
+metadata: {"openclaw": {"emoji": "💚", "always": true}}
+---
+
 # aria-health
 
 System health monitoring for Aria services. Check connectivity to database, LLM, and external APIs.

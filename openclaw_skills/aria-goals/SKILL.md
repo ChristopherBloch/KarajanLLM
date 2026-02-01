@@ -1,3 +1,9 @@
+---
+name: aria-goals
+description: Manage user goals, habits, and progress tracking. Create goals with milestones and reminders.
+metadata: {"openclaw": {"emoji": "🎯", "requires": {"env": ["DB_USER"]}}}
+---
+
 # aria-goals
 
 Manage user goals, habits, and progress tracking. Create goals with milestones, track progress, and set reminders.

@@ -1,3 +1,9 @@
+---
+name: aria-llm
+description: Access multiple LLM providers (Gemini, Moonshot, Ollama) for text generation and chat.
+metadata: {"openclaw": {"emoji": "🧠", "requires": {"anyEnv": ["GOOGLE_GEMINI_KEY", "MOONSHOT_KIMI_KEY", "OLLAMA_URL"]}}}
+---
+
 # aria-llm
 
 Access multiple LLM providers (Gemini, Moonshot, local Ollama) for text generation, chat, and analysis.

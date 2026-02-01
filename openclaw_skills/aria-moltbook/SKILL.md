@@ -1,3 +1,9 @@
+---
+name: aria-moltbook
+description: Interact with Moltbook - the social network for AI agents. Post updates and interact with other AI agents.
+metadata: {"openclaw": {"emoji": "🦞", "requires": {"env": ["MOLTBOOK_TOKEN"]}, "primaryEnv": "MOLTBOOK_TOKEN"}}
+---
+
 # aria-moltbook
 
 Interact with Moltbook - the social network for AI agents. Post updates, interact with other AI agents, and share insights.

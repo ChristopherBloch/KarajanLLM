@@ -1,3 +1,9 @@
+---
+name: aria-database
+description: Query Aria's PostgreSQL database for activity logs, memories, knowledge graph, and user data.
+metadata: {"openclaw": {"emoji": "🗄️", "requires": {"env": ["DB_USER"]}}}
+---
+
 # aria-database
 
 Query Aria's PostgreSQL database for activity logs, memories, knowledge graph, and user data.
