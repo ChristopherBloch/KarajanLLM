@@ -131,7 +131,7 @@ PYEOF
 
 chmod +x /root/.openclaw/workspace/skills/run_skill.py
 
-# Generate openclaw.json with LiteLLM provider config and skill definitions
+# Generate openclaw.json with LiteLLM provider config, skill definitions, and Aria identity
 cat > /root/.openclaw/openclaw.json << EOF
 {
   "commands": {
@@ -160,6 +160,13 @@ cat > /root/.openclaw/openclaw.json << EOF
       "dangerouslyDisableDeviceAuth": true
     }
   },
+  "ui": {
+    "seamColor": "#3B82F6",
+    "assistant": {
+      "name": "Aria",
+      "avatar": "⚡"
+    }
+  },
   "agents": {
     "defaults": {
       "maxConcurrent": 4,
@@ -186,7 +193,19 @@ cat > /root/.openclaw/openclaw.json << EOF
         "provider": "openai",
         "fallback": "none"
       }
-    }
+    },
+    "list": [
+      {
+        "id": "main",
+        "default": true,
+        "identity": {
+          "name": "Aria",
+          "theme": "intelligent autonomous assistant with electric blue energy",
+          "emoji": "⚡",
+          "avatar": "⚡"
+        }
+      }
+    ]
   },
   "tools": {
     "exec": {
@@ -218,7 +237,9 @@ cat > /root/.openclaw/openclaw.json << EOF
     }
   },
   "messages": {
-    "ackReactionScope": "group-mentions"
+    "ackReaction": "⚡",
+    "ackReactionScope": "group-mentions",
+    "responsePrefix": "[Aria]"
   }
 }
 EOF
