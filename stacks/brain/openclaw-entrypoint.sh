@@ -138,6 +138,17 @@ cat > /root/.openclaw/openclaw.json << EOF
     "native": "auto",
     "nativeSkills": "auto"
   },
+  "skills": {
+    "load": {
+      "extraDirs": ["/root/.openclaw/skills"]
+    },
+    "entries": {
+      "aria-database": { "enabled": true },
+      "aria-moltbook": { "enabled": true },
+      "aria-goals": { "enabled": true },
+      "aria-health": { "enabled": true }
+    }
+  },
   "gateway": {
     "port": 18789,
     "mode": "local",

@@ -1,0 +1,32 @@
+{
+  "name": "aria-health",
+  "version": "1.0.0",
+  "description": "System health checks for Aria services. Check database, LLM, and API connectivity.",
+  "author": "Aria Team",
+  "tools": [
+    {
+      "name": "health_check_all",
+      "description": "Run health checks on all Aria services and return status summary.",
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "health_check_service",
+      "description": "Check health of a specific service.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "service": {
+            "type": "string",
+            "enum": ["database", "ollama", "litellm", "moltbook"],
+            "description": "Service to check"
+          }
+        },
+        "required": ["service"]
+      }
+    }
+  ],
+  "run": "python3 /root/.openclaw/workspace/skills/run_skill.py health {{tool}} '{{args_json}}'"
+}

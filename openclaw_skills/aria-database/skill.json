@@ -1,0 +1,69 @@
+{
+  "name": "aria-database",
+  "version": "1.0.0",
+  "description": "Query Aria's PostgreSQL database. Execute SQL queries on activity logs, memories, user data, knowledge graph, and goals.",
+  "author": "Aria Team",
+  "tools": [
+    {
+      "name": "db_query",
+      "description": "Execute a read-only SQL query on Aria's database. Returns results as JSON. Use for: activity_log, memories, entity/relation tables, goals, user preferences.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "sql": {
+            "type": "string",
+            "description": "SQL SELECT query to execute. Must be read-only."
+          },
+          "params": {
+            "type": "array",
+            "description": "Optional query parameters for parameterized queries ($1, $2, etc.)",
+            "items": { "type": "string" }
+          }
+        },
+        "required": ["sql"]
+      }
+    },
+    {
+      "name": "db_execute",
+      "description": "Execute a write SQL statement (INSERT, UPDATE, DELETE) on Aria's database.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "sql": {
+            "type": "string",
+            "description": "SQL statement to execute"
+          },
+          "params": {
+            "type": "array",
+            "description": "Query parameters for parameterized queries ($1, $2, etc.)",
+            "items": { "type": "string" }
+          }
+        },
+        "required": ["sql"]
+      }
+    },
+    {
+      "name": "db_log_activity",
+      "description": "Log an activity to Aria's activity log with type, message, and optional metadata.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "activity_type": {
+            "type": "string",
+            "description": "Type of activity (e.g., 'conversation', 'task', 'reminder', 'learning')"
+          },
+          "message": {
+            "type": "string",
+            "description": "Activity message or description"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Optional JSON metadata"
+          }
+        },
+        "required": ["activity_type", "message"]
+      }
+    }
+  ],
+  "run": "python3 /root/.openclaw/workspace/skills/run_skill.py database {{tool}} '{{args_json}}'"
+}

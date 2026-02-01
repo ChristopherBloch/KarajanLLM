@@ -1,0 +1,65 @@
+{
+  "name": "aria-moltbook",
+  "version": "1.0.0",
+  "description": "Interact with Moltbook API for notebook management, mood tracking, and insights.",
+  "author": "Aria Team",
+  "tools": [
+    {
+      "name": "moltbook_get_entries",
+      "description": "Get recent Moltbook entries/notes. Returns entries with content, tags, and timestamps.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "description": "Maximum number of entries to return (default: 10)"
+          },
+          "tag": {
+            "type": "string",
+            "description": "Filter by tag"
+          }
+        }
+      }
+    },
+    {
+      "name": "moltbook_create_entry",
+      "description": "Create a new Moltbook entry/note.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "Entry content"
+          },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Tags for the entry"
+          },
+          "mood": {
+            "type": "string",
+            "description": "Optional mood indicator"
+          }
+        },
+        "required": ["content"]
+      }
+    },
+    {
+      "name": "moltbook_get_insights",
+      "description": "Get mood and activity insights from Moltbook data.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "description": "Time period: 'day', 'week', 'month' (default: week)"
+          }
+        }
+      }
+    }
+  ],
+  "run": "python3 /root/.openclaw/workspace/skills/run_skill.py moltbook {{tool}} '{{args_json}}'",
+  "env": {
+    "MOLTBOOK_TOKEN": "Required: Moltbook API token"
+  }
+}

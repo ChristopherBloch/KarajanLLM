@@ -78,6 +78,8 @@ services:
       - ../../aria_skills:/root/.openclaw/workspace/skills/aria_skills:ro
       - ../../aria_agents:/root/.openclaw/workspace/skills/aria_agents:ro
       - ../../skills:/root/.openclaw/workspace/skills/legacy:ro
+      # Mount OpenClaw native skill manifests
+      - ../../openclaw_skills:/root/.openclaw/skills:ro
       - ./openclaw-entrypoint.sh:/openclaw-entrypoint.sh:ro
     ports:
       - "18789:18789"

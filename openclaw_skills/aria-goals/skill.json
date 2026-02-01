@@ -1,0 +1,98 @@
+{
+  "name": "aria-goals",
+  "version": "1.0.0",
+  "description": "Manage user goals, habits, and progress tracking. Create, update, and query goals with reminders and milestones.",
+  "author": "Aria Team",
+  "tools": [
+    {
+      "name": "goals_list",
+      "description": "List all active goals with their status and progress.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["active", "completed", "paused", "all"],
+            "description": "Filter by goal status (default: active)"
+          },
+          "category": {
+            "type": "string",
+            "description": "Filter by category"
+          }
+        }
+      }
+    },
+    {
+      "name": "goals_create",
+      "description": "Create a new goal with optional milestones and target date.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Goal title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed description"
+          },
+          "category": {
+            "type": "string",
+            "description": "Category (e.g., health, work, learning, personal)"
+          },
+          "target_date": {
+            "type": "string",
+            "description": "Target completion date (ISO format)"
+          },
+          "milestones": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of milestone descriptions"
+          }
+        },
+        "required": ["title"]
+      }
+    },
+    {
+      "name": "goals_update_progress",
+      "description": "Update progress on a goal.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "goal_id": {
+            "type": "integer",
+            "description": "Goal ID"
+          },
+          "progress": {
+            "type": "integer",
+            "description": "Progress percentage (0-100)"
+          },
+          "note": {
+            "type": "string",
+            "description": "Progress note"
+          }
+        },
+        "required": ["goal_id"]
+      }
+    },
+    {
+      "name": "goals_complete_milestone",
+      "description": "Mark a milestone as completed.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "goal_id": {
+            "type": "integer",
+            "description": "Goal ID"
+          },
+          "milestone_index": {
+            "type": "integer",
+            "description": "Milestone index (0-based)"
+          }
+        },
+        "required": ["goal_id", "milestone_index"]
+      }
+    }
+  ],
+  "run": "python3 /root/.openclaw/workspace/skills/run_skill.py goals {{tool}} '{{args_json}}'"
+}
