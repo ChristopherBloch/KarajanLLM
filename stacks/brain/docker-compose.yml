@@ -55,7 +55,8 @@ services:
       OPENCLAW_NO_PROMPT: "1"
       # LiteLLM as OpenAI-compatible backend (routes to local Ollama/qwen3-vl)
       OPENAI_API_KEY: ${LITELLM_MASTER_KEY}
-      OPENAI_API_BASE: http://litellm:4000
+      OPENAI_API_BASE: http://litellm:4000/v1
+      OPENAI_MODEL: local-default
       # Cloud fallbacks (passed to LiteLLM)
       GOOGLE_GEMINI_KEY: ${GOOGLE_GEMINI_KEY}
       MOONSHOT_KIMI_KEY: ${MOONSHOT_KIMI_KEY}
@@ -67,7 +68,7 @@ services:
     depends_on:
       - litellm
     command: >
-      bash -c "if [ ! -e /usr/local/bin/openclaw ]; then apt-get update && apt-get install -y curl; curl -fsSL https://openclaw.ai/install.sh | bash -s -- --no-onboard --no-prompt; fi; mkdir -p /root/.openclaw; printf '{\"gateway\":{\"mode\":\"local\",\"bind\":\"lan\",\"port\":18789,\"auth\":{\"mode\":\"token\",\"token\":\"'\"$$OPENCLAW_GATEWAY_TOKEN\"'\"},\"trustedProxies\":[\"0.0.0.0/0\",\"::0/0\"]},\"agents\":{\"defaults\":{\"model\":{\"primary\":\"local-default\"},\"provider\":\"openai\",\"apiBase\":\"http://litellm:4000\",\"apiKey\":\"'\"$$OPENAI_API_KEY\"'\"}}}' > /root/.openclaw/openclaw.json; /usr/local/bin/openclaw gateway run --port 18789 --bind lan --token \"$$OPENCLAW_GATEWAY_TOKEN\" --allow-unconfigured --verbose"
+      bash -c "if [ ! -e /usr/local/bin/openclaw ]; then apt-get update && apt-get install -y curl; curl -fsSL https://openclaw.ai/install.sh | bash -s -- --no-onboard --no-prompt; fi; mkdir -p /root/.openclaw; printf '{\"gateway\":{\"mode\":\"local\",\"bind\":\"lan\",\"port\":18789,\"auth\":{\"mode\":\"token\",\"token\":\"'\"$$OPENCLAW_GATEWAY_TOKEN\"'\"},\"trustedProxies\":[\"0.0.0.0/0\",\"::0/0\"]}}' > /root/.openclaw/openclaw.json; /usr/local/bin/openclaw gateway run --port 18789 --bind lan --token \"$$OPENCLAW_GATEWAY_TOKEN\" --allow-unconfigured --verbose"
     networks:
       - aria-net
     mem_limit: ${CLAWDBOT_MEM_LIMIT?CLAWDBOT_MEM_LIMIT is required}
