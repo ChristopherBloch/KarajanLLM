@@ -149,7 +149,8 @@ cat > /root/.openclaw/openclaw.json << EOF
     "trustedProxies": ["0.0.0.0/0", "::0/0", "172.18.0.0/16"],
     "controlUi": {
       "basePath": "/clawdbot",
-      "allowInsecureAuth": true
+      "allowInsecureAuth": true,
+      "dangerouslyDisableDeviceAuth": true
     }
   },
   "agents": {
