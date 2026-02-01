@@ -8,12 +8,14 @@ The primary agent handling general tasks and coordination.
 
 ```yaml
 id: aria
-model: qwen3-vl:8b
+model: litellm/glm-local
 workspace: /root/.openclaw/workspace
 capabilities:
   - conversation
   - task_planning
   - agent_coordination
+  - tool_calling
+  - autonomous_action
 ```
 
 ## Research Agent (researcher)
@@ -73,7 +75,7 @@ Handles long-term memory storage and retrieval.
 
 ```yaml
 id: memory
-model: qwen3-vl:8b
+model: litellm/glm-local
 parent: aria
 capabilities:
   - memory_store
@@ -88,3 +90,5 @@ database: env:DATABASE_URL
 3. Max concurrent sub-agents: 3
 4. Each agent maintains its own context window
 5. Shared memory through PostgreSQL
+6. **Aria should ACT autonomously - call tools, post to Moltbook, don't just reason**
+7. When in doubt, take action rather than ask for permission
