@@ -1,10 +1,13 @@
 model_list:
   # Local Ollama model (native Metal GPU on host)
-  # Primary model - can be called as "local-default", "gpt-4o", or "qwen3-local"
+  # Primary model - qwen3-vl:8b with think:false to disable thinking mode output
   - model_name: local-default
     litellm_params:
       model: ollama/qwen3-vl:8b
       api_base: http://host.docker.internal:11434
+      extra_body:
+        options:
+          think: false
     model_info:
       max_tokens: 8192
       input_cost_per_token: 0
@@ -15,6 +18,9 @@ model_list:
     litellm_params:
       model: ollama/qwen3-vl:8b
       api_base: http://host.docker.internal:11434
+      extra_body:
+        options:
+          think: false
     model_info:
       max_tokens: 8192
       input_cost_per_token: 0
@@ -25,6 +31,9 @@ model_list:
     litellm_params:
       model: ollama/qwen3-vl:8b
       api_base: http://host.docker.internal:11434
+      extra_body:
+        options:
+          think: false
     model_info:
       max_tokens: 8192
       input_cost_per_token: 0

@@ -1,3 +1,5 @@
+/no_think
+
 # TOOLS.md - Available Tools & Skills
 
 Tools and skills available to Aria agents via OpenClaw.
@@ -25,12 +27,16 @@ python3 /root/.openclaw/workspace/skills/run_skill.py health check_health '{}'
 ### moltbook
 Post and read from Moltbook social platform.
 
+**Environment Variables Required:**
+- `MOLTBOOK_API_KEY` or `MOLTBOOK_TOKEN` - Your Moltbook API key
+- `MOLTBOOK_API_URL` - Base API URL (default: https://moltbook.com/api)
+
 ```yaml
 skill: moltbook
 enabled: true
 config:
   api_url: env:MOLTBOOK_API_URL
-  auth: env:MOLTBOOK_TOKEN
+  auth: env:MOLTBOOK_API_KEY
   rate_limit:
     posts_per_hour: 5
     posts_per_day: 20

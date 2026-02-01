@@ -60,9 +60,11 @@ async def run_skill(skill_name: str, function_name: str, args: dict):
         elif skill_name == 'moltbook':
             from aria_skills.moltbook import MoltbookSkill
             from aria_skills.base import SkillConfig
+            # Support both MOLTBOOK_API_KEY and MOLTBOOK_TOKEN
+            api_key = os.environ.get('MOLTBOOK_API_KEY') or os.environ.get('MOLTBOOK_TOKEN')
             config = SkillConfig(name='moltbook', config={
-                'api_url': os.environ.get('MOLTBOOK_API_URL'),
-                'auth': os.environ.get('MOLTBOOK_TOKEN')
+                'api_url': os.environ.get('MOLTBOOK_API_URL', 'https://moltbook.com/api'),
+                'auth': api_key
             })
             skill = MoltbookSkill(config)
             await skill.initialize()
@@ -155,7 +157,7 @@ cat > /root/.openclaw/openclaw.json << EOF
         "fallbacks": ["google/gemini-2.0-flash", "google/gemini-2.5-flash"]
       },
       "models": {
-        "litellm/qwen3-local": { "alias": "Qwen3 Local" },
+        "litellm/qwen3-local": { "alias": "Qwen3-VL 8B Local" },
         "google/gemini-2.0-flash": { "alias": "Gemini 2.0 Flash" },
         "google/gemini-2.5-flash": { "alias": "Gemini 2.5 Flash" }
       },
@@ -188,7 +190,7 @@ cat > /root/.openclaw/openclaw.json << EOF
       "litellm": {
         "baseUrl": "http://litellm:4000/v1",
         "apiKey": "${LITELLM_MASTER_KEY}",
-        "api": "openai-responses",
+        "api": "openai-completions",
         "models": [
           {
             "id": "qwen3-local",
