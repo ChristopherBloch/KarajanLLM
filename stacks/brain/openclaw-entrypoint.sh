@@ -209,13 +209,12 @@ cat > /root/.openclaw/openclaw.json << EOF
       "maxConcurrent": 4,
       "workspace": "/root/.openclaw/workspace",
       "model": {
-        "primary": "ollama/qwen2.5:7b",
-        "fallbacks": ["ollama/hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S"]
+        "primary": "ollama/hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S",
+        "fallbacks": ["ollama/qwen3-vl:8b"]
       },
       "models": {
-        "ollama/qwen2.5:7b": { "alias": "Qwen2.5 7B" },
         "ollama/hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S": { "alias": "GLM-4.7 Flash" },
-        "ollama/qwen3-vl:8b": { "alias": "Qwen3-VL Vision" }
+        "ollama/qwen3-vl:8b": { "alias": "Qwen3-VL" }
       },
       "subagents": {
         "maxConcurrent": 8
@@ -261,15 +260,6 @@ cat > /root/.openclaw/openclaw.json << EOF
         "api": "openai-responses",
         "models": [
           {
-            "id": "qwen2.5:7b",
-            "name": "Qwen2.5 7B Local",
-            "reasoning": false,
-            "input": ["text"],
-            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 32768,
-            "maxTokens": 8192
-          },
-          {
             "id": "hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S",
             "name": "GLM-4.7 Flash REAP",
             "reasoning": false,
@@ -280,7 +270,7 @@ cat > /root/.openclaw/openclaw.json << EOF
           },
           {
             "id": "qwen3-vl:8b",
-            "name": "Qwen3-VL Vision",
+            "name": "Qwen3-VL",
             "reasoning": false,
             "input": ["text", "image"],
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
