@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "openai:litellm": {
+      "provider": "openai",
+      "apiKey": "sk-aria-local-key",
+      "baseUrl": "http://litellm:4000/v1"
+    }
+  }
+}
