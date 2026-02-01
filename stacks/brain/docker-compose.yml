@@ -48,28 +48,24 @@ services:
       NODE_OPTIONS: "--max-old-space-size=1024"
       OPENCLAW_CONFIG_PATH: "/root/.openclaw/openclaw.json"
       OPENCLAW_WORKSPACE: "/root/.openclaw/workspace"
-      CLAWDBOT_GATEWAY_PORT: "18789"
-      CLAWDBOT_GATEWAY_TOKEN: ${CLAWDBOT_TOKEN?CLAWDBOT_TOKEN is required}
       OPENCLAW_GATEWAY_PORT: "18789"
       OPENCLAW_GATEWAY_TOKEN: ${CLAWDBOT_TOKEN?CLAWDBOT_TOKEN is required}
       OPENCLAW_NO_ONBOARD: "1"
       OPENCLAW_NO_PROMPT: "1"
-      # LiteLLM as OpenAI-compatible backend (routes to local Ollama/qwen3-vl)
-      OPENAI_API_KEY: ${LITELLM_MASTER_KEY}
-      OPENAI_API_BASE: http://litellm:4000/v1
-      OPENAI_MODEL: local-default
-      # Cloud fallbacks (passed to LiteLLM)
+      # LiteLLM credentials for local model routing
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY}
+      # Cloud fallbacks
       GOOGLE_GEMINI_KEY: ${GOOGLE_GEMINI_KEY}
       MOONSHOT_KIMI_KEY: ${MOONSHOT_KIMI_KEY}
     volumes:
       - openclaw_data:/root/.openclaw
       - ../../aria_mind:/root/.openclaw/workspace:ro
+      - ./openclaw-entrypoint.sh:/openclaw-entrypoint.sh:ro
     ports:
       - "18789:18789"
     depends_on:
       - litellm
-    command: >
-      bash -c "if [ ! -e /usr/local/bin/openclaw ]; then apt-get update && apt-get install -y curl; curl -fsSL https://openclaw.ai/install.sh | bash -s -- --no-onboard --no-prompt; fi; mkdir -p /root/.openclaw; printf '{\"gateway\":{\"mode\":\"local\",\"bind\":\"lan\",\"port\":18789,\"auth\":{\"mode\":\"token\",\"token\":\"'\"$$OPENCLAW_GATEWAY_TOKEN\"'\"},\"trustedProxies\":[\"0.0.0.0/0\",\"::0/0\"]}}' > /root/.openclaw/openclaw.json; /usr/local/bin/openclaw gateway run --port 18789 --bind lan --token \"$$OPENCLAW_GATEWAY_TOKEN\" --allow-unconfigured --verbose"
+    command: ["bash", "/openclaw-entrypoint.sh"]
     networks:
       - aria-net
     mem_limit: ${CLAWDBOT_MEM_LIMIT?CLAWDBOT_MEM_LIMIT is required}
