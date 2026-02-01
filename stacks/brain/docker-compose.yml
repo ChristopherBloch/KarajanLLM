@@ -8,6 +8,8 @@ services:
       POSTGRES_USER: ${DB_USER?DB_USER is required}
       POSTGRES_PASSWORD: ${DB_PASSWORD?DB_PASSWORD is required}
       POSTGRES_DB: ${DB_NAME?DB_NAME is required}
+      # Create litellm database on init
+      POSTGRES_MULTIPLE_DATABASES: litellm
     volumes:
       - aria_pg_data:/var/lib/postgresql/data
       - ./init-scripts:/docker-entrypoint-initdb.d:ro
@@ -144,7 +146,8 @@ services:
       LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY?LITELLM_MASTER_KEY is required}
       GOOGLE_GEMINI_KEY: ${GOOGLE_GEMINI_KEY}
       MOONSHOT_KIMI_KEY: ${MOONSHOT_KIMI_KEY}
-      LITELLM_DATABASE_URL: postgresql://${DB_USER?DB_USER is required}:${DB_PASSWORD?DB_PASSWORD is required}@aria-db:5432/${DB_NAME?DB_NAME is required}
+      # Use separate database for LiteLLM to prevent schema conflicts with Aria tables
+      LITELLM_DATABASE_URL: postgresql://${DB_USER?DB_USER is required}:${DB_PASSWORD?DB_PASSWORD is required}@aria-db:5432/litellm
       STORE_MODEL_IN_DB: "False"
       OLLAMA_API_BASE: http://host.docker.internal:11434
     volumes:
