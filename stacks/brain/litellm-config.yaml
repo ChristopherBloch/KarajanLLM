@@ -1,32 +1,32 @@
 model_list:
   # Local Ollama model (native Metal GPU on host)
-  # Primary model - GLM-4.7-Flash-REAP (23B params, 3B active) for tool calling
+  # Primary model - Qwen2.5:7b - excellent for tool calling, no thinking overhead
   - model_name: local-default
     litellm_params:
-      model: ollama/hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S
+      model: ollama/qwen2.5:7b
       api_base: http://host.docker.internal:11434
     model_info:
-      max_tokens: 8192
+      max_tokens: 32768
       input_cost_per_token: 0
       output_cost_per_token: 0
 
-  # Alias for OpenClaw LiteLLM provider - routes glm-local to Ollama
-  - model_name: glm-local
+  # Alias for OpenClaw LiteLLM provider - routes qwen-local to Ollama
+  - model_name: qwen-local
     litellm_params:
-      model: ollama/hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S
+      model: ollama/qwen2.5:7b
       api_base: http://host.docker.internal:11434
     model_info:
-      max_tokens: 8192
+      max_tokens: 32768
       input_cost_per_token: 0
       output_cost_per_token: 0
 
   # Alias for OpenClaw - routes gpt-4o requests to local Ollama
   - model_name: gpt-4o
     litellm_params:
-      model: ollama/hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S
+      model: ollama/qwen2.5:7b
       api_base: http://host.docker.internal:11434
     model_info:
-      max_tokens: 8192
+      max_tokens: 32768
       input_cost_per_token: 0
       output_cost_per_token: 0
 

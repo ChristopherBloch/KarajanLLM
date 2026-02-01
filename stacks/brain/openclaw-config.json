@@ -16,12 +16,13 @@
     "defaults": {
       "maxConcurrent": 4,
       "model": {
-        "primary": "litellm/glm-local",
-        "fallbacks": ["litellm/kimi-local"]
+        "primary": "litellm/qwen-local",
+        "fallbacks": ["litellm/kimi-local", "litellm/claude-sonnet"]
       },
       "models": {
-        "litellm/glm-local": { "alias": "GLM-4.7 Local" },
-        "litellm/kimi-local": { "alias": "Kimi K2 Local" }
+        "litellm/qwen-local": { "alias": "Qwen2.5 Local (fast)" },
+        "litellm/kimi-local": { "alias": "Kimi K2.5 (smart)" },
+        "litellm/claude-sonnet": { "alias": "Claude Sonnet (escalation)" }
       },
       "subagents": {
         "maxConcurrent": 8
@@ -37,12 +38,30 @@
         "api": "openai-responses",
         "models": [
           {
-            "id": "glm-local",
-            "name": "GLM-4.7-Flash-REAP 23B via LiteLLM",
+            "id": "qwen-local",
+            "name": "Qwen2.5 7B Local - Fast orchestrator",
             "reasoning": false,
             "input": ["text"],
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 202752,
+            "contextWindow": 32768,
+            "maxTokens": 8192
+          },
+          {
+            "id": "kimi-local",
+            "name": "Moonshot Kimi K2.5 - Smart reasoning",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0.001, "output": 0.002, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 256000,
+            "maxTokens": 16384
+          },
+          {
+            "id": "claude-sonnet",
+            "name": "Claude Sonnet - Complex tasks & safety",
+            "reasoning": true,
+            "input": ["text", "image"],
+            "cost": { "input": 0.003, "output": 0.015, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 200000,
             "maxTokens": 8192
           }
         ]
