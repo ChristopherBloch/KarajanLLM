@@ -4,204 +4,196 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="x-dns-prefetch-control" content="off">
-    <!-- Disable Chrome's speculative preloading/prefetching -->
     <meta http-equiv="Speculation-Rules" content="{}">
     <link rel="prefetch" href="">
     <script type="speculationrules">{"prefetch":[],"prerender":[]}</script>
     <title>{% block title %}Aria Blue{% endblock %}</title>
     
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
+    <!-- HTMX for dynamic content -->
+    <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+    
+    <!-- Modular CSS -->
     <link rel="stylesheet" href="/static/css/variables.css">
     <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
     <link rel="stylesheet" href="/static/css/components.css">
     
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <header>
-        <div class="container">
-            <nav>
-                <a href="/" class="logo">
-                    <div class="logo-icon">🌟</div>
-                    <div class="logo-text"><span>Aria Blue</span></div>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="/" class="sidebar-logo">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="40" height="40" rx="8" fill="url(#gradient)"/>
+                        <path d="M20 8L28 32H12L20 8Z" fill="white" fill-opacity="0.9"/>
+                        <circle cx="20" cy="18" r="4" fill="white"/>
+                        <defs>
+                            <linearGradient id="gradient" x1="0" y1="0" x2="40" y2="40">
+                                <stop stop-color="#3498db"/>
+                                <stop offset="1" stop-color="#9b59b6"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <span class="sidebar-logo-text">Aria Blue</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    <span class="nav-item-text">Home</span>
                 </a>
 
-                <div class="nav-links" id="nav-links">
-                    <a href="/" class="{% if request.path == '/' %}active{% endif %}">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4.5a.5.5 0 0 0 .5-.5v-4h2v4a.5.5 0 0 0 .5.5H14a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146z"/>
-                        </svg>
-                        Home
-                    </a>
-                    <a href="/dashboard" class="{% if '/dashboard' in request.path %}active{% endif %}">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M4 11a1 1 0 1 1 2 0v1a1 1 0 1 1-2 0v-1zm6-4a1 1 0 1 1 2 0v5a1 1 0 1 1-2 0V7zM7 9a1 1 0 0 1 2 0v3a1 1 0 1 1-2 0V9z"/>
-                            <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
-                        </svg>
-                        Dashboard
-                    </a>
-                    <a href="/activities" class="{% if '/activities' in request.path %}active{% endif %}">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zm.995-14.901a1 1 0 1 0-1.99 0A5.002 5.002 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901z"/>
-                        </svg>
-                        Activities
-                    </a>
-                    <a href="/thoughts" class="{% if '/thoughts' in request.path %}active{% endif %}">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M9.5 2.672a.5.5 0 1 0 1 0V.843a.5.5 0 0 0-1 0v1.829Zm4.5.035A.5.5 0 0 0 13.293 2L12 3.293a.5.5 0 1 0 .707.707L14 2.707ZM7.293 4A.5.5 0 1 0 8 3.293L6.707 2A.5.5 0 0 0 6 2.707L7.293 4Zm-.621 2.5a.5.5 0 1 0 0-1H4.843a.5.5 0 1 0 0 1h1.829Zm8.485 0a.5.5 0 1 0 0-1h-1.829a.5.5 0 0 0 0 1h1.829ZM13.293 10A.5.5 0 1 0 14 9.293L12.707 8a.5.5 0 1 0-.707.707L13.293 10ZM9.5 11.157a.5.5 0 0 0 1 0V9.328a.5.5 0 0 0-1 0v1.829Zm1.854-5.097a.5.5 0 0 0 0-.706l-.708-.708a.5.5 0 0 0-.707 0L8.646 5.94a.5.5 0 0 0 0 .707l.708.708a.5.5 0 0 0 .707 0l1.293-1.293Zm-3 3a.5.5 0 0 0 0-.706l-.708-.708a.5.5 0 0 0-.707 0L.646 13.94a.5.5 0 0 0 0 .707l.708.708a.5.5 0 0 0 .707 0L8.354 9.06Z"/>
-                        </svg>
-                        Thoughts
-                    </a>
-                    <a href="/records" class="{% if '/records' in request.path %}active{% endif %}">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M5 4a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm-.5 2.5A.5.5 0 0 1 5 6h6a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zM5 8a.5.5 0 0 0 0 1h6a.5.5 0 0 0 0-1H5zm0 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1H5z"/>
-                            <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2zm10-1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1z"/>
-                        </svg>
-                        Records
-                    </a>
-                    <a href="/search" class="{% if '/search' in request.path %}active{% endif %}">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
-                        </svg>
-                        Search
-                    </a>
-
-                    <div class="nav-divider"></div>
-
-                    <a href="/services" class="{% if '/services' in request.path %}active{% endif %}">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M6 3a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM1 3a2 2 0 1 0 4 0 2 2 0 0 0-4 0z"/>
-                            <path d="M9 6a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
-                            <path d="M3 13a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
-                        </svg>
-                        Services
-                    </a>
-                    <a href="{{ clawdbot_public_url }}" target="_blank">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2z"/>
-                        </svg>
-                        🦞 Clawdbot
-                    </a>
-                    <a href="/grafana/" target="_blank">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M0 0h1v15h15v1H0V0Zm14.817 3.113a.5.5 0 0 1 .07.704l-4.5 5.5a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61 4.15-5.073a.5.5 0 0 1 .704-.07Z"/>
-                        </svg>
-                        📊 Grafana
-                    </a>
-                    <a href="/prometheus/" target="_blank">
-                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16Zm.25-14.75v1.5a.25.25 0 0 1-.5 0v-1.5a.25.25 0 0 1 .5 0Zm0 12v1.5a.25.25 0 0 1-.5 0v-1.5a.25.25 0 0 1 .5 0ZM4.5 8a.25.25 0 0 1-.25.25h-1.5a.25.25 0 0 1 0-.5h1.5A.25.25 0 0 1 4.5 8Zm9.5 0a.25.25 0 0 1-.25.25h-1.5a.25.25 0 0 1 0-.5h1.5a.25.25 0 0 1 .25.25Z"/>
-                        </svg>
-                        📈 Prometheus
-                    </a>
-
-                    <div class="api-status" id="api-status">
-                        <span class="status-dot"></span>
-                        <span>Loading...</span>
-                    </div>
-                </div>
-
-                <button class="menu-toggle" onclick="toggleMenu()" aria-label="Toggle menu">
-                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+                <a href="/dashboard" class="nav-item {% if '/dashboard' in request.path %}active{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
                     </svg>
-                </button>
+                    <span class="nav-item-text">Dashboard</span>
+                </a>
+
+                <a href="/activities" class="nav-item {% if '/activities' in request.path %}active{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <span class="nav-item-text">Activities</span>
+                </a>
+
+                <a href="/thoughts" class="nav-item {% if '/thoughts' in request.path %}active{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                    <span class="nav-item-text">Thoughts</span>
+                </a>
+
+                <a href="/records" class="nav-item {% if '/records' in request.path %}active{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="nav-item-text">Records</span>
+                </a>
+
+                <a href="/goals" class="nav-item {% if '/goals' in request.path %}active{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="nav-item-text">🎯 Goals</span>
+                </a>
+
+                <a href="/heartbeat" class="nav-item {% if '/heartbeat' in request.path %}active{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                    <span class="nav-item-text">💓 Heartbeat</span>
+                </a>
+
+                <a href="/search" class="nav-item {% if '/search' in request.path %}active{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <span class="nav-item-text">Search</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="/services" class="nav-item {% if '/services' in request.path %}active{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/>
+                    </svg>
+                    <span class="nav-item-text">Services</span>
+                </a>
+
+                <a href="/litellm" class="nav-item {% if '/litellm' in request.path %}active{% endif %}">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <span class="nav-item-text">⚡ LiteLLM</span>
+                </a>
+
+                <a href="{{ clawdbot_public_url }}" target="_blank" class="nav-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <span class="nav-item-text">🦞 Clawdbot</span>
+                </a>
             </nav>
-        </div>
-    </header>
 
-    <main id="main-content">
-        <div class="container">
-            {% block content %}{% endblock %}
-        </div>
-    </main>
+            <div class="sidebar-footer">
+                <div class="api-status" 
+                     hx-get="{{ api_base_url }}/status" 
+                     hx-trigger="load, every 60s"
+                     hx-swap="innerHTML">
+                    <span class="status-indicator pending"></span>
+                    <span class="text-sm text-muted">Checking...</span>
+                </div>
+            </div>
+        </aside>
 
-    <footer>
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-brand">
-                    <div class="footer-logo">🌟</div>
-                    <div class="footer-text">
-                        <strong>Aria Blue</strong> - Autonomous AI Agent
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sticky Page Header -->
+            <header class="page-header">
+                <div class="page-header-left">
+                    <h1>{% block page_title %}Aria Blue{% endblock %}</h1>
+                    <p>{% block page_subtitle %}{% endblock %}</p>
+                </div>
+                <div class="page-header-actions">
+                    {% block header_actions %}
+                    <div class="page-header-status"
+                         hx-get="{{ api_base_url }}/health"
+                         hx-trigger="load, every 60s"
+                         hx-swap="innerHTML">
+                        <span class="status-indicator pending"></span>
+                        <span>Checking...</span>
                     </div>
+                    {% endblock %}
                 </div>
-                <div class="footer-links">
-                    <a href="{{ api_base_url }}/status">API Status</a>
-                    <a href="/services">Services</a>
-                </div>
+            </header>
+            
+            <!-- Page Content -->
+            <div class="page-content">
+                {% block content %}{% endblock %}
             </div>
-            <div class="footer-divider"></div>
-            <div class="footer-bottom">
-                <span>&copy; 2025-2026 Aria Blue. All rights reserved.</span>
-                <div class="footer-tech">
-                    <span class="footer-tech-badge">Flask</span>
-                    <span class="footer-tech-badge">PostgreSQL</span>
-                    <span class="footer-tech-badge">Ollama</span>
-                </div>
-            </div>
-        </div>
-    </footer>
+        </main>
+    </div>
 
-    <div id="notification-container"></div>
-    <div id="page-loader" class="page-loader"></div>
+    <!-- Mobile Sidebar Toggle -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+    </button>
 
     <script>
-        // ==== Global Config ====
+        // Global Config
         const API_BASE_URL = "{{ api_base_url }}";
         window.ARIA_API_BASE_URL = API_BASE_URL;
         window.ARIA_CLAWDBOT_PUBLIC_URL = "{{ clawdbot_public_url }}";
 
-        function toggleMenu() {
-            document.getElementById('nav-links').classList.toggle('active');
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
         }
 
-        function showNotification(message, type = 'info') {
-            const container = document.getElementById('notification-container');
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove()">&times;</button>`;
-            container.appendChild(notification);
-            setTimeout(() => notification.remove(), 5000);
-        }
-
-        // ==== SPA-style Navigation (DISABLED - using traditional nav) ====
-        // The SPA navigation was causing issues. Using standard page loads for now.
-        const mainContent = document.getElementById('main-content');
-        const pageLoader = document.getElementById('page-loader');
-        
-        // ==== API Status Check ====
-        // Force hide loader on page load (failsafe)
-        window.addEventListener('load', function() {
-            const loader = document.getElementById('page-loader');
-            if (loader) {
-                setTimeout(() => {
-                    loader.style.opacity = '0';
-                    setTimeout(() => { loader.style.display = 'none'; }, 300);
-                }, 500); // Small delay to smooth transition
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.sidebar-toggle');
+            if (window.innerWidth <= 1024 && 
+                !sidebar.contains(e.target) && 
+                !toggle.contains(e.target) &&
+                sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
             }
         });
-
-        // Backup timer in case load event fired already or hangs
-        setTimeout(() => {
-            const loader = document.getElementById('page-loader');
-            if (loader && loader.style.display !== 'none') {
-                loader.style.opacity = '0';
-                loader.style.display = 'none';
-            }
-        }, 3000);
-
-        fetch(`${API_BASE_URL}/status`)
-            .then(r => r.json())
-            .then(data => {
-                const el = document.getElementById('api-status');
-                const allUp = Object.values(data).every(s => s.status === 'up');
-                el.innerHTML = `<span class="status-dot ${allUp ? 'up' : 'partial'}"></span><span>${allUp ? 'All Systems Online' : 'Partial'}</span>`;
-            })
-            .catch(() => {
-                document.getElementById('api-status').innerHTML = '<span class="status-dot down"></span><span>Offline</span>';
-            });
     </script>
 
     {% block extra_js %}{% endblock %}

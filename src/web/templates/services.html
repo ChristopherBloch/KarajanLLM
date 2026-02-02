@@ -107,6 +107,7 @@ const clawdbotUrl = "{{ clawdbot_public_url }}";
 
 const services = [
     { id: 'ollama', name: 'Ollama', icon: '🦙', desc: 'Local LLM Server', port: 11434, url: `${baseUrl}/ollama/` },
+    { id: 'mlx', name: 'MLX Server', icon: '🍎', desc: 'Apple Silicon LLM', port: 8080, url: null },
     { id: 'litellm', name: 'LiteLLM', icon: '⚡', desc: 'LLM Proxy', port: 18793, url: `${baseUrl}/litellm/` },
     { id: 'clawdbot', name: 'Clawdbot', icon: '🤖', desc: 'AI Gateway', port: 18789, url: clawdbotUrl },
     { id: 'postgres', name: 'PostgreSQL', icon: '🐘', desc: 'Database Server', port: 5432, url: null },
