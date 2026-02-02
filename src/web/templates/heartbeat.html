@@ -532,20 +532,24 @@ async function loadHeartbeatData() {
     ]);
 }
 
+const API_BASE = window.ARIA_API_BASE_URL || '/api';
+
 async function loadScheduledJobs() {
     try {
         // Try live endpoint first (direct from OpenClaw file), fallback to DB
-        let response = await fetch(`${window.ARIA_API_BASE_URL}/jobs/live`);
+        let response = await fetch(`${API_BASE}/jobs/live`);
         let data = await response.json();
+        let jobs = Array.isArray(data?.jobs) ? data.jobs : (Array.isArray(data) ? data : []);
         
         // If live has no jobs, try synced DB version
-        if (data.jobs.length === 0 && !data.error) {
-            response = await fetch(`${window.ARIA_API_BASE_URL}/jobs`);
+        if (jobs.length === 0 && !data?.error) {
+            response = await fetch(`${API_BASE}/jobs`);
             data = await response.json();
+            jobs = Array.isArray(data?.jobs) ? data.jobs : (Array.isArray(data) ? data : []);
         }
         
-        if (data.jobs && data.jobs.length > 0) {
-            scheduledJobs = data.jobs.map(job => ({
+        if (jobs.length > 0) {
+            scheduledJobs = jobs.map(job => ({
                 id: job.id,
                 name: job.name,
                 icon: jobIcons[job.name] || '📋',
@@ -618,7 +622,7 @@ async function loadScheduledJobs() {
 async function syncJobs() {
     try {
         showToast('Syncing jobs from OpenClaw...', 'info');
-        const response = await fetch(`${window.ARIA_API_BASE_URL}/jobs/sync`, { method: 'POST' });
+        const response = await fetch(`${API_BASE}/jobs/sync`, { method: 'POST' });
         const data = await response.json();
         
         if (response.ok) {
@@ -634,7 +638,7 @@ async function syncJobs() {
 
 async function loadScheduleStatus() {
     try {
-        const response = await fetch(`${window.ARIA_API_BASE_URL}/schedule`);
+        const response = await fetch(`${API_BASE}/schedule`);
         const data = await response.json();
         
         document.getElementById('heartbeatStatus').textContent = 'System Active';
@@ -668,7 +672,7 @@ async function loadScheduleStatus() {
 
 async function loadHeartbeatLogs() {
     try {
-        const response = await fetch(`${window.ARIA_API_BASE_URL}/records?table=heartbeat_log&limit=100`);
+        const response = await fetch(`${API_BASE}/records?table=heartbeat_log&limit=100`);
         const data = await response.json();
         allLogs = data.records || data || [];
         
@@ -820,7 +824,7 @@ function filterLogs() {
 
 async function triggerTick() {
     try {
-        const response = await fetch(`${window.ARIA_API_BASE_URL}/schedule/tick`, {
+        const response = await fetch(`${API_BASE}/schedule/tick`, {
             method: 'POST'
         });
         
