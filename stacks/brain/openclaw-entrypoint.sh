@@ -204,6 +204,19 @@ cat > /root/.openclaw/openclaw.json << EOF
       "avatar": "⚡"
     }
   },
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "soul-evil": {
+          "enabled": true,
+          "file": "SOUL_EVIL.md",
+          "chance": 0.1,
+          "purge": { "at": "21:00", "duration": "15m" }
+        }
+      }
+    }
+  },
   "agents": {
     "defaults": {
       "maxConcurrent": 4,
