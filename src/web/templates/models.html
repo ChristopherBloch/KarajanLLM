@@ -633,28 +633,28 @@ async function loadBalances() {
         let html = '';
         let totalUSD = 0;
         
-        // Kimi balance
+        // Kimi balance (already in USD)
         if (balanceData.kimi) {
             const kimi = balanceData.kimi;
             if (kimi.status === 'ok') {
-                const usdEquiv = (kimi.available || 0) * 0.14;
-                totalUSD += usdEquiv;
+                const available = kimi.available || 0;
+                totalUSD += available;
                 html += `
                     <div class="balance-card kimi">
                         <div class="balance-header">
                             <span class="balance-provider">🌙 ${kimi.provider}</span>
                             <span class="balance-status ok">Active</span>
                         </div>
-                        <div class="balance-amount">¥${kimi.available?.toFixed(2) || '0.00'}</div>
-                        <div class="balance-currency">Chinese Yuan (CNY) ≈ $${usdEquiv.toFixed(2)} USD</div>
+                        <div class="balance-amount">$${available.toFixed(2)}</div>
+                        <div class="balance-currency">US Dollars (USD)</div>
                         <div class="balance-details">
                             <div class="balance-detail-row">
                                 <span>Cash Balance:</span>
-                                <span>¥${kimi.cash?.toFixed(2) || '0.00'}</span>
+                                <span>$${(kimi.cash || 0).toFixed(2)}</span>
                             </div>
                             <div class="balance-detail-row">
                                 <span>Voucher Balance:</span>
-                                <span>¥${kimi.voucher?.toFixed(2) || '0.00'}</span>
+                                <span>$${(kimi.voucher || 0).toFixed(2)}</span>
                             </div>
                         </div>
                     </div>
