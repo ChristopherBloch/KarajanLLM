@@ -209,10 +209,7 @@ cat > /root/.openclaw/openclaw.json << EOF
       "enabled": true,
       "entries": {
         "soul-evil": {
-          "enabled": true,
-          "file": "SOUL_EVIL.md",
-          "chance": 0.1,
-          "purge": { "at": "21:00", "duration": "15m" }
+          "enabled": true
         }
       }
     }
@@ -222,12 +219,12 @@ cat > /root/.openclaw/openclaw.json << EOF
       "maxConcurrent": 4,
       "workspace": "/root/.openclaw/workspace",
       "model": {
-        "primary": "litellm/glm-local",
-        "fallbacks": ["litellm/qwen3-vl"]
+        "primary": "openai/glm-local",
+        "fallbacks": ["openai/qwen3-vl"]
       },
       "models": {
-        "litellm/glm-local": { "alias": "GLM-4.7 Flash" },
-        "litellm/qwen3-vl": { "alias": "Qwen3-VL" }
+        "openai/glm-local": { "alias": "GLM-4.7 Flash" },
+        "openai/qwen3-vl": { "alias": "Qwen3-VL" }
       },
       "subagents": {
         "maxConcurrent": 8
@@ -266,10 +263,9 @@ cat > /root/.openclaw/openclaw.json << EOF
   "models": {
     "mode": "merge",
     "providers": {
-      "litellm": {
+      "openai": {
         "baseUrl": "http://litellm:4000/v1",
         "apiKey": "sk-aria-local-key",
-        "api": "openai-responses",
         "models": [
           {
             "id": "glm-local",
