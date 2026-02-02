@@ -13,7 +13,9 @@ Aria_moltbot/
 │   ├── IDENTITY.md               # Name: Aria Blue ⚡️
 │   ├── AGENTS.md                 # Sub-agent definitions
 │   ├── TOOLS.md                  # Available skills & execution guide
-│   ├── HEARTBEAT.md              # Scheduled tasks checklist
+│   ├── HEARTBEAT.md              # Cron job documentation
+│   ├── GOALS.md                  # Goal-driven work system (5-min cycles)
+│   ├── ORCHESTRATION.md          # Sub-agent & infrastructure awareness
 │   ├── MEMORY.md                 # Long-term curated knowledge
 │   ├── USER.md                   # User profile (Najia)
 │   ├── __init__.py
@@ -310,20 +312,22 @@ docker compose down
 │       ▼                                                          │
 │  ┌─────────────────────────────────────────────────────────────┐│
 │  │ LiteLLM Router (port 18793)                                 ││
-│  │ ├─► qwen3-local → ollama/qwen3-vl:8b                        ││
-│  │ ├─► gpt-4o      → ollama/qwen3-vl:8b (alias)                ││
-│  │ └─► local-default → ollama/qwen3-vl:8b (alias)              ││
+│  qwen3-mlx     → MLX Server (port 8080)                      ││
+│  │ ├─► glm-free    → OpenRouter GLM 4.5 Air (FREE)             ││
+│  │ ├─► deepseek-free → OpenRouter DeepSeek R1 (FREE)           ││
+│  │ ├─► nemotron-free → OpenRouter Nemotron 30B (FREE)          ││
+│  │ └─► kimi        → Moonshot Kimi K2.5 (PAID - last resort)   ││
 │  └─────────────────────────────────────────────────────────────┘│
 │       │                                                          │
 │       ▼                                                          │
 │  ┌─────────────────────────────────────────────────────────────┐│
-│  │ Ollama (host:11434, Metal GPU)                              ││
-│  │ └─► qwen3-vl:8b (~20 tok/s)                                 ││
+│  │ MLX Server (host:8080, Metal GPU via launchd)               ││
+│  │ └─► Qwen3-VLTO-8B-Instruct-mlx (~25-35 tok/s)               ││
 │  └─────────────────────────────────────────────────────────────┘│
 │                                                                  │
-│  FALLBACK (if local fails):                                      │
-│  └─► google/gemini-2.0-flash → Gemini API                       │
-│  └─► google/gemini-2.5-flash → Gemini API                       │
+│  FALLBACK CHAIN (if local fails):                                │
+│  └─► OpenRouter FREE models (glm, deepseek, nemotron)           │
+│  └─► Moonshot Kimi (paid, only if all FREE fail)                │
 └─────────────────────────────────────────────────────────────────┘
 ```
 

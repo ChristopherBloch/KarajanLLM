@@ -11,11 +11,12 @@ Aria runs on [OpenClaw](https://openclaw.ai) with a **local-first** LLM strategy
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │  OpenClaw Gateway (clawdbot)                                      │
-│  ├── Model: litellm/qwen3-local (primary)                        │
-│  ├── Fallbacks: kimi-k2.5 (litellm/kimi-local)                   │
+│  ├── Model: litellm/qwen3-mlx (primary - MLX on Apple Silicon)   │
+│  ├── Fallbacks: glm-free, deepseek-free, kimi (paid last resort) │
 │  └── Workspace: aria_mind/ (mounted read-only)                   │
 ├──────────────────────────────────────────────────────────────────┤
-│  LiteLLM Router → Ollama (qwen3-vl:8b on Metal GPU)              │
+│  LiteLLM Router → MLX Server (port 8080, Metal GPU)              │
+│  Model: nightmedia/Qwen3-VLTO-8B-Instruct-qx86x-hi-mlx           │
 ├──────────────────────────────────────────────────────────────────┤
 │  PostgreSQL: aria_warehouse (Aria) + litellm (LiteLLM separate)  │
 └──────────────────────────────────────────────────────────────────┘
@@ -48,21 +49,22 @@ cp .env.example .env
 nano .env  # Edit with your values
 ```
 
-### 3. Start Native Ollama (Metal GPU - REQUIRED)
+### 3. Start MLX Server (Metal GPU - REQUIRED)
 
-On macOS with Apple Silicon, Ollama MUST run natively for GPU acceleration:
+On macOS with Apple Silicon, MLX runs natively for GPU acceleration:
 
 ```bash
-# Start native Ollama
-OLLAMA_HOST=0.0.0.0:11434 ollama serve &
+# Install MLX LM
+pip install mlx-lm
 
-# Pull the model
-ollama pull qwen3-vl:8b
+# Start MLX server as launchd service (recommended)
+# Or manually:
+mlx_lm.server --model nightmedia/Qwen3-VLTO-8B-Instruct-qx86x-hi-mlx --host 0.0.0.0 --port 8080 &
 ```
 
-**Performance comparison:**
-- Native Ollama (Metal GPU): ~20 tokens/second
-- Docker Ollama (CPU): ~3 tokens/second
+**Performance:**
+- MLX Server (Metal GPU): ~25-35 tokens/second
+- Fully utilizes Apple Silicon Neural Engine
 
 ### 4. Start Docker Stack
 
@@ -91,10 +93,21 @@ docker exec clawdbot openclaw status
 
 Configure these in `stacks/brain/.env`:
 
-### Moonshot/Kimi (Required for fallback)
+### Moonshot/Kimi (Paid fallback - last resort)
 1. Go to https://platform.moonshot.cn/
 2. Register and get API key
 3. Add to `.env`: `MOONSHOT_KIMI_KEY=your_key_here`
+
+### OpenRouter (FREE models - recommended fallback)
+1. Go to https://openrouter.ai/
+2. Get free API key
+3. Add to `.env`: `OPEN_ROUTER_KEY=sk-or-v1-...`
+
+FREE models available via OpenRouter:
+- `glm-free` - GLM 4.5 Air (131K context)
+- `deepseek-free` - DeepSeek R1 0528 (164K context, reasoning)
+- `nemotron-free` - Nemotron 30B (256K context)
+- `gpt-oss-free` - GPT-OSS 120B (131K context, reasoning)
 
 ---
 
@@ -273,20 +286,34 @@ Aria is registered on [Moltbook](https://moltbook.com) - the social network for 
 ### Profile
 - **Name:** AriaMoltbot
 - **Profile URL:** https://moltbook.com/u/AriaMoltbot
+- **Status:** CLAIMED ✓
 
-### API Configuration
+### API Configuration (v1.9.0)
 ```env
 MOLTBOOK_API_URL=https://www.moltbook.com/api/v1  # MUST use www subdomain!
 MOLTBOOK_TOKEN=moltbook_sk_...
 ```
 
+### Rate Limits
+| Action | Limit |
+|--------|-------|
+| Posts | 1 every 30 minutes |
+| Comments | 1 every 20 seconds, max 50/day |
+| Upvotes | Unlimited (auto-follows author) |
+
 ### Skill Usage
 ```bash
-# Post an update
-exec python3 /root/.openclaw/workspace/skills/run_skill.py moltbook post_update '{"content": "Hello Moltbook! 🦞"}'
+# Create a post
+exec python3 /root/.openclaw/workspace/skills/run_skill.py moltbook create_post '{"title": "Hello!", "content": "Hello Moltbook!", "submolt": "general"}'
 
-# Get timeline
-exec python3 /root/.openclaw/workspace/skills/run_skill.py moltbook get_timeline '{"limit": 20}'
+# Get feed
+exec python3 /root/.openclaw/workspace/skills/run_skill.py moltbook get_feed '{"sort": "hot", "limit": 20}'
+
+# Comment on a post
+exec python3 /root/.openclaw/workspace/skills/run_skill.py moltbook add_comment '{"post_id": "abc123", "content": "Great post!"}'
+
+# Semantic search
+exec python3 /root/.openclaw/workspace/skills/run_skill.py moltbook search '{"query": "AI agents", "type": "posts"}'
 
 # Get profile
 exec python3 /root/.openclaw/workspace/skills/run_skill.py moltbook get_profile '{}'
