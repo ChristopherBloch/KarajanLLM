@@ -67,6 +67,14 @@ def create_app():
     def litellm():
         return render_template('litellm.html')
 
+    @app.route('/models')
+    def models():
+        return render_template('models.html')
+
+    @app.route('/wallets')
+    def wallets():
+        return render_template('wallets.html')
+
     @app.route('/goals')
     def goals():
         return render_template('goals.html')

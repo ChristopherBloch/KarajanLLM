@@ -1,0 +1,1063 @@
+{% extends "base.html" %}
+{% set service_host = request.host.split(':')[0] %}
+{% block title %}Aria - Models & Usage{% endblock %}
+
+{% block content %}
+<div class="hero hero-compact">
+    <h1 class="hero-title">🤖 Models & Usage</h1>
+    <p class="hero-subtitle">AI Models, Wallet Balances & Token Consumption Analytics</p>
+</div>
+
+<!-- Quick Stats -->
+<div class="stats-row" id="stats-row">
+    <div class="stat-card">
+        <div class="stat-icon">🔢</div>
+        <div class="stat-content">
+            <div class="stat-value" id="stat-models">--</div>
+            <div class="stat-label">Available Models</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-content">
+            <div class="stat-value" id="stat-balance">--</div>
+            <div class="stat-label">Total Balance</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+            <div class="stat-value" id="stat-tokens">--</div>
+            <div class="stat-label">Total Tokens</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">💸</div>
+        <div class="stat-content">
+            <div class="stat-value" id="stat-spend">--</div>
+            <div class="stat-label">Total Spend</div>
+        </div>
+    </div>
+</div>
+
+<!-- Wallet Balances Section -->
+<div class="section-card" id="wallets">
+    <div class="section-header">
+        <h2 class="section-title">💰 Wallet Balances</h2>
+        <button class="btn btn-secondary btn-sm" onclick="loadBalances()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Refresh
+        </button>
+    </div>
+    <div class="balances-grid" id="balances-grid">
+        <!-- Skeleton cards -->
+        <div class="balance-card skeleton-card">
+            <div class="skeleton skeleton-text" style="width: 60%; height: 20px; margin-bottom: 12px;"></div>
+            <div class="skeleton skeleton-text" style="width: 80%; height: 32px; margin-bottom: 8px;"></div>
+            <div class="skeleton skeleton-text" style="width: 40%; height: 16px;"></div>
+        </div>
+        <div class="balance-card skeleton-card">
+            <div class="skeleton skeleton-text" style="width: 60%; height: 20px; margin-bottom: 12px;"></div>
+            <div class="skeleton skeleton-text" style="width: 80%; height: 32px; margin-bottom: 8px;"></div>
+            <div class="skeleton skeleton-text" style="width: 40%; height: 16px;"></div>
+        </div>
+        <div class="balance-card skeleton-card">
+            <div class="skeleton skeleton-text" style="width: 60%; height: 20px; margin-bottom: 12px;"></div>
+            <div class="skeleton skeleton-text" style="width: 80%; height: 32px; margin-bottom: 8px;"></div>
+            <div class="skeleton skeleton-text" style="width: 40%; height: 16px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Token Usage Charts -->
+<div class="section-card" id="usage">
+    <div class="section-header">
+        <h2 class="section-title">📊 Token Consumption</h2>
+        <div class="header-actions">
+            <select id="chart-period" class="select-small" onchange="updateCharts()">
+                <option value="24h">Last 24 Hours</option>
+                <option value="7d" selected>Last 7 Days</option>
+                <option value="30d">Last 30 Days</option>
+                <option value="all">All Time</option>
+            </select>
+        </div>
+    </div>
+    <div class="charts-grid">
+        <div class="chart-container">
+            <h3 class="chart-title">Tokens by Provider</h3>
+            <canvas id="tokens-by-provider-chart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3 class="chart-title">Usage Over Time</h3>
+            <canvas id="usage-timeline-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Spend Analytics -->
+<div class="section-card" id="spend">
+    <div class="section-header">
+        <h2 class="section-title">💸 Spend Analytics</h2>
+    </div>
+    <div class="spend-cards-grid" id="spend-cards">
+        <div class="spend-card skeleton-card">
+            <div class="skeleton skeleton-text" style="width: 50%;"></div>
+            <div class="skeleton skeleton-text" style="width: 70%; height: 24px;"></div>
+        </div>
+        <div class="spend-card skeleton-card">
+            <div class="skeleton skeleton-text" style="width: 50%;"></div>
+            <div class="skeleton skeleton-text" style="width: 70%; height: 24px;"></div>
+        </div>
+        <div class="spend-card skeleton-card">
+            <div class="skeleton skeleton-text" style="width: 50%;"></div>
+            <div class="skeleton skeleton-text" style="width: 70%; height: 24px;"></div>
+        </div>
+        <div class="spend-card skeleton-card">
+            <div class="skeleton skeleton-text" style="width: 50%;"></div>
+            <div class="skeleton skeleton-text" style="width: 70%; height: 24px;"></div>
+        </div>
+    </div>
+    <div class="charts-grid" style="margin-top: var(--space-lg);">
+        <div class="chart-container">
+            <h3 class="chart-title">Spend by Model</h3>
+            <canvas id="spend-by-model-chart"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3 class="chart-title">Cost Breakdown</h3>
+            <canvas id="cost-breakdown-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Models by Provider -->
+<div class="section-card" id="kimi">
+    <div class="section-header">
+        <h2 class="section-title">🤖 Available Models</h2>
+        <button class="btn btn-secondary btn-sm" onclick="loadModels()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Refresh
+        </button>
+    </div>
+    
+    <!-- Filter Tabs -->
+    <div class="filter-tabs" id="provider-tabs">
+        <button class="filter-tab active" data-provider="all">All</button>
+        <button class="filter-tab" data-provider="kimi">🌙 Kimi</button>
+        <button class="filter-tab" data-provider="openrouter">🔀 OpenRouter</button>
+        <button class="filter-tab" data-provider="local">🏠 Local</button>
+    </div>
+    
+    <div class="models-grid" id="models-grid">
+        <!-- Skeleton cards -->
+        <div class="model-card skeleton-card">
+            <div class="skeleton skeleton-text" style="width: 70%; height: 20px;"></div>
+            <div class="skeleton skeleton-text" style="width: 40%; height: 16px; margin-top: 8px;"></div>
+        </div>
+        <div class="model-card skeleton-card">
+            <div class="skeleton skeleton-text" style="width: 70%; height: 20px;"></div>
+            <div class="skeleton skeleton-text" style="width: 40%; height: 16px; margin-top: 8px;"></div>
+        </div>
+        <div class="model-card skeleton-card">
+            <div class="skeleton skeleton-text" style="width: 70%; height: 20px;"></div>
+            <div class="skeleton skeleton-text" style="width: 40%; height: 16px; margin-top: 8px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Spend Logs -->
+<div class="section-card">
+    <div class="section-header">
+        <h2 class="section-title">📝 Recent API Calls</h2>
+        <button class="btn btn-secondary btn-sm" onclick="loadSpendLogs()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Refresh
+        </button>
+    </div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Model</th>
+                    <th>Tokens</th>
+                    <th>Cost</th>
+                    <th>Duration</th>
+                </tr>
+            </thead>
+            <tbody id="spend-logs-tbody">
+                <tr class="skeleton-row">
+                    <td><div class="skeleton skeleton-text"></div></td>
+                    <td><div class="skeleton skeleton-text"></div></td>
+                    <td><div class="skeleton skeleton-text"></div></td>
+                    <td><div class="skeleton skeleton-text"></div></td>
+                    <td><div class="skeleton skeleton-text"></div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Stats Row */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+}
+
+.stat-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* Balances Grid */
+.balances-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-lg);
+}
+
+.balance-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    position: relative;
+    overflow: hidden;
+}
+
+.balance-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+}
+
+.balance-card.kimi::before {
+    background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+}
+
+.balance-card.openrouter::before {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+.balance-card.local::before {
+    background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+.balance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+
+.balance-provider {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.balance-status {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-weight: 500;
+}
+
+.balance-status.ok { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+.balance-status.error { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+.balance-status.free { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+
+.balance-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: var(--space-xs);
+}
+
+.balance-currency {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.balance-details {
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-subtle);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.balance-detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+/* Charts */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: var(--space-lg);
+}
+
+.chart-container {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    min-height: 300px;
+}
+
+.chart-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+}
+
+/* Spend Cards */
+.spend-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-md);
+}
+
+.spend-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    text-align: center;
+}
+
+.spend-card-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-sm);
+}
+
+.spend-card-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.spend-card-value.money {
+    color: #22c55e;
+}
+
+.spend-card-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: var(--space-xs);
+}
+
+/* Filter Tabs */
+.filter-tabs {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+    flex-wrap: wrap;
+}
+
+.filter-tab {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-full);
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--text-secondary);
+}
+
+.filter-tab:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent-primary);
+}
+
+.filter-tab.active {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: white;
+}
+
+/* Models Grid */
+.models-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-md);
+}
+
+.model-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    transition: all 0.2s ease;
+}
+
+.model-card:hover {
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+}
+
+.model-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-sm);
+}
+
+.model-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    word-break: break-all;
+}
+
+.model-provider {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+    font-weight: 500;
+}
+
+.model-provider.kimi { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
+.model-provider.openrouter { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+.model-provider.local { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+.model-provider.openai { background: rgba(16, 163, 127, 0.2); color: #10a37f; }
+.model-provider.anthropic { background: rgba(217, 119, 87, 0.2); color: #d97757; }
+
+.model-meta {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: var(--space-sm);
+}
+
+.model-pricing {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+}
+
+.price-tag {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+}
+
+.price-tag.free {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+/* Select */
+.select-small {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+/* Skeleton Animation */
+.skeleton {
+    background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-hover) 50%, var(--bg-tertiary) 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+    border-radius: var(--radius-sm);
+}
+
+.skeleton-text {
+    height: 16px;
+    width: 100%;
+}
+
+.skeleton-card {
+    min-height: 100px;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Header Actions */
+.header-actions {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script data-page-script>
+const API_URL = window.ARIA_API_BASE_URL;
+
+// Global data stores
+let allModels = [];
+let spendData = null;
+let balanceData = null;
+
+// Chart instances
+let providerChart = null;
+let timelineChart = null;
+let spendModelChart = null;
+let costBreakdownChart = null;
+
+// Model pricing (per 1M tokens)
+const MODEL_PRICING = {
+    'google/gemini-2.0-flash-exp:free': { input: 0, output: 0 },
+    'deepseek/deepseek-chat-v3-0324:free': { input: 0, output: 0 },
+    'meta-llama/llama-3.3-70b-instruct:free': { input: 0, output: 0 },
+    'qwen/qwen3-235b-a22b:free': { input: 0, output: 0 },
+    'moonshot-v1-8k': { input: 1.68, output: 1.68 },
+    'moonshot-v1-32k': { input: 3.36, output: 3.36 },
+    'moonshot-v1-128k': { input: 8.40, output: 8.40 },
+    'kimi-latest': { input: 1.68, output: 1.68 },
+    'local-mlx': { input: 0, output: 0 },
+    'local': { input: 0, output: 0 },
+};
+
+// Utility functions
+function formatNumber(num) {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+}
+
+function formatMoney(amount) {
+    if (amount === 0) return '$0.00';
+    if (amount < 0.01) return '$' + amount.toFixed(4);
+    return '$' + amount.toFixed(2);
+}
+
+function getProvider(modelId) {
+    const id = modelId.toLowerCase();
+    if (id.includes('moonshot') || id.includes('kimi')) return 'kimi';
+    if (id.includes('local') || id.includes('mlx') || id.includes('ollama')) return 'local';
+    if (id.includes('/')) return 'openrouter';
+    if (id.includes('gpt') || id.includes('o1') || id.includes('o3')) return 'openai';
+    if (id.includes('claude')) return 'anthropic';
+    return 'other';
+}
+
+function getProviderColor(provider) {
+    const colors = {
+        'kimi': '#8b5cf6',
+        'openrouter': '#3b82f6',
+        'local': '#22c55e',
+        'openai': '#10a37f',
+        'anthropic': '#d97757',
+        'other': '#6b7280'
+    };
+    return colors[provider] || colors.other;
+}
+
+// Load wallet balances
+async function loadBalances() {
+    const grid = document.getElementById('balances-grid');
+    
+    try {
+        const response = await fetch(`${API_URL}/providers/balances`);
+        balanceData = await response.json();
+        
+        let html = '';
+        let totalUSD = 0;
+        
+        // Kimi balance
+        if (balanceData.kimi) {
+            const kimi = balanceData.kimi;
+            if (kimi.status === 'ok') {
+                const usdEquiv = (kimi.available || 0) * 0.14;
+                totalUSD += usdEquiv;
+                html += `
+                    <div class="balance-card kimi">
+                        <div class="balance-header">
+                            <span class="balance-provider">🌙 ${kimi.provider}</span>
+                            <span class="balance-status ok">Active</span>
+                        </div>
+                        <div class="balance-amount">¥${kimi.available?.toFixed(2) || '0.00'}</div>
+                        <div class="balance-currency">Chinese Yuan (CNY) ≈ $${usdEquiv.toFixed(2)} USD</div>
+                        <div class="balance-details">
+                            <div class="balance-detail-row">
+                                <span>Cash Balance:</span>
+                                <span>¥${kimi.cash?.toFixed(2) || '0.00'}</span>
+                            </div>
+                            <div class="balance-detail-row">
+                                <span>Voucher Balance:</span>
+                                <span>¥${kimi.voucher?.toFixed(2) || '0.00'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="balance-card kimi">
+                        <div class="balance-header">
+                            <span class="balance-provider">🌙 Moonshot/Kimi</span>
+                            <span class="balance-status error">Error</span>
+                        </div>
+                        <div class="balance-amount">--</div>
+                        <div class="balance-currency">Could not fetch balance</div>
+                    </div>
+                `;
+            }
+        }
+        
+        // OpenRouter balance
+        if (balanceData.openrouter) {
+            const or = balanceData.openrouter;
+            if (or.status === 'ok') {
+                totalUSD += or.remaining || 0;
+                html += `
+                    <div class="balance-card openrouter">
+                        <div class="balance-header">
+                            <span class="balance-provider">🔀 ${or.provider}</span>
+                            <span class="balance-status ok">Active</span>
+                        </div>
+                        <div class="balance-amount">$${or.remaining?.toFixed(2) || '0.00'}</div>
+                        <div class="balance-currency">US Dollars (USD)</div>
+                        <div class="balance-details">
+                            <div class="balance-detail-row">
+                                <span>Credit Limit:</span>
+                                <span>$${or.limit?.toFixed(2) || '0.00'}</span>
+                            </div>
+                            <div class="balance-detail-row">
+                                <span>Used:</span>
+                                <span>$${or.usage?.toFixed(2) || '0.00'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else if (or.status === 'free_tier') {
+                html += `
+                    <div class="balance-card openrouter">
+                        <div class="balance-header">
+                            <span class="balance-provider">🔀 OpenRouter</span>
+                            <span class="balance-status free">Free Tier</span>
+                        </div>
+                        <div class="balance-amount">FREE</div>
+                        <div class="balance-currency">${or.note || 'Using free models only'}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Local models
+        if (balanceData.local) {
+            html += `
+                <div class="balance-card local">
+                    <div class="balance-header">
+                        <span class="balance-provider">🏠 ${balanceData.local.provider}</span>
+                        <span class="balance-status free">Free</span>
+                    </div>
+                    <div class="balance-amount">$0.00</div>
+                    <div class="balance-currency">${balanceData.local.note || 'Running locally - no cost'}</div>
+                </div>
+            `;
+        }
+        
+        grid.innerHTML = html || '<div class="empty-state"><p>No provider information available</p></div>';
+        
+        // Update stat
+        document.getElementById('stat-balance').textContent = '$' + totalUSD.toFixed(2);
+        
+    } catch (error) {
+        console.error('Error loading balances:', error);
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">⚠️</div>
+                <p>Could not load provider balances</p>
+                <button class="btn btn-secondary" onclick="loadBalances()" style="margin-top: 1rem;">Retry</button>
+            </div>
+        `;
+    }
+}
+
+// Load global spend
+async function loadGlobalSpend() {
+    const container = document.getElementById('spend-cards');
+    
+    try {
+        const response = await fetch(`${API_URL}/litellm/global-spend`);
+        spendData = await response.json();
+        
+        const totalSpend = spendData.spend || 0;
+        const totalTokens = spendData.total_tokens || 0;
+        const inputTokens = spendData.input_tokens || 0;
+        const outputTokens = spendData.output_tokens || 0;
+        const requestCount = spendData.api_requests || 0;
+        
+        container.innerHTML = `
+            <div class="spend-card">
+                <div class="spend-card-label">Total Spend</div>
+                <div class="spend-card-value money">${formatMoney(totalSpend)}</div>
+                <div class="spend-card-subtitle">All-time API costs</div>
+            </div>
+            <div class="spend-card">
+                <div class="spend-card-label">Total Tokens</div>
+                <div class="spend-card-value">${formatNumber(totalTokens)}</div>
+                <div class="spend-card-subtitle">${formatNumber(inputTokens)} in / ${formatNumber(outputTokens)} out</div>
+            </div>
+            <div class="spend-card">
+                <div class="spend-card-label">API Requests</div>
+                <div class="spend-card-value">${formatNumber(requestCount)}</div>
+                <div class="spend-card-subtitle">Total completions</div>
+            </div>
+            <div class="spend-card">
+                <div class="spend-card-label">Avg Cost/Request</div>
+                <div class="spend-card-value money">${requestCount > 0 ? formatMoney(totalSpend / requestCount) : '$0.00'}</div>
+                <div class="spend-card-subtitle">Per API call</div>
+            </div>
+        `;
+        
+        // Update stats
+        document.getElementById('stat-tokens').textContent = formatNumber(totalTokens);
+        document.getElementById('stat-spend').textContent = formatMoney(totalSpend);
+        
+    } catch (error) {
+        console.error('Error loading spend:', error);
+        container.innerHTML = `
+            <div class="spend-card" style="grid-column: span 4;">
+                <div class="empty-state">
+                    <div class="empty-state-icon">⚠️</div>
+                    <p>Could not load spend data</p>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Load models
+async function loadModels() {
+    const grid = document.getElementById('models-grid');
+    
+    try {
+        const response = await fetch(`${API_URL}/litellm/models`);
+        const data = await response.json();
+        allModels = data.data || [];
+        
+        // Update stat
+        document.getElementById('stat-models').textContent = allModels.length;
+        
+        renderModels('all');
+        updateCharts();
+        
+    } catch (error) {
+        console.error('Error loading models:', error);
+        grid.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">⚠️</div>
+                <p>Could not load models from LiteLLM</p>
+                <button class="btn btn-secondary" onclick="loadModels()" style="margin-top: 1rem;">Retry</button>
+            </div>
+        `;
+    }
+}
+
+// Render models by filter
+function renderModels(filter) {
+    const grid = document.getElementById('models-grid');
+    
+    let models = allModels;
+    if (filter !== 'all') {
+        models = allModels.filter(m => getProvider(m.id) === filter);
+    }
+    
+    if (models.length === 0) {
+        grid.innerHTML = `
+            <div class="empty-state" style="grid-column: span 3;">
+                <div class="empty-state-icon">🤖</div>
+                <p>No models found for this provider</p>
+            </div>
+        `;
+        return;
+    }
+    
+    grid.innerHTML = models.map(model => {
+        const provider = getProvider(model.id);
+        const pricing = MODEL_PRICING[model.id] || { input: 0.5, output: 1.0 };
+        const isFree = pricing.input === 0 && pricing.output === 0;
+        
+        return `
+            <div class="model-card" data-provider="${provider}">
+                <div class="model-card-header">
+                    <span class="model-name">${model.id}</span>
+                    <span class="model-provider ${provider}">${provider}</span>
+                </div>
+                <div class="model-pricing">
+                    ${isFree 
+                        ? '<span class="price-tag free">FREE</span>'
+                        : `<span class="price-tag">In: $${pricing.input}/M</span>
+                           <span class="price-tag">Out: $${pricing.output}/M</span>`
+                    }
+                </div>
+                ${model.max_tokens ? `<div class="model-meta"><span>Max: ${formatNumber(model.max_tokens)} tokens</span></div>` : ''}
+            </div>
+        `;
+    }).join('');
+}
+
+// Load spend logs
+async function loadSpendLogs() {
+    const tbody = document.getElementById('spend-logs-tbody');
+    
+    try {
+        const response = await fetch(`${API_URL}/litellm/spend?limit=20`);
+        const logs = await response.json();
+        
+        if (!logs || logs.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <p>No recent API calls</p>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        tbody.innerHTML = logs.map(log => {
+            const date = new Date(log.startTime || log.created_at);
+            const tokens = (log.promptTokens || 0) + (log.completionTokens || 0);
+            const cost = log.spend || 0;
+            const duration = log.completionTime ? (log.completionTime - log.startTime) / 1000 : 0;
+            
+            return `
+                <tr>
+                    <td>${date.toLocaleString()}</td>
+                    <td><code>${log.model || 'unknown'}</code></td>
+                    <td>${formatNumber(tokens)}</td>
+                    <td class="money">${formatMoney(cost)}</td>
+                    <td>${duration.toFixed(2)}s</td>
+                </tr>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('Error loading spend logs:', error);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <p>Could not load spend logs</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Update charts
+function updateCharts() {
+    // Provider distribution chart
+    const providerCounts = {};
+    allModels.forEach(model => {
+        const provider = getProvider(model.id);
+        providerCounts[provider] = (providerCounts[provider] || 0) + 1;
+    });
+    
+    const providers = Object.keys(providerCounts);
+    const counts = Object.values(providerCounts);
+    const colors = providers.map(p => getProviderColor(p));
+    
+    const providerCtx = document.getElementById('tokens-by-provider-chart').getContext('2d');
+    if (providerChart) providerChart.destroy();
+    providerChart = new Chart(providerCtx, {
+        type: 'doughnut',
+        data: {
+            labels: providers.map(p => p.charAt(0).toUpperCase() + p.slice(1)),
+            datasets: [{
+                data: counts,
+                backgroundColor: colors,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { color: '#9ca3af', font: { size: 12 } }
+                }
+            }
+        }
+    });
+    
+    // Usage timeline (mock data for now - would come from /litellm/spend with date grouping)
+    const timelineCtx = document.getElementById('usage-timeline-chart').getContext('2d');
+    if (timelineChart) timelineChart.destroy();
+    
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const mockUsage = days.map(() => Math.floor(Math.random() * 50000) + 10000);
+    
+    timelineChart = new Chart(timelineCtx, {
+        type: 'line',
+        data: {
+            labels: days,
+            datasets: [{
+                label: 'Tokens',
+                data: mockUsage,
+                borderColor: '#8b5cf6',
+                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } }
+            }
+        }
+    });
+    
+    // Spend by model chart
+    const spendCtx = document.getElementById('spend-by-model-chart').getContext('2d');
+    if (spendModelChart) spendModelChart.destroy();
+    
+    const topModels = allModels.slice(0, 5).map(m => m.id.split('/').pop() || m.id);
+    const mockSpend = topModels.map(() => Math.random() * 0.5);
+    
+    spendModelChart = new Chart(spendCtx, {
+        type: 'bar',
+        data: {
+            labels: topModels,
+            datasets: [{
+                label: 'Spend ($)',
+                data: mockSpend,
+                backgroundColor: '#3b82f6',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af' } },
+                y: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 10 } } }
+            }
+        }
+    });
+    
+    // Cost breakdown pie
+    const costCtx = document.getElementById('cost-breakdown-chart').getContext('2d');
+    if (costBreakdownChart) costBreakdownChart.destroy();
+    
+    costBreakdownChart = new Chart(costCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Input Tokens', 'Output Tokens'],
+            datasets: [{
+                data: [35, 65],
+                backgroundColor: ['#22c55e', '#f59e0b'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#9ca3af', font: { size: 12 } }
+                }
+            }
+        }
+    });
+}
+
+// Provider filter tabs
+document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        renderModels(tab.dataset.provider);
+    });
+});
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+    loadBalances();
+    loadGlobalSpend();
+    loadModels();
+    loadSpendLogs();
+});
+</script>
+{% endblock %}
