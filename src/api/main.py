@@ -241,14 +241,18 @@ async def api_litellm_health():
 
 
 @app.get("/litellm/spend")
-async def api_litellm_spend():
+async def api_litellm_spend(limit: int = 20):
     """Get LiteLLM spend logs"""
     litellm_base = SERVICE_URLS.get("litellm", ("http://litellm:4000", "/health"))[0]
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             headers = {"Authorization": f"Bearer {LITELLM_MASTER_KEY}"} if LITELLM_MASTER_KEY else {}
             resp = await client.get(f"{litellm_base}/spend/logs", headers=headers)
-            return resp.json()
+            logs = resp.json()
+            # Apply limit (LiteLLM may not support limit param)
+            if isinstance(logs, list):
+                return logs[:limit]
+            return logs
     except Exception as e:
         return {"logs": [], "error": str(e)}
 
