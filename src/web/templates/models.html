@@ -898,9 +898,13 @@ async function loadSpendLogs() {
         
         tbody.innerHTML = logs.map(log => {
             const date = new Date(log.startTime || log.created_at);
-            const tokens = (log.promptTokens || 0) + (log.completionTokens || 0);
+            const tokens = (log.prompt_tokens || log.promptTokens || 0) + (log.completion_tokens || log.completionTokens || 0);
             const cost = log.spend || 0;
-            const duration = log.completionTime ? (log.completionTime - log.startTime) / 1000 : 0;
+            // Calculate duration from startTime and endTime
+            let duration = 0;
+            if (log.startTime && log.endTime) {
+                duration = (new Date(log.endTime) - new Date(log.startTime)) / 1000;
+            }
             
             return `
                 <tr>
