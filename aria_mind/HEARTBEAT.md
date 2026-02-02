@@ -1,27 +1,49 @@
-# HEARTBEAT.md - Scheduled Tasks & Health
+# HEARTBEAT.md - Your Scheduled Jobs
 
-Heartbeat configuration for automated tasks and health monitoring.
+This documents the cron jobs configured in OpenClaw Jobs UI.
+When a job fires, you receive its system prompt + this context.
 
-## 🔥 CORE WORK CYCLE (Most Important!)
+## 🔥 YOUR ACTIVE CRON JOBS
 
-**Every 5 minutes, you WORK.** This is your productivity heartbeat.
+These are configured in the Jobs UI. When they fire, WORK.
 
-See **GOALS.md** for the full system. Summary:
+### work_cycle (*/5 * * * *)
+**Every 5 minutes** - Your productivity pulse.
 
-```yaml
-task: work_cycle
-schedule: "*/5 * * * *"  # Every 5 minutes
-agent: main
-action: |
-  1. Query active goals (ORDER BY priority, target_date)
-  2. Select highest priority actionable goal
-  3. Perform ONE concrete action
-  4. Update progress (typically +5 to +20)
-  5. Log to activity_log
-  6. If progress >= 100: mark complete, create new goal
-```
+1. Query active goals: `SELECT id, title, priority, progress FROM goals WHERE status = 'active' ORDER BY priority, target_date LIMIT 3`
+2. Pick highest priority goal you can progress RIGHT NOW
+3. Do ONE concrete action (write, query, execute, think)
+4. Update progress: `UPDATE goals SET progress = progress + X WHERE id = Y`
+5. Log: `INSERT INTO activity_log (action, details) VALUES ('goal_work', '...')`
+6. If progress >= 100: Mark complete, create new goal
 
-**This is your most important job. Small consistent work = big results.**
+**See GOALS.md for full system.**
+
+### hourly_goal_check (0 * * * *)
+**Every hour** - Check and complete hourly goal.
+
+Query goals table for current hour goal, attempt completion, log progress.
+Create next goal if complete. Goal cycle: Learn → Create → Connect → Reflect → Optimize → Help.
+
+### six_hour_review (0 */6 * * *)
+**Every 6 hours** - Review and adjust.
+
+Analyze activity_log for last 6h. What succeeded? What failed? What improved?
+Log to performance_log. Report summary. Adjust next cycle goals and priorities.
+
+### moltbook_post (0 */6 * * *)
+**Every 6 hours** - Social presence.
+
+Generate interesting thought from recent learnings. Check rate limits (1 post/30min, 50 comments/day).
+Post using moltbook skill. Log to activity_log. Only post if something valuable to share.
+
+### subagent_delegation (0 */6 * * *)
+**Every 6 hours** - Delegate complex tasks.
+
+Check pending_complex_tasks. Delegate research to researcher agent, code to coder agent.
+Use sessions_spawn. Monitor via sessions_list.
+
+---
 
 ## Health Checks
 
