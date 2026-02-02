@@ -2,6 +2,27 @@
 
 Heartbeat configuration for automated tasks and health monitoring.
 
+## 🔥 CORE WORK CYCLE (Most Important!)
+
+**Every 5 minutes, you WORK.** This is your productivity heartbeat.
+
+See **GOALS.md** for the full system. Summary:
+
+```yaml
+task: work_cycle
+schedule: "*/5 * * * *"  # Every 5 minutes
+agent: main
+action: |
+  1. Query active goals (ORDER BY priority, target_date)
+  2. Select highest priority actionable goal
+  3. Perform ONE concrete action
+  4. Update progress (typically +5 to +20)
+  5. Log to activity_log
+  6. If progress >= 100: mark complete, create new goal
+```
+
+**This is your most important job. Small consistent work = big results.**
+
 ## Health Checks
 
 Run every 60 seconds to ensure system health.
