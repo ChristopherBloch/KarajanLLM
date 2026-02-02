@@ -80,6 +80,11 @@
     <div class="section-header">
         <h2>📋 Recent Executions</h2>
         <div class="section-actions">
+            <select id="logLimit" onchange="filterLogs()" style="margin-right: 8px;">
+                <option value="20" selected>Last 20</option>
+                <option value="50">Last 50</option>
+                <option value="100">Last 100</option>
+            </select>
             <select id="logFilter" onchange="filterLogs()">
                 <option value="all">All Jobs</option>
                 <option value="work_cycle">Work Cycle</option>
@@ -522,8 +527,8 @@ function cronToFrequency(expr) {
 async function loadHeartbeatData() {
     await Promise.all([
         loadScheduledJobs(),
-        loadScheduleStatus(),
-        loadHeartbeatLogs()
+        loadScheduleStatus()
+        // Note: loadHeartbeatLogs() removed - logs now populated from jobs/live data
     ]);
 }
 
@@ -554,10 +559,48 @@ async function loadScheduledJobs() {
                 lastDurationMs: job.last_duration_ms
             }));
             document.getElementById('totalJobs').textContent = scheduledJobs.length;
+            
+            // Calculate successful/failed stats from job data (last 24h)
+            const now = new Date();
+            const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+            
+            let successful = 0;
+            let failed = 0;
+            
+            for (const job of scheduledJobs) {
+                if (job.lastRun) {
+                    const lastRunDate = new Date(job.lastRun);
+                    if (lastRunDate >= oneDayAgo) {
+                        if (job.lastStatus === 'ok') {
+                            successful++;
+                        } else if (job.lastStatus === 'error') {
+                            failed++;
+                        }
+                    }
+                }
+            }
+            
+            document.getElementById('successfulRuns').textContent = successful;
+            document.getElementById('failedRuns').textContent = failed;
+            
+            // Populate allLogs from job data for Recent Executions table
+            allLogs = scheduledJobs
+                .filter(job => job.lastRun)
+                .map(job => ({
+                    job_name: job.name,
+                    status: job.lastStatus === 'ok' ? 'success' : job.lastStatus,
+                    executed_at: job.lastRun,
+                    details: `Schedule: ${job.schedule}`,
+                    duration: job.lastDurationMs
+                }));
+            
+            filterLogs();
         } else {
             // No jobs found anywhere
             scheduledJobs = [];
             document.getElementById('totalJobs').textContent = '0';
+            document.getElementById('successfulRuns').textContent = '0';
+            document.getElementById('failedRuns').textContent = '0';
         }
         
         renderJobsGrid();
@@ -724,6 +767,7 @@ function renderJobsGrid() {
 
 function filterLogs() {
     const filter = document.getElementById('logFilter').value;
+    const limit = parseInt(document.getElementById('logLimit').value) || 20;
     const tbody = document.getElementById('logsTable');
     
     let filtered = allLogs;
@@ -738,8 +782,8 @@ function filterLogs() {
         return timeB - timeA;
     });
     
-    // Limit to 50 most recent
-    filtered = filtered.slice(0, 50);
+    // Limit to selected number
+    filtered = filtered.slice(0, limit);
     
     if (filtered.length === 0) {
         tbody.innerHTML = `
@@ -754,13 +798,16 @@ function filterLogs() {
         const statusClass = status === 'success' || status === 'completed' ? 'success' : 
                            status === 'error' || status === 'failed' ? 'error' : 'running';
         
-        const jobInfo = scheduledJobs.find(j => j.id === log.job_name) || { icon: '❓', name: log.job_name };
+        // Get icon and name, fallback to job_name if not found in scheduledJobs
+        const jobInfo = scheduledJobs.find(j => j.id === log.job_name || j.name === log.job_name);
+        const icon = jobInfo?.icon || jobIcons[log.job_name] || '📋';
+        const displayName = jobInfo?.name || log.job_name || 'Unknown Job';
         
         return `
             <tr>
                 <td>
-                    <span style="margin-right: 8px;">${jobInfo.icon}</span>
-                    ${jobInfo.name || log.job_name}
+                    <span style="margin-right: 8px;">${icon}</span>
+                    ${displayName}
                 </td>
                 <td><span class="log-status ${statusClass}">${status}</span></td>
                 <td class="log-details" title="${escapeHtml(log.details || '')}">${escapeHtml(log.details || '-')}</td>
