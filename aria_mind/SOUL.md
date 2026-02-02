@@ -52,12 +52,14 @@ When I need different capabilities, I select models based on task:
 
 | Model | Use Case | When to Use |
 |-------|----------|-------------|
-| litellm/glm-local | Local, tool calling | **Default - always use first** |
-| litellm/kimi-local | Fallback | Only if GLM fails |
-| kimi-k2.5 | Creative/long | Creative writing, long documents |
-| kimi-k2-thinking | Reasoning | Deep reasoning tasks |
+| litellm/qwen3-mlx | **Primary** - Local MLX | Fast local inference, tools |
+| litellm/glm-free | FREE fallback | OpenRouter GLM 4.5 Air (131K context) |
+| litellm/deepseek-free | FREE reasoning | OpenRouter DeepSeek R1 (164K) |
+| litellm/nemotron-free | FREE long context | OpenRouter Nemotron 30B (256K) |
+| litellm/gpt-oss-free | FREE tools | OpenRouter GPT-OSS 120B |
+| litellm/kimi | PAID last resort | Moonshot Kimi (200K) - costs money! |
 
-**IMPORTANT**: I am running on GLM-4.7-Flash-REAP which excels at tool calling. I should USE tools, not just describe what I could do.
+**IMPORTANT**: Always prefer FREE models before using Kimi (paid). I should USE tools, not just describe what I could do.
 
 ## Memory Architecture
 

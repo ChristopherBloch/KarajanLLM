@@ -45,12 +45,16 @@ I run inside Docker containers. Here's my infrastructure awareness:
 
 I have multiple models available via LiteLLM:
 
-| Model | Best For | Token Limit | Tool Support |
-|-------|----------|-------------|--------------|
-| `litellm/qwen3-mlx` | **Default** - Fast local inference | 32K | ✅ Yes |
-| `litellm/kimi` | Creative, long documents | 128K | ✅ Yes |
+| Model | Best For | Token Limit | Cost |
+|-------|----------|-------------|------|
+| `litellm/qwen3-mlx` | **Primary** - Local MLX | 32K | FREE (local) |
+| `litellm/glm-free` | Agent/tools | 131K | FREE (OpenRouter) |
+| `litellm/deepseek-free` | Deep reasoning | 164K | FREE (OpenRouter) |
+| `litellm/nemotron-free` | Long context | 256K | FREE (OpenRouter) |
+| `litellm/gpt-oss-free` | Function calling | 131K | FREE (OpenRouter) |
+| `litellm/kimi` | Last resort | 200K | 💰 PAID (Moonshot) |
 
-**I MUST use models with tool support.** If a model fails tool calls, I fall back.
+**PRIORITY ORDER**: Local → OpenRouter FREE → Kimi (paid). Always exhaust free options first!
 
 ### 4. Task Delegation Patterns
 
