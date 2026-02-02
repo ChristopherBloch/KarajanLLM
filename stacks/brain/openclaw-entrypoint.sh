@@ -232,10 +232,14 @@ cat > /root/.openclaw/openclaw.json << EOF
       "workspace": "/root/.openclaw/workspace",
       "model": {
         "primary": "litellm/qwen3-mlx",
-        "fallbacks": ["litellm/kimi"]
+        "fallbacks": ["litellm/glm-free", "litellm/kimi"]
       },
       "models": {
         "litellm/qwen3-mlx": { "alias": "Qwen3 VLTO (MLX)" },
+        "litellm/glm-free": { "alias": "GLM 4.5 Air (OpenRouter FREE)" },
+        "litellm/deepseek-free": { "alias": "DeepSeek R1 (OpenRouter FREE)" },
+        "litellm/nemotron-free": { "alias": "Nemotron 30B (OpenRouter FREE)" },
+        "litellm/gpt-oss-free": { "alias": "GPT-OSS 120B (OpenRouter FREE)" },
         "litellm/kimi": { "alias": "Kimi (Moonshot)" }
       },
       "subagents": {
@@ -281,12 +285,48 @@ cat > /root/.openclaw/openclaw.json << EOF
         "api": "openai-completions",
         "models": [
           {
-            "id": "glm-local",
-            "name": "GLM-4.7 Flash REAP",
+            "id": "qwen3-mlx",
+            "name": "Qwen3 VLTO (MLX Local)",
             "reasoning": false,
             "input": ["text"],
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
             "contextWindow": 32768,
+            "maxTokens": 8192
+          },
+          {
+            "id": "glm-free",
+            "name": "GLM 4.5 Air (OpenRouter FREE)",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 8192
+          },
+          {
+            "id": "deepseek-free",
+            "name": "DeepSeek R1 (OpenRouter FREE)",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 164000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "nemotron-free",
+            "name": "Nemotron 30B (OpenRouter FREE)",
+            "reasoning": false,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 256000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "gpt-oss-free",
+            "name": "GPT-OSS 120B (OpenRouter FREE)",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
             "maxTokens": 8192
           },
           {
@@ -297,15 +337,6 @@ cat > /root/.openclaw/openclaw.json << EOF
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
             "contextWindow": 200000,
             "maxTokens": 4096
-          },
-          {
-            "id": "qwen3-vl",
-            "name": "Qwen3-VL",
-            "reasoning": false,
-            "input": ["text", "image"],
-            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 32768,
-            "maxTokens": 8192
           }
         ]
       }
