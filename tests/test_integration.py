@@ -11,6 +11,75 @@ from aria_skills import SkillRegistry, SkillStatus
 from aria_agents import AgentCoordinator
 
 
+class TestFlaskRoutes:
+    """Tests for Flask web routes."""
+    
+    @pytest.fixture
+    def flask_app(self):
+        """Create Flask test client."""
+        try:
+            # Try new location first
+            from src.web.app import create_app
+        except ImportError:
+            try:
+                # Fallback to old location
+                from app.main import create_app
+            except ImportError:
+                pytest.skip("Flask app not available")
+        
+        import os
+        os.environ.setdefault('SECRET_KEY', 'test-secret-key')
+        os.environ.setdefault('SERVICE_HOST', 'localhost')
+        os.environ.setdefault('API_BASE_URL', '/api')
+        os.environ.setdefault('CLAWDBOT_PUBLIC_URL', 'http://localhost:18789')
+        
+        app = create_app()
+        app.config['TESTING'] = True
+        return app.test_client()
+    
+    def test_index_route(self, flask_app):
+        """Test index route returns 200."""
+        response = flask_app.get('/')
+        assert response.status_code == 200
+        assert b'Aria Blue' in response.data
+    
+    def test_dashboard_route(self, flask_app):
+        """Test dashboard route returns 200."""
+        response = flask_app.get('/dashboard')
+        assert response.status_code == 200
+    
+    def test_thoughts_route(self, flask_app):
+        """Test thoughts route returns 200."""
+        response = flask_app.get('/thoughts')
+        assert response.status_code == 200
+    
+    def test_activities_route(self, flask_app):
+        """Test activities route returns 200."""
+        response = flask_app.get('/activities')
+        assert response.status_code == 200
+    
+    def test_records_route(self, flask_app):
+        """Test records route returns 200."""
+        response = flask_app.get('/records')
+        assert response.status_code == 200
+    
+    def test_search_route(self, flask_app):
+        """Test search route returns 200."""
+        response = flask_app.get('/search')
+        assert response.status_code == 200
+    
+    def test_services_route(self, flask_app):
+        """Test services route returns 200."""
+        response = flask_app.get('/services')
+        assert response.status_code == 200
+    
+    def test_litellm_route(self, flask_app):
+        """Test litellm route returns 200."""
+        response = flask_app.get('/litellm')
+        assert response.status_code == 200
+        assert b'LiteLLM' in response.data
+
+
 class TestAriaBootstrap:
     """Tests for Aria initialization flow."""
     

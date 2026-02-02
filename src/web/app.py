@@ -63,8 +63,20 @@ def create_app():
     def services():
         return render_template('services.html')
     
+    @app.route('/litellm')
+    def litellm():
+        return render_template('litellm.html')
+
+    @app.route('/goals')
+    def goals():
+        return render_template('goals.html')
+
+    @app.route('/heartbeat')
+    def heartbeat():
+        return render_template('heartbeat.html')
+
     # Flask remains UI-only. All data access goes through the FastAPI service.
-    
+
     return app
 
 

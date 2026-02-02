@@ -33,6 +33,7 @@ SERVICE_URLS = {
     "grafana": (os.getenv("GRAFANA_URL", "http://grafana:3000"), "/api/health"),
     "prometheus": (os.getenv("PROMETHEUS_URL", "http://prometheus:9090"), "/prometheus/-/healthy"),
     "ollama": (os.getenv("OLLAMA_URL", "http://host.docker.internal:11434"), "/api/tags"),
+    "mlx": (os.getenv("MLX_URL", "http://host.docker.internal:8080"), "/v1/models"),
     "litellm": (os.getenv("LITELLM_URL", "http://litellm:4000"), "/health/liveliness"),
     "clawdbot": (os.getenv("CLAWDBOT_URL", "http://clawdbot:18789"), "/"),
     "pgadmin": (os.getenv("PGADMIN_URL", "http://aria-pgadmin:80"), "/"),
@@ -98,6 +99,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# ============================================
+# Utility Functions
+# ============================================
+def serialize_record(row) -> dict:
+    """Convert asyncpg Record to JSON-serializable dict"""
+    result = dict(row)
+    for key, value in result.items():
+        if isinstance(value, datetime):
+            result[key] = value.isoformat()
+        elif hasattr(value, '__json__'):
+            result[key] = value.__json__()
+    return result
 
 
 class HealthResponse(BaseModel):
@@ -186,6 +201,129 @@ async def api_status_service(service_id: str):
         return {"status": "online", "code": resp.status_code}
     except Exception:
         return {"status": "offline", "code": None}
+
+
+# ============================================
+# LiteLLM Proxy Endpoints
+# ============================================
+LITELLM_MASTER_KEY = os.getenv("LITELLM_MASTER_KEY", "")
+MOONSHOT_KIMI_KEY = os.getenv("MOONSHOT_KIMI_KEY", "")
+OPEN_ROUTER_KEY = os.getenv("OPEN_ROUTER_KEY", "")
+
+
+@app.get("/litellm/models")
+async def api_litellm_models():
+    """Proxy to LiteLLM models endpoint with authentication"""
+    litellm_base = SERVICE_URLS.get("litellm", ("http://litellm:4000", "/health"))[0]
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            headers = {"Authorization": f"Bearer {LITELLM_MASTER_KEY}"} if LITELLM_MASTER_KEY else {}
+            resp = await client.get(f"{litellm_base}/models", headers=headers)
+            return resp.json()
+    except Exception as e:
+        return {"data": [], "error": str(e)}
+
+
+@app.get("/litellm/health")
+async def api_litellm_health():
+    """Proxy to LiteLLM health endpoint (uses fast liveliness check)"""
+    litellm_base = SERVICE_URLS.get("litellm", ("http://litellm:4000", "/health/liveliness"))[0]
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            headers = {"Authorization": f"Bearer {LITELLM_MASTER_KEY}"} if LITELLM_MASTER_KEY else {}
+            # Use liveliness endpoint for fast health check
+            resp = await client.get(f"{litellm_base}/health/liveliness", headers=headers)
+            return {"status": "healthy"} if resp.status_code == 200 else {"status": "unhealthy"}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+
+@app.get("/litellm/spend")
+async def api_litellm_spend():
+    """Get LiteLLM spend logs"""
+    litellm_base = SERVICE_URLS.get("litellm", ("http://litellm:4000", "/health"))[0]
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            headers = {"Authorization": f"Bearer {LITELLM_MASTER_KEY}"} if LITELLM_MASTER_KEY else {}
+            resp = await client.get(f"{litellm_base}/spend/logs", headers=headers)
+            return resp.json()
+    except Exception as e:
+        return {"logs": [], "error": str(e)}
+
+
+@app.get("/litellm/global-spend")
+async def api_litellm_global_spend():
+    """Get LiteLLM global spend"""
+    litellm_base = SERVICE_URLS.get("litellm", ("http://litellm:4000", "/health"))[0]
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            headers = {"Authorization": f"Bearer {LITELLM_MASTER_KEY}"} if LITELLM_MASTER_KEY else {}
+            resp = await client.get(f"{litellm_base}/global/spend", headers=headers)
+            return resp.json()
+    except Exception as e:
+        return {"spend": None, "error": str(e)}
+
+
+# ============================================
+# Provider Balance Endpoints
+# ============================================
+@app.get("/providers/balances")
+async def api_provider_balances():
+    """Get balances from all configured providers"""
+    balances = {}
+    
+    # Moonshot/Kimi balance
+    if MOONSHOT_KIMI_KEY:
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                headers = {"Authorization": f"Bearer {MOONSHOT_KIMI_KEY}"}
+                resp = await client.get("https://api.moonshot.ai/v1/users/me/balance", headers=headers)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    balances["kimi"] = {
+                        "provider": "Moonshot/Kimi",
+                        "available": data.get("data", {}).get("available_balance", 0),
+                        "voucher": data.get("data", {}).get("voucher_balance", 0),
+                        "cash": data.get("data", {}).get("cash_balance", 0),
+                        "currency": "CNY",
+                        "status": "ok"
+                    }
+                else:
+                    balances["kimi"] = {"provider": "Moonshot/Kimi", "status": "error", "code": resp.status_code}
+        except Exception as e:
+            balances["kimi"] = {"provider": "Moonshot/Kimi", "status": "error", "error": str(e)}
+    
+    # OpenRouter balance
+    if OPEN_ROUTER_KEY:
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                headers = {"Authorization": f"Bearer {OPEN_ROUTER_KEY}"}
+                resp = await client.get("https://openrouter.ai/api/v1/auth/key", headers=headers)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    balances["openrouter"] = {
+                        "provider": "OpenRouter",
+                        "limit": data.get("data", {}).get("limit"),
+                        "usage": data.get("data", {}).get("usage"),
+                        "remaining": (data.get("data", {}).get("limit") or 0) - (data.get("data", {}).get("usage") or 0),
+                        "currency": "USD",
+                        "status": "ok"
+                    }
+                else:
+                    balances["openrouter"] = {"provider": "OpenRouter", "status": "error", "code": resp.status_code}
+        except Exception as e:
+            balances["openrouter"] = {"provider": "OpenRouter", "status": "error", "error": str(e)}
+    else:
+        balances["openrouter"] = {"provider": "OpenRouter", "status": "free_tier", "note": "Using free models only"}
+    
+    # Local models (free)
+    balances["local"] = {
+        "provider": "Local (MLX/Ollama)",
+        "status": "free",
+        "note": "No cost - runs on local hardware"
+    }
+    
+    return balances
 
 
 @app.get("/stats", response_model=StatsResponse)
@@ -339,44 +477,6 @@ async def api_search(
 
     return results
 
-
-@app.get("/records")
-async def api_records(
-    table: str = "activities",
-    limit: int = 25,
-    page: int = 1,
-    conn=Depends(get_db),
-):
-    table_map = {
-        "activities": "activity_log",
-        "thoughts": "thoughts",
-        "memories": "memories",
-    }
-    if table not in table_map:
-        raise HTTPException(status_code=400, detail="Invalid table")
-
-    offset = (page - 1) * limit
-    total = await conn.fetchval(f"SELECT COUNT(*) FROM {table_map[table]}")
-    rows = await conn.fetch(
-        f"SELECT * FROM {table_map[table]} ORDER BY created_at DESC LIMIT $1 OFFSET $2",
-        limit,
-        offset,
-    )
-    records = [dict(r) for r in rows]
-    return {"records": records, "total": total}
-
-
-@app.get("/export")
-async def api_export(table: str = "activities", conn=Depends(get_db)):
-    table_map = {
-        "activities": "activity_log",
-        "thoughts": "thoughts",
-        "memories": "memories",
-    }
-    if table not in table_map:
-        raise HTTPException(status_code=400, detail="Invalid table")
-    rows = await conn.fetch(f"SELECT * FROM {table_map[table]} ORDER BY created_at DESC")
-    return {"records": [dict(r) for r in rows]}
 
 @app.patch("/goals/{goal_id}")
 async def update_goal(goal_id: str, status: str, progress: int = None, conn=Depends(get_db)):
@@ -586,15 +686,28 @@ async def api_records(table: str = "activities", limit: int = 25, page: int = 1,
         "activities": "activity_log",
         "thoughts": "thoughts",
         "memories": "memories",
+        "goals": "goals",
+        "social_posts": "social_posts",
+        "heartbeat_log": "heartbeat_log",
+    }
+    # Different tables have different timestamp column names
+    order_col_map = {
+        "activity_log": "created_at",
+        "thoughts": "created_at",
+        "memories": "created_at",
+        "goals": "created_at",
+        "social_posts": "posted_at",
+        "heartbeat_log": "created_at",
     }
     if table not in table_map:
         raise HTTPException(status_code=400, detail="Invalid table")
 
     offset = (page - 1) * limit
     db_table = table_map[table]
+    order_col = order_col_map[db_table]
 
     total = await conn.fetchval(f"SELECT COUNT(*) FROM {db_table}")
-    rows = await conn.fetch(f"SELECT * FROM {db_table} ORDER BY created_at DESC LIMIT $1 OFFSET $2", limit, offset)
+    rows = await conn.fetch(f"SELECT * FROM {db_table} ORDER BY {order_col} DESC LIMIT $1 OFFSET $2", limit, offset)
     records = [serialize_record(r) for r in rows]
     return {"records": records, "total": total or 0, "page": page, "limit": limit}
 
@@ -605,11 +718,23 @@ async def api_export(table: str = "activities", conn=Depends(get_db)):
         "activities": "activity_log",
         "thoughts": "thoughts",
         "memories": "memories",
+        "goals": "goals",
+        "social_posts": "social_posts",
+        "heartbeat_log": "heartbeat_log",
+    }
+    order_col_map = {
+        "activity_log": "created_at",
+        "thoughts": "created_at",
+        "memories": "created_at",
+        "goals": "created_at",
+        "social_posts": "posted_at",
+        "heartbeat_log": "created_at",
     }
     if table not in table_map:
         raise HTTPException(status_code=400, detail="Invalid table")
     db_table = table_map[table]
-    rows = await conn.fetch(f"SELECT * FROM {db_table} ORDER BY created_at DESC")
+    order_col = order_col_map[db_table]
+    rows = await conn.fetch(f"SELECT * FROM {db_table} ORDER BY {order_col} DESC")
     records = [serialize_record(r) for r in rows]
     return {"records": records}
 

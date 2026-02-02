@@ -329,6 +329,10 @@ services:
       CLAWDBOT_URL: http://clawdbot:18789
       PGADMIN_URL: http://aria-pgadmin:80
       API_BASE_URL: ${API_BASE_URL?API_BASE_URL is required}
+      # API keys for provider balance checks
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY}
+      MOONSHOT_KIMI_KEY: ${MOONSHOT_KIMI_KEY}
+      OPEN_ROUTER_KEY: ${OPEN_ROUTER_KEY}
     ports:
       - "8000:8000"
     depends_on:
