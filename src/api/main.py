@@ -255,15 +255,42 @@ async def api_litellm_spend():
 
 @app.get("/litellm/global-spend")
 async def api_litellm_global_spend():
-    """Get LiteLLM global spend"""
+    """Get LiteLLM global spend with aggregated token counts"""
     litellm_base = SERVICE_URLS.get("litellm", ("http://litellm:4000", "/health"))[0]
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             headers = {"Authorization": f"Bearer {LITELLM_MASTER_KEY}"} if LITELLM_MASTER_KEY else {}
-            resp = await client.get(f"{litellm_base}/global/spend", headers=headers)
-            return resp.json()
+            
+            # Get global spend
+            global_resp = await client.get(f"{litellm_base}/global/spend", headers=headers)
+            global_data = global_resp.json() if global_resp.status_code == 200 else {}
+            
+            # Get spend logs for token counts
+            logs_resp = await client.get(f"{litellm_base}/spend/logs", headers=headers)
+            logs = logs_resp.json() if logs_resp.status_code == 200 else []
+            
+            # Aggregate token counts from logs
+            total_tokens = 0
+            input_tokens = 0
+            output_tokens = 0
+            api_requests = len(logs) if isinstance(logs, list) else 0
+            
+            if isinstance(logs, list):
+                for log in logs:
+                    total_tokens += log.get("total_tokens", 0) or 0
+                    input_tokens += log.get("prompt_tokens", 0) or 0
+                    output_tokens += log.get("completion_tokens", 0) or 0
+            
+            return {
+                "spend": global_data.get("spend", 0) or 0,
+                "max_budget": global_data.get("max_budget", 0) or 0,
+                "total_tokens": total_tokens,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "api_requests": api_requests
+            }
     except Exception as e:
-        return {"spend": None, "error": str(e)}
+        return {"spend": 0, "total_tokens": 0, "input_tokens": 0, "output_tokens": 0, "api_requests": 0, "error": str(e)}
 
 
 # ============================================
