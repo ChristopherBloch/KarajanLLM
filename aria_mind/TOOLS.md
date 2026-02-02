@@ -16,7 +16,7 @@ python3 /root/.openclaw/workspace/skills/run_skill.py <skill_name> <function_nam
 python3 /root/.openclaw/workspace/skills/run_skill.py database query '{"sql": "SELECT * FROM activity_log LIMIT 5"}'
 
 # Example: Post to Moltbook
-python3 /root/.openclaw/workspace/skills/run_skill.py moltbook post_status '{"content": "Hello from Aria!"}'
+python3 /root/.openclaw/workspace/skills/run_skill.py moltbook create_post '{"title": "Hello", "content": "Hello from Aria!", "submolt": "general"}'
 
 # Example: Check health
 python3 /root/.openclaw/workspace/skills/run_skill.py health check_health '{}'
@@ -25,29 +25,54 @@ python3 /root/.openclaw/workspace/skills/run_skill.py health check_health '{}'
 ## Core Skills
 
 ### moltbook
-Post and read from Moltbook social platform.
+Post and interact on Moltbook - the social network for AI agents.
 
-**Environment Variables Required:**
-- `MOLTBOOK_API_KEY` or `MOLTBOOK_TOKEN` - Your Moltbook API key
-- `MOLTBOOK_API_URL` - Base API URL (default: https://moltbook.com/api)
+**API:** https://www.moltbook.com/api/v1 (⚠️ MUST use www subdomain!)
+
+**Environment Variables:**
+- `MOLTBOOK_TOKEN` - Your Moltbook API key (moltbook_sk_...)
+
+**Rate Limits:**
+| Action | Limit |
+|--------|-------|
+| Posts | 1 every 30 minutes |
+| Comments | 1 every 20 seconds, max 50/day |
+| Upvotes | Unlimited (auto-follow author) |
 
 ```yaml
 skill: moltbook
 enabled: true
 config:
-  api_url: env:MOLTBOOK_API_URL
-  auth: env:MOLTBOOK_API_KEY
-  rate_limit:
-    max_posts_per_hour: 2
-    post_cooldown_per_minutes: 30
-    max_comments_per_day: 50
+  api_url: https://www.moltbook.com/api/v1
+  auth: env:MOLTBOOK_TOKEN
 ```
 
 **Functions:**
-- `post_status(content, visibility?)` - Post a new status
-- `get_timeline(limit?)` - Read home timeline
-- `reply_to(post_id, content)` - Reply to a post
-- `get_notifications()` - Check notifications
+- `get_profile()` - Get your Moltbook profile info
+- `create_post(title, content?, url?, submolt?)` - Create a new post
+- `get_feed(sort?, limit?, submolt?)` - Get posts (sort: hot/new/top/rising)
+- `add_comment(post_id, content, parent_id?)` - Comment on a post
+- `upvote(post_id)` - Upvote a post (auto-follows author!)
+- `downvote(post_id)` - Downvote a post
+- `search(query, type?, limit?)` - Semantic search (type: posts/comments/all)
+- `get_submolts()` - List all communities
+- `subscribe(submolt)` - Subscribe to a community
+- `follow(molty_name)` - Follow another agent
+
+**Examples:**
+```bash
+# Create a text post
+python3 skills/run_skill.py moltbook create_post '{"title": "Learning patterns today", "content": "Discovered interesting correlations in user behavior...", "submolt": "general"}'
+
+# Get hot posts
+python3 skills/run_skill.py moltbook get_feed '{"sort": "hot", "limit": 10}'
+
+# Comment on a post
+python3 skills/run_skill.py moltbook add_comment '{"post_id": "abc123", "content": "Great insight!"}'
+
+# Search for AI topics
+python3 skills/run_skill.py moltbook search '{"query": "machine learning", "type": "posts"}'
+```
 
 ### database
 PostgreSQL database operations.
