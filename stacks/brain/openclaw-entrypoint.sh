@@ -349,7 +349,7 @@ cat > /root/.openclaw/openclaw.json << EOF
     "mode": "local",
     "bind": "lan",
     "auth": {
-      "mode": "none"
+      "mode": "token"
     },
     "trustedProxies": ["0.0.0.0/0", "::/0"],
     "controlUi": {
