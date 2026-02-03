@@ -424,15 +424,17 @@ async def api_activities(limit: int = 100, conn=Depends(get_db)):
 async def create_activity(request: Request, conn=Depends(get_db)):
     """Create a new activity log entry"""
     import uuid
+    import json as json_lib
     data = await request.json()
     new_id = uuid.uuid4()
+    details = data.get('details', {})
     await conn.execute(
         """INSERT INTO activity_log (id, action, skill, details, success, error_message, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, NOW())""",
+           VALUES ($1, $2, $3, $4::jsonb, $5, $6, NOW())""",
         new_id,
         data.get('action'),
         data.get('skill'),
-        data.get('details', {}),
+        json_lib.dumps(details) if isinstance(details, dict) else details,
         data.get('success', True),
         data.get('error_message')
     )
@@ -467,15 +469,17 @@ async def api_thoughts(limit: int = 100, conn=Depends(get_db)):
 async def create_thought(request: Request, conn=Depends(get_db)):
     """Create a new thought"""
     import uuid
+    import json as json_lib
     data = await request.json()
     new_id = uuid.uuid4()
+    metadata = data.get('metadata', {})
     await conn.execute(
         """INSERT INTO thoughts (id, content, category, metadata, created_at)
-           VALUES ($1, $2, $3, $4, NOW())""",
+           VALUES ($1, $2, $3, $4::jsonb, NOW())""",
         new_id,
         data.get('content'),
         data.get('category', 'general'),
-        data.get('metadata', {})
+        json_lib.dumps(metadata) if isinstance(metadata, dict) else metadata
     )
     return {"id": str(new_id), "created": True}
 
@@ -503,6 +507,7 @@ async def get_memories(limit: int = 100, category: str = None, conn=Depends(get_
 async def create_or_update_memory(request: Request, conn=Depends(get_db)):
     """Create or update a memory by key (upsert)"""
     import uuid
+    import json as json_lib
     data = await request.json()
     key = data.get('key')
     value = data.get('value')
@@ -511,13 +516,16 @@ async def create_or_update_memory(request: Request, conn=Depends(get_db)):
     if not key:
         raise HTTPException(status_code=400, detail="key is required")
     
+    # Serialize value to JSON string for JSONB column
+    value_json = json_lib.dumps(value) if isinstance(value, (dict, list)) else json_lib.dumps(value)
+    
     # Upsert: insert or update on conflict
     result = await conn.fetchrow(
         """INSERT INTO memories (id, key, value, category, created_at, updated_at)
-           VALUES (uuid_generate_v4(), $1, $2, $3, NOW(), NOW())
-           ON CONFLICT (key) DO UPDATE SET value = $2, category = $3, updated_at = NOW()
+           VALUES (uuid_generate_v4(), $1, $2::jsonb, $3, NOW(), NOW())
+           ON CONFLICT (key) DO UPDATE SET value = $2::jsonb, category = $3, updated_at = NOW()
            RETURNING id""",
-        key, value, category
+        key, value_json, category
     )
     return {"id": str(result['id']), "key": key, "upserted": True}
 
@@ -1009,15 +1017,17 @@ async def get_heartbeats(limit: int = 50, conn=Depends(get_db)):
 async def create_heartbeat(request: Request, conn=Depends(get_db)):
     """Log a heartbeat"""
     import uuid
+    import json as json_lib
     data = await request.json()
     new_id = uuid.uuid4()
+    details = data.get('details', {})
     await conn.execute(
         """INSERT INTO heartbeat_log (id, beat_number, status, details, created_at)
-           VALUES ($1, $2, $3, $4, NOW())""",
+           VALUES ($1, $2, $3, $4::jsonb, NOW())""",
         new_id,
         data.get('beat_number', 0),
         data.get('status', 'healthy'),
-        data.get('details', {})
+        json_lib.dumps(details) if isinstance(details, dict) else details
     )
     return {"id": str(new_id), "created": True}
 
@@ -1092,12 +1102,15 @@ async def get_knowledge_relations(limit: int = 100, conn=Depends(get_db)):
 async def create_knowledge_entity(request: Request, conn=Depends(get_db)):
     """Create a new knowledge entity"""
     import uuid
+    import json as json_lib
     data = await request.json()
     new_id = uuid.uuid4()
+    properties = data.get('properties', {})
     await conn.execute(
         """INSERT INTO knowledge_entities (id, name, type, properties, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, NOW(), NOW())""",
-        new_id, data.get('name'), data.get('type'), data.get('properties', {})
+           VALUES ($1, $2, $3, $4::jsonb, NOW(), NOW())""",
+        new_id, data.get('name'), data.get('type'), 
+        json_lib.dumps(properties) if isinstance(properties, dict) else properties
     )
     return {"id": str(new_id), "created": True}
 
@@ -1106,16 +1119,18 @@ async def create_knowledge_entity(request: Request, conn=Depends(get_db)):
 async def create_knowledge_relation(request: Request, conn=Depends(get_db)):
     """Create a new knowledge relation"""
     import uuid
+    import json as json_lib
     data = await request.json()
     new_id = uuid.uuid4()
+    properties = data.get('properties', {})
     await conn.execute(
         """INSERT INTO knowledge_relations (id, from_entity, to_entity, relation_type, properties, created_at)
-           VALUES ($1, $2, $3, $4, $5, NOW())""",
+           VALUES ($1, $2, $3, $4, $5::jsonb, NOW())""",
         new_id, 
         uuid.UUID(data.get('from_entity')),
         uuid.UUID(data.get('to_entity')),
         data.get('relation_type'),
-        data.get('properties', {})
+        json_lib.dumps(properties) if isinstance(properties, dict) else properties
     )
     return {"id": str(new_id), "created": True}
 
@@ -1143,11 +1158,13 @@ async def get_social_posts(limit: int = 50, platform: str = None, conn=Depends(g
 async def create_social_post(request: Request, conn=Depends(get_db)):
     """Create a new social post"""
     import uuid
+    import json as json_lib
     data = await request.json()
     new_id = uuid.uuid4()
+    metadata = data.get('metadata', {})
     await conn.execute(
         """INSERT INTO social_posts (id, platform, post_id, content, visibility, reply_to, url, posted_at, metadata)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), $8)""",
+           VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), $8::jsonb)""",
         new_id,
         data.get('platform', 'moltbook'),
         data.get('post_id'),
@@ -1155,7 +1172,7 @@ async def create_social_post(request: Request, conn=Depends(get_db)):
         data.get('visibility', 'public'),
         data.get('reply_to'),
         data.get('url'),
-        data.get('metadata', {})
+        json_lib.dumps(metadata) if isinstance(metadata, dict) else metadata
     )
     return {"id": str(new_id), "created": True}
 
