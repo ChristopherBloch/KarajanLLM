@@ -48,6 +48,9 @@ from aria_skills.security_scan import SecurityScanSkill
 from aria_skills.ci_cd import CICDSkill
 from aria_skills.data_pipeline import DataPipelineSkill
 from aria_skills.experiment import ExperimentSkill
+
+# API Client (v1.3.0) - Centralized HTTP client for all API interactions
+from aria_skills.api_client import AriaAPIClient, get_api_client
 from aria_skills.market_data import MarketDataSkill
 from aria_skills.portfolio import PortfolioSkill
 from aria_skills.brainstorm import BrainstormSkill

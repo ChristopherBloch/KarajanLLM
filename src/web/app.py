@@ -54,6 +54,10 @@ def create_app():
     def thoughts():
         return render_template('thoughts.html')
     
+    @app.route('/memories')
+    def memories():
+        return render_template('memories.html')
+    
     @app.route('/records')
     def records():
         return render_template('records.html')
