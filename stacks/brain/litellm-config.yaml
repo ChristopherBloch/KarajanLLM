@@ -198,6 +198,8 @@ router_settings:
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
   database_url: os.environ/LITELLM_DATABASE_URL
+  # Spend log queue threshold - flush to DB when queue reaches this size
+  spend_log_queue_batch_size: 900
   
 litellm_settings:
   drop_params: true
