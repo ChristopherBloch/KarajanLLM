@@ -19,7 +19,7 @@ class TestAgentConfig:
             id="test",
             name="Test Agent",
             role=AgentRole.COORDINATOR,
-            model="moonshot-v1-8k",
+            model="qwen3-mlx",
         )
         
         assert config.id == "test"
@@ -34,7 +34,7 @@ class TestAgentConfig:
             id="child",
             name="Child Agent",
             role=AgentRole.RESEARCHER,
-            model="moonshot-v1-8k",
+            model="qwen3-mlx",
             parent="parent_agent",
         )
         
@@ -74,12 +74,12 @@ class TestAgentLoader:
         content = """# Agents
 
 ## Aria
-    - model: moonshot-v1-8k
+    - model: qwen3-mlx
 - role: coordinator
-    - skills: [moonshot, database]
+    - skills: [ollama, database]
 
 ## Researcher
-    - model: moonshot-v1-8k
+    - model: chimera-free
 - parent: aria
 - role: researcher
 - capabilities: [search, summarize]
@@ -90,7 +90,7 @@ class TestAgentLoader:
         assert "aria" in agents
         assert "researcher" in agents
         assert agents["researcher"].parent == "aria"
-        assert agents["aria"].model == "moonshot-v1-8k"
+        assert agents["aria"].model == "qwen3-mlx"
     
     def test_get_agent_hierarchy(self):
         """Test building agent hierarchy."""
@@ -99,20 +99,20 @@ class TestAgentLoader:
                 id="aria",
                 name="Aria",
                 role=AgentRole.COORDINATOR,
-                model="moonshot-v1-8k",
+                model="qwen3-mlx",
             ),
             "researcher": AgentConfig(
                 id="researcher",
                 name="Researcher",
                 role=AgentRole.RESEARCHER,
-                model="moonshot-v1-8k",
+                model="chimera-free",
                 parent="aria",
             ),
             "coder": AgentConfig(
                 id="coder",
                 name="Coder",
                 role=AgentRole.CODER,
-                model="moonshot-v1-8k",
+                model="qwen3-coder-free",
                 parent="aria",
             ),
         }
@@ -231,7 +231,7 @@ class TestAgentDelegation:
             id="child",
             name="Child",
             role=AgentRole.RESEARCHER,
-            model="moonshot-v1-8k",
+            model="qwen3-mlx",
             parent="test_agent",
         )
         child = LLMAgent(child_config)
@@ -250,7 +250,7 @@ class TestAgentDelegation:
             id="child",
             name="Child",
             role=AgentRole.RESEARCHER,
-            model="moonshot-v1-8k",
+            model="qwen3-mlx",
         )
         child = LLMAgent(child_config)
         parent.add_sub_agent(child)

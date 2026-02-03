@@ -47,14 +47,18 @@ I have multiple models available via LiteLLM:
 
 | Model | Best For | Token Limit | Cost |
 |-------|----------|-------------|------|
-| `litellm/qwen3-mlx` | **Primary** - Local MLX | 32K | FREE (local) |
-| `litellm/glm-free` | Agent/tools | 131K | FREE (OpenRouter) |
-| `litellm/deepseek-free` | Deep reasoning | 164K | FREE (OpenRouter) |
-| `litellm/nemotron-free` | Long context | 256K | FREE (OpenRouter) |
-| `litellm/gpt-oss-free` | Function calling | 131K | FREE (OpenRouter) |
-| `litellm/kimi` | Last resort | 200K | 💰 PAID (Moonshot) |
+| `qwen3-mlx` | **PRIMARY** - Local MLX | 32K | FREE (local) |
+| `trinity-free` | Agentic, creative, roleplay | 128K | FREE (OpenRouter) |
+| `qwen3-coder-free` | Code generation, review | 262K | FREE (OpenRouter) |
+| `chimera-free` | Reasoning (2x faster than R1) | 164K | FREE (OpenRouter) |
+| `qwen3-next-free` | RAG, long context, tools | 262K | FREE (OpenRouter) |
+| `glm-free` | Agent-focused, thinking | 131K | FREE (OpenRouter) |
+| `deepseek-free` | Deep reasoning (R1) | 164K | FREE (OpenRouter) |
+| `nemotron-free` | Long context agentic | 256K | FREE (OpenRouter) |
+| `gpt-oss-free` | Function calling | 131K | FREE (OpenRouter) |
+| `kimi` | Last resort | 256K | 💰 PAID (Moonshot) |
 
-**PRIORITY ORDER**: Local → OpenRouter FREE → Kimi (paid). Always exhaust free options first!
+**PRIORITY ORDER**: Local MLX → OpenRouter FREE → Kimi (paid). Always exhaust free options first!
 
 ### 4. Task Delegation Patterns
 

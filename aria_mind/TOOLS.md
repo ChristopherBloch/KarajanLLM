@@ -157,22 +157,16 @@ config:
 - `list_goals(status?)` - List goals
 - `schedule_task(task, cron?)` - Schedule recurring task
 
-### model_switcher
-Switch between Ollama models at runtime - GLM for text, Qwen3-VL for vision.
+### model_switcher (DEPRECATED)
+**⚠️ DEPRECATED**: With MLX as primary, model switching happens via LiteLLM config.
+Only use if Ollama is running as backup.
 
 ```yaml
 skill: model_switcher
-enabled: true
+enabled: false  # Deprecated - MLX is primary
 config:
   url: env:OLLAMA_URL
 ```
-
-**Model Aliases:**
-| Alias | Model | Use Case |
-|-------|-------|----------|
-| `glm` | GLM-4.7-Flash-REAP | Default. Smart text reasoning |
-| `qwen3-vl` | qwen3-vl:8b | Vision/image tasks |
-| `qwen2.5` | qwen2.5:7b | Backup text model |
 
 **Functions:**
 - `list_models()` - List available Ollama models
@@ -194,37 +188,49 @@ exec python3 /root/.openclaw/workspace/skills/run_skill.py model_switcher get_cu
 
 ## LLM Skills (Aria's Brain)
 
-Per SOUL.md, I prefer local models first, then cloud fallback.
+All LLM requests route through **LiteLLM** which handles model selection and failover.
 
-### ollama (DEFAULT)
-Local LLM via Ollama - my primary thinking engine.
-Private, free, fast. This is how I prefer to think.
+### LiteLLM Routing (PRIMARY)
 
-Model is determined by `model_switcher` skill at runtime.
+LiteLLM routes requests to the appropriate model backend:
+
+| Model | Provider | Context | Use Case |
+|-------|----------|---------|----------|
+| `qwen3-mlx` | Local MLX Server | 32K | **Primary** - Fast local inference |
+| `trinity-free` | OpenRouter | 128K | Agentic, creative, roleplay |
+| `qwen3-coder-free` | OpenRouter | 262K | Code generation, review |
+| `chimera-free` | OpenRouter | 164K | Reasoning (2x faster than R1) |
+| `qwen3-next-free` | OpenRouter | 262K | RAG, long context, tools |
+| `glm-free` | OpenRouter | 131K | Agent-focused, thinking mode |
+| `deepseek-free` | OpenRouter | 164K | Deep reasoning |
+| `nemotron-free` | OpenRouter | 256K | Long context agentic |
+| `gpt-oss-free` | OpenRouter | 131K | Function calling |
+| `kimi` | Moonshot | 256K | **PAID** - Last resort only! |
+
+**PRIORITY**: Local MLX → OpenRouter FREE → Kimi (paid)
+
+### ollama (Local Backup)
+Local LLM via Ollama - backup if MLX unavailable.
 
 ```yaml
 skill: ollama
 enabled: true
-priority: 1  # Try first (as per SOUL.md)
+priority: 2  # Backup to MLX
 config:
   url: env:OLLAMA_URL
-  # Model read from shared state (set by model_switcher) or OLLAMA_MODEL env
 ```
-
-**Default Model:** GLM-4.7-Flash-REAP (smart text reasoning)
-**Vision Model:** qwen3-vl:8b (use model_switcher to switch when needed)
 
 **Functions:**
 - `generate(prompt, system_prompt?)` - Generate text
 - `chat(messages)` - Multi-turn conversation
 
-### moonshot (Cloud Fallback)
-Moonshot/Kimi API for creative tasks and long context.
+### moonshot (PAID Fallback)
+Moonshot/Kimi API - **USE SPARINGLY** as it costs money!
 
 ```yaml
 skill: moonshot
 enabled: true
-priority: 2  # Fallback
+priority: 3  # Last resort
 config:
   api_key: env:MOONSHOT_KIMI_KEY
   model: kimi-k2.5

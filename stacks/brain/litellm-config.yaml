@@ -12,10 +12,50 @@ model_list:
       output_cost_per_token: 0
 
   # ============================================
-  # OpenRouter FREE Models
+  # OpenRouter FREE Models (Updated Feb 2026)
   # ============================================
   
-  # GLM 4.5 Air - FREE, agent-focused with tools support
+  # Arcee Trinity Large - 400B MoE, 13B active, BEST for agentic/creative
+  - model_name: trinity-free
+    litellm_params:
+      model: openrouter/arcee-ai/trinity-large-preview:free
+      api_key: os.environ/OPEN_ROUTER_KEY
+    model_info:
+      max_tokens: 131072
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+
+  # Qwen3 Coder 480B - BEST for code, 262K context, agentic coding
+  - model_name: qwen3-coder-free
+    litellm_params:
+      model: openrouter/qwen/qwen3-coder-480b-a35b:free
+      api_key: os.environ/OPEN_ROUTER_KEY
+    model_info:
+      max_tokens: 262000
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+
+  # TNG DeepSeek R1T2 Chimera - 671B MoE, reasoning, 2x faster than R1
+  - model_name: chimera-free
+    litellm_params:
+      model: openrouter/tngtech/deepseek-r1t2-chimera:free
+      api_key: os.environ/OPEN_ROUTER_KEY
+    model_info:
+      max_tokens: 164000
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+
+  # Qwen3 Next 80B - 262K context, good for RAG and tool use
+  - model_name: qwen3-next-free
+    litellm_params:
+      model: openrouter/qwen/qwen3-next-80b-a3b-instruct:free
+      api_key: os.environ/OPEN_ROUTER_KEY
+    model_info:
+      max_tokens: 262000
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+
+  # GLM 4.5 Air - agent-focused with thinking mode
   - model_name: glm-free
     litellm_params:
       model: openrouter/z-ai/glm-4.5-air:free
@@ -25,7 +65,7 @@ model_list:
       input_cost_per_token: 0
       output_cost_per_token: 0
 
-  # DeepSeek R1 - FREE, reasoning model (like o1)
+  # DeepSeek R1 0528 - reasoning model (like o1)
   - model_name: deepseek-free
     litellm_params:
       model: openrouter/deepseek/deepseek-r1-0528:free
@@ -35,7 +75,7 @@ model_list:
       input_cost_per_token: 0
       output_cost_per_token: 0
 
-  # NVIDIA Nemotron - FREE, 256K context, agentic
+  # NVIDIA Nemotron - 256K context, agentic
   - model_name: nemotron-free
     litellm_params:
       model: openrouter/nvidia/nemotron-3-nano-30b-a3b:free
@@ -45,10 +85,20 @@ model_list:
       input_cost_per_token: 0
       output_cost_per_token: 0
 
-  # OpenAI GPT-OSS-120B - FREE, tools/function calling
+  # OpenAI GPT-OSS-120B - tools/function calling
   - model_name: gpt-oss-free
     litellm_params:
       model: openrouter/openai/gpt-oss-120b:free
+      api_key: os.environ/OPEN_ROUTER_KEY
+    model_info:
+      max_tokens: 131072
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+
+  # OpenAI GPT-OSS-20B - faster, lower latency
+  - model_name: gpt-oss-small-free
+    litellm_params:
+      model: openrouter/openai/gpt-oss-20b:free
       api_key: os.environ/OPEN_ROUTER_KEY
     model_info:
       max_tokens: 131072

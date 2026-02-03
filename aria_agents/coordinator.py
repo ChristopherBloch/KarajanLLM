@@ -20,6 +20,7 @@ class LLMAgent(BaseAgent):
     Agent that uses an LLM skill for processing.
     
     Uses the configured model to generate responses.
+    All models route through LiteLLM for unified access.
     """
     
     async def process(self, message: str, **kwargs) -> AgentMessage:
@@ -28,17 +29,28 @@ class LLMAgent(BaseAgent):
         user_msg = AgentMessage(role="user", content=message)
         self.add_to_context(user_msg)
         
-        # Get the right LLM skill
+        # Get the right LLM skill based on model config
+        # Priority: Local MLX > OpenRouter FREE > Kimi (paid)
         llm_skill = None
         if self._skill_registry:
-            # Prefer model specified in config
             model_lower = self.config.model.lower()
+            
+            # Paid Moonshot/Kimi models - use moonshot skill directly
             if "moonshot" in model_lower or "kimi" in model_lower:
                 llm_skill = self._skill_registry.get("moonshot")
-            elif "ollama" in model_lower or "qwen" in model_lower:
+            
+            # Local models (MLX or Ollama)
+            elif any(x in model_lower for x in ["mlx", "ollama", "qwen", "glm-local"]):
                 llm_skill = self._skill_registry.get("ollama")
+            
+            # OpenRouter FREE models - route through LiteLLM
+            # Includes: trinity-free, qwen3-coder-free, chimera-free, 
+            # qwen3-next-free, glm-free, deepseek-free, nemotron-free, gpt-oss-free
+            elif any(x in model_lower for x in ["free", "trinity", "chimera", "coder", "deepseek", "nemotron", "gpt-oss"]):
+                llm_skill = self._skill_registry.get("ollama") or self._skill_registry.get("moonshot")
+            
             else:
-                # Try to get any available LLM
+                # Default: try local first, then cloud
                 llm_skill = self._skill_registry.get("ollama") or self._skill_registry.get("moonshot")
         
         if not llm_skill:

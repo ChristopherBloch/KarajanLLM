@@ -232,15 +232,16 @@ cat > /root/.openclaw/openclaw.json << EOF
       "workspace": "/root/.openclaw/workspace",
       "model": {
         "primary": "litellm/qwen3-mlx",
-        "fallbacks": ["litellm/glm-free", "litellm/kimi"]
+        "fallbacks": ["litellm/trinity-free", "litellm/chimera-free", "litellm/kimi"]
       },
       "models": {
-        "litellm/qwen3-mlx": { "alias": "Qwen3 VLTO (MLX)" },
+        "litellm/qwen3-mlx": { "alias": "Qwen3 VLTO (MLX Local)" },
+        "litellm/trinity-free": { "alias": "Trinity 400B (OpenRouter FREE)" },
+        "litellm/chimera-free": { "alias": "Chimera 671B (OpenRouter FREE)" },
+        "litellm/qwen3-coder-free": { "alias": "Qwen3 Coder 480B (OpenRouter FREE)" },
         "litellm/glm-free": { "alias": "GLM 4.5 Air (OpenRouter FREE)" },
         "litellm/deepseek-free": { "alias": "DeepSeek R1 (OpenRouter FREE)" },
-        "litellm/nemotron-free": { "alias": "Nemotron 30B (OpenRouter FREE)" },
-        "litellm/gpt-oss-free": { "alias": "GPT-OSS 120B (OpenRouter FREE)" },
-        "litellm/kimi": { "alias": "Kimi (Moonshot)" }
+        "litellm/kimi": { "alias": "Kimi K2.5 (Moonshot Paid)" }
       },
       "subagents": {
         "maxConcurrent": 8
@@ -286,11 +287,38 @@ cat > /root/.openclaw/openclaw.json << EOF
         "models": [
           {
             "id": "qwen3-mlx",
-            "name": "Qwen3 VLTO (MLX Local)",
+            "name": "Qwen3 VLTO 8B (MLX Local)",
             "reasoning": false,
             "input": ["text"],
             "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
             "contextWindow": 32768,
+            "maxTokens": 8192
+          },
+          {
+            "id": "trinity-free",
+            "name": "Trinity 400B MoE (OpenRouter FREE)",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
+            "maxTokens": 8192
+          },
+          {
+            "id": "chimera-free",
+            "name": "Chimera 671B (OpenRouter FREE)",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 164000,
+            "maxTokens": 8192
+          },
+          {
+            "id": "qwen3-coder-free",
+            "name": "Qwen3 Coder 480B (OpenRouter FREE)",
+            "reasoning": true,
+            "input": ["text"],
+            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 131072,
             "maxTokens": 8192
           },
           {
@@ -312,31 +340,13 @@ cat > /root/.openclaw/openclaw.json << EOF
             "maxTokens": 8192
           },
           {
-            "id": "nemotron-free",
-            "name": "Nemotron 30B (OpenRouter FREE)",
-            "reasoning": false,
-            "input": ["text"],
-            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 256000,
-            "maxTokens": 8192
-          },
-          {
-            "id": "gpt-oss-free",
-            "name": "GPT-OSS 120B (OpenRouter FREE)",
+            "id": "kimi",
+            "name": "Kimi K2.5 (Moonshot Paid)",
             "reasoning": true,
             "input": ["text"],
-            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 131072,
-            "maxTokens": 8192
-          },
-          {
-            "id": "kimi",
-            "name": "Moonshot Kimi",
-            "reasoning": false,
-            "input": ["text"],
-            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 200000,
-            "maxTokens": 4096
+            "cost": { "input": 0.001, "output": 0.002, "cacheRead": 0, "cacheWrite": 0 },
+            "contextWindow": 256000,
+            "maxTokens": 16384
           }
         ]
       }

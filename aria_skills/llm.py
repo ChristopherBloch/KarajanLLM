@@ -208,7 +208,7 @@ class MoonshotSkill(BaseLLMSkill):
                     f"{self._base_url}/chat/completions",
                     headers=self._headers,
                     json=payload,
-                    timeout=60,
+                    timeout=600,  # 10 min for long local inference
                 )
                 
                 if response.status_code == 200:
@@ -373,7 +373,7 @@ class OllamaSkill(BaseLLMSkill):
                 response = await client.post(
                     f"{self._base_url}/api/generate",
                     json=payload,
-                    timeout=120,  # Local models can be slow on first run
+                    timeout=600,  # 10 min for long local inference
                 )
                 
                 if response.status_code == 200:
@@ -430,7 +430,7 @@ class OllamaSkill(BaseLLMSkill):
                 response = await client.post(
                     f"{self._base_url}/api/chat",
                     json=payload,
-                    timeout=120,
+                    timeout=600,  # 10 min for long local inference
                 )
                 
                 if response.status_code == 200:

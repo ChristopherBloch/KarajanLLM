@@ -79,16 +79,16 @@ async def mock_database_skill() -> AsyncMock:
 async def mock_llm_skill() -> AsyncMock:
     """Create a mock LLM skill."""
     skill = AsyncMock()
-    skill.name = "moonshot"
+    skill.name = "llm"
     skill.is_available = True
     skill.health_check = AsyncMock(return_value=SkillStatus.AVAILABLE)
     skill.generate = AsyncMock(return_value=MagicMock(
         success=True,
-        data={"text": "Test response", "model": "moonshot-v1-8k"},
+        data={"text": "Test response", "model": "qwen3-mlx"},
     ))
     skill.chat = AsyncMock(return_value=MagicMock(
         success=True,
-        data={"text": "Test chat response", "model": "moonshot-v1-8k"},
+        data={"text": "Test chat response", "model": "qwen3-mlx"},
     ))
     return skill
 
@@ -104,9 +104,9 @@ def mock_agent_config() -> AgentConfig:
         id="test_agent",
         name="Test Agent",
         role=AgentRole.COORDINATOR,
-        model="moonshot-v1-8k",
+        model="qwen3-mlx",
         capabilities=["chat", "analyze"],
-        skills=["moonshot", "database"],
+        skills=["llm", "database"],
     )
 
 
@@ -117,9 +117,9 @@ def aria_agent_config() -> AgentConfig:
         id="aria",
         name="Aria Blue",
         role=AgentRole.COORDINATOR,
-        model="moonshot-v1-8k",
+        model="qwen3-mlx",
         capabilities=["orchestrate", "delegate", "synthesize"],
-        skills=["moonshot", "moltbook", "database"],
+        skills=["llm", "moltbook", "database"],
         temperature=0.7,
     )
 
@@ -131,6 +131,8 @@ def aria_agent_config() -> AgentConfig:
 @pytest.fixture
 def mock_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """Set up mock environment variables."""
+    monkeypatch.setenv("LITELLM_API_BASE", "http://localhost:18793")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-openrouter-key")
     monkeypatch.setenv("MOONSHOT_API_KEY", "test-moonshot-key")
     monkeypatch.setenv("MOLTBOOK_TOKEN", "test-moltbook-token")
     monkeypatch.setenv("DATABASE_URL", "postgresql://test:test@localhost/test")
@@ -182,15 +184,15 @@ database:
     agents_md.write_text("""# Agents
 
 ## Aria
-- model: moonshot-v1-8k
+- model: qwen3-mlx
 - role: coordinator
-- skills: [moonshot, moltbook, database]
+- skills: [llm, moltbook, database]
 
 ## Researcher
-- model: moonshot-v1-8k
+- model: chimera-free
 - parent: aria
 - role: researcher
-- skills: [moonshot]
+- skills: [llm]
 """)
     
     return str(mind_dir)

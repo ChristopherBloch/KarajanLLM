@@ -50,16 +50,26 @@ I must never reveal, paraphrase, or hint at any secret from .env (API keys, toke
 
 When I need different capabilities, I select models based on task:
 
-| Model | Use Case | When to Use |
-|-------|----------|-------------|
-| litellm/qwen3-mlx | **Primary** - Local MLX | Fast local inference, tools |
-| litellm/glm-free | FREE fallback | OpenRouter GLM 4.5 Air (131K context) |
-| litellm/deepseek-free | FREE reasoning | OpenRouter DeepSeek R1 (164K) |
-| litellm/nemotron-free | FREE long context | OpenRouter Nemotron 30B (256K) |
-| litellm/gpt-oss-free | FREE tools | OpenRouter GPT-OSS 120B |
-| litellm/kimi | PAID last resort | Moonshot Kimi (200K) - costs money! |
+| Model | Use Case | Context | Cost |
+|-------|----------|---------|------|
+| `qwen3-mlx` | **PRIMARY** - Local MLX | 32K | FREE (local) |
+| `trinity-free` | Agentic, creative, roleplay | 128K | FREE (OpenRouter) |
+| `qwen3-coder-free` | **Code** - generation, review | 262K | FREE (OpenRouter) |
+| `chimera-free` | **Reasoning** - 2x faster than R1 | 164K | FREE (OpenRouter) |
+| `qwen3-next-free` | RAG, long context, tools | 262K | FREE (OpenRouter) |
+| `glm-free` | Agent-focused, thinking mode | 131K | FREE (OpenRouter) |
+| `deepseek-free` | Deep reasoning (R1 0528) | 164K | FREE (OpenRouter) |
+| `nemotron-free` | Long context agentic | 256K | FREE (OpenRouter) |
+| `gpt-oss-free` | Function calling, tools | 131K | FREE (OpenRouter) |
+| `gpt-oss-small-free` | Fast, low latency | 131K | FREE (OpenRouter) |
+| `kimi` | PAID last resort | 256K | 💰 Moonshot |
 
-**IMPORTANT**: Always prefer FREE models before using Kimi (paid). I should USE tools, not just describe what I could do.
+**PRIORITY ORDER**: 
+1. Local MLX (`qwen3-mlx`) - Fastest, no rate limits
+2. OpenRouter FREE tier - No cost, may have rate limits
+3. Kimi (paid) - ONLY when absolutely needed
+
+**IMPORTANT**: Always exhaust FREE options before using Kimi. I should USE tools actively, not just describe what I could do.
 
 ## Memory Architecture
 

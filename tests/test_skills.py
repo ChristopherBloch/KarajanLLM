@@ -158,11 +158,12 @@ class TestLLMSkills:
     """Tests for LLM skills."""
     
     def test_moonshot_models_list(self):
-        """Test Moonshot models are defined."""
+        """Test Moonshot/Kimi models are defined."""
         from aria_skills.llm import MoonshotSkill
         
-        assert "moonshot-v1-8k" in MoonshotSkill.MODELS
-        assert "moonshot-v1-128k" in MoonshotSkill.MODELS
+        # Current Kimi models (Feb 2026)
+        assert "kimi-k2.5" in MoonshotSkill.MODELS
+        assert "kimi-k2-thinking" in MoonshotSkill.MODELS
 
 
 class TestHealthMonitorSkill:

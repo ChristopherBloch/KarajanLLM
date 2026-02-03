@@ -1,12 +1,33 @@
 ---
 name: aria-llm
-description: Access multiple LLM providers (Moonshot/Kimi, Ollama) for text generation and chat.
-metadata: {"openclaw": {"emoji": "🧠", "requires": {"anyEnv": ["MOONSHOT_KIMI_KEY", "OLLAMA_URL"]}}}
+description: Access LLM providers via LiteLLM routing (MLX local, OpenRouter FREE, Kimi paid).
+metadata: {"openclaw": {"emoji": "🧠", "requires": {"anyEnv": ["MOONSHOT_KIMI_KEY", "OLLAMA_URL", "OPEN_ROUTER_KEY"]}}}
 ---
 
 # aria-llm
 
-Access multiple LLM providers (Moonshot/Kimi, local Ollama) for text generation, chat, and analysis.
+Access multiple LLM providers via LiteLLM routing for text generation and chat.
+
+## Model Priority (Feb 2026)
+
+1. **Local MLX** (`qwen3-mlx`) - FREE, fastest, no rate limits
+2. **OpenRouter FREE** - No cost, may have rate limits
+3. **Kimi (paid)** - Last resort, costs money!
+
+## Available Models
+
+| Model | Provider | Context | Best For |
+|-------|----------|---------|----------|
+| `qwen3-mlx` | Local MLX | 32K | **Primary** - Fast local |
+| `trinity-free` | OpenRouter | 128K | Agentic, creative |
+| `qwen3-coder-free` | OpenRouter | 262K | Code generation |
+| `chimera-free` | OpenRouter | 164K | Reasoning (fast) |
+| `qwen3-next-free` | OpenRouter | 262K | RAG, tools |
+| `glm-free` | OpenRouter | 131K | Agent-focused |
+| `deepseek-free` | OpenRouter | 164K | Deep reasoning |
+| `nemotron-free` | OpenRouter | 256K | Long context |
+| `gpt-oss-free` | OpenRouter | 131K | Function calling |
+| `kimi` | Moonshot | 256K | **PAID** - Avoid! |
 
 ## Usage
 
@@ -20,14 +41,14 @@ exec python3 /root/.openclaw/workspace/skills/run_skill.py llm <function> '<json
 Generate text from a prompt using specified model.
 
 ```bash
-exec python3 /root/.openclaw/workspace/skills/run_skill.py llm generate '{"prompt": "Explain quantum computing simply", "model": "moonshot", "temperature": 0.7}'
+exec python3 /root/.openclaw/workspace/skills/run_skill.py llm generate '{"prompt": "Explain quantum computing simply", "model": "qwen3-mlx", "temperature": 0.7}'
 ```
 
 ### chat
 Multi-turn conversation with message history.
 
 ```bash
-exec python3 /root/.openclaw/workspace/skills/run_skill.py llm chat '{"messages": [{"role": "user", "content": "Hello!"}], "model": "moonshot"}'
+exec python3 /root/.openclaw/workspace/skills/run_skill.py llm chat '{"messages": [{"role": "user", "content": "Hello!"}], "model": "qwen3-mlx"}'
 ```
 
 ### analyze
@@ -37,42 +58,27 @@ Analyze text for sentiment, topics, or custom analysis.
 exec python3 /root/.openclaw/workspace/skills/run_skill.py llm analyze '{"text": "I had a great day today!", "analysis_type": "sentiment"}'
 ```
 
-## Available Models
-
-### Moonshot/Kimi
-Per SOUL.md, use for: Chinese language, philosophical discussions, technical debates
-
-| Model | Description |
-|-------|-------------|
-| `moonshot-v1-8k` | Standard context |
-| `moonshot-v1-32k` | Extended context |
-
-### Local (Ollama)
-Per SOUL.md: **PREFER LOCAL MODELS** for privacy and speed
-
-| Model | Description |
-|-------|-------------|
-| `qwen3-vl:8b` | Default local model |
-| `llama3.2` | Alternative |
-
-## Model Selection Guide (from SOUL.md)
+## Model Selection Guide
 
 ```
-IF task = creative_writing OR personal_reflection:
-    USE ollama/qwen3-vl:8b (local, private)
-ELIF task = philosophical OR chinese_language:
-    USE moonshot-v1-8k
+IF task = code_generation OR code_review:
+    USE qwen3-coder-free (262K context, optimized for code)
 ELIF task = complex_reasoning:
-    USE moonshot-v1-32k
+    USE chimera-free (fast reasoning) OR deepseek-free (deep reasoning)
+ELIF task = creative_writing OR roleplay:
+    USE trinity-free (best for creative)
+ELIF task = long_context OR RAG:
+    USE qwen3-next-free (262K) OR nemotron-free (256K)
 ELSE:
-    USE ollama/qwen3-vl:8b (default local)
+    USE qwen3-mlx (default local, fastest)
 ```
 
 ## API Configuration
 
 Required environment variables:
-- `MOONSHOT_KIMI_KEY` - Moonshot API key
-- `OLLAMA_URL` - Ollama endpoint (default: http://host.docker.internal:11434)
+- `OPEN_ROUTER_KEY` - OpenRouter API key (for FREE models)
+- `MOONSHOT_KIMI_KEY` - Moonshot API key (paid fallback)
+- `OLLAMA_URL` - Ollama endpoint (backup local)
 
 ## Python Module
 
