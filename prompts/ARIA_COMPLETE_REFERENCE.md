@@ -556,6 +556,8 @@ volumes:
 
 ### Model Priority: Local → Free Cloud → Paid
 
+**Source of truth**: [aria_models/models.yaml](aria_models/models.yaml). The tables below are examples only and may drift.
+
 | Model | Provider | Context | Cost | Best For |
 |-------|----------|---------|------|----------|
 | `qwen3-mlx` | Local MLX | 32K | FREE | **PRIMARY** - Fast, private |

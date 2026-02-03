@@ -245,6 +245,18 @@ else
 fi
 
 # Generate openclaw.json with LiteLLM provider config, skill definitions, and Aria identity
+OPENCLAW_CONFIG="/root/.openclaw/openclaw.json"
+MODELS_CATALOG="/root/.openclaw/workspace/aria_models/models.yaml"
+OPENCLAW_TEMPLATE="/root/.openclaw/workspace/stacks/brain/openclaw-config.json"
+OPENCLAW_RENDERER="/root/.openclaw/workspace/aria_models/openclaw_config.py"
+
+if [ -f "$OPENCLAW_RENDERER" ] && [ -f "$MODELS_CATALOG" ] && [ -f "$OPENCLAW_TEMPLATE" ]; then
+  echo "Generating openclaw.json from aria_models/models.yaml..."
+  python3 "$OPENCLAW_RENDERER" --template "$OPENCLAW_TEMPLATE" --models "$MODELS_CATALOG" --output "$OPENCLAW_CONFIG" \
+    || echo "WARN: YAML-based openclaw config generation failed; falling back to inline config"
+fi
+
+if [ ! -f "$OPENCLAW_CONFIG" ]; then
 cat > /root/.openclaw/openclaw.json << EOF
 {
   "commands": {
@@ -440,6 +452,7 @@ cat > /root/.openclaw/openclaw.json << EOF
   }
 }
 EOF
+fi
 
 echo "OpenClaw config created with DIRECT Ollama provider (no LiteLLM)"
 cat /root/.openclaw/openclaw.json

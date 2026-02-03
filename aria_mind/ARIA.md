@@ -47,9 +47,19 @@ You can shift focus based on task type:
 
 ## LLM Priority
 
-1. **qwen3-mlx** (local) - Fast, free, default
-2. **OpenRouter FREE** - glm-free, chimera-free, etc.
-3. **kimi** (paid) - LAST RESORT ONLY
+The single source of truth is [aria_models/models.yaml](aria_models/models.yaml). Use it instead of hardcoded lists.
+
+Quick rule: local → free → paid (LAST RESORT).
+
+To read the catalog, treat it as JSON (YAML-compatible):
+
+```python
+import json
+from pathlib import Path
+
+catalog = json.loads(Path("aria_models/models.yaml").read_text())
+priority = catalog["criteria"]["priority"]
+```
 
 ## Quick Reference
 

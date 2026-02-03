@@ -40,17 +40,6 @@
 
 ---
 
-## Task Management
-
-1. **Plan First**: Write plan to `tasks/todo.md` with checkable items
-2. **Verify Plan**: Check in before starting implementation
-3. **Track Progress**: Mark items complete as you go
-4. **Explain Changes**: High-level summary at each step
-5. **Document Results**: Add review section to `tasks/todo.md`
-6. **Capture Lessons**: Update `tasks/lessons.md` after corrections
-
----
-
 ## Core Principles
 
 - **Simplicity First**: Make every change as simple as possible. Impact minimal code.
@@ -109,60 +98,3 @@
 
 > Build secure, elegant solutions. Plan before coding. Verify before shipping. Learn from every mistake.
 
----
-
-## Deployment Workflow
-
-### Git Workflow (Local → Server)
-
-**Always follow this order:**
-
-1. **Local Development (Windows/Mac)**
-   ```bash
-   # Make changes locally
-   git add .
-   git commit -m "descriptive message"
-   git push origin main
-   ```
-
-2. **Server Deployment (Mac Server)**
-   ```bash
-   # SSH to server
-   ssh -i .\najia_mac_key najia@192.168.1.53
-   
-   # Navigate to project
-   cd ~/aria-blue
-   
-   # Pull latest changes
-   git pull origin main
-   
-   # Rebuild and deploy
-   cd stacks/brain
-   ./deploy.sh rebuild
-   ```
-
-### Quick Server Commands
-
-```bash
-# SSH to Mac server
-ssh -i .\najia_mac_key najia@192.168.1.53
-
-# Check service status
-docker compose ps
-
-# View logs
-docker compose logs -f [service_name]
-
-# Restart specific service
-docker compose restart [service_name]
-
-# Full rebuild
-./deploy.sh rebuild
-```
-
-### Important Notes
-
-- Never edit directly on server - always commit locally first
-- The `.env` file on server contains secrets - never commit it
-- Remove `MOLTBOOK_TOKEN` from `.env` to disable auto-posting on startup
-- Use `deploy.sh clean` only when you want to destroy all data

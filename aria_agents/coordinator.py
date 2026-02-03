@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from aria_agents.base import AgentConfig, AgentMessage, AgentRole, BaseAgent
 from aria_agents.loader import AgentLoader
+from aria_models.loader import get_route_skill, normalize_model_id
 
 if TYPE_CHECKING:
     from aria_skills import SkillRegistry
@@ -33,22 +34,15 @@ class LLMAgent(BaseAgent):
         # Priority: Local MLX > OpenRouter FREE > Kimi (paid)
         llm_skill = None
         if self._skill_registry:
-            model_lower = self.config.model.lower()
-            
-            # Paid Moonshot/Kimi models - use moonshot skill directly
-            if "moonshot" in model_lower or "kimi" in model_lower:
+            model_id = normalize_model_id(self.config.model)
+            route_skill = get_route_skill(model_id)
+
+            if route_skill == "moonshot":
                 llm_skill = self._skill_registry.get("moonshot")
-            
-            # Local models (MLX or Ollama)
-            elif any(x in model_lower for x in ["mlx", "ollama", "qwen", "glm-local"]):
+            elif route_skill == "ollama":
                 llm_skill = self._skill_registry.get("ollama")
-            
-            # OpenRouter FREE models - route through LiteLLM
-            # Includes: trinity-free, qwen3-coder-free, chimera-free, 
-            # qwen3-next-free, glm-free, deepseek-free, nemotron-free, gpt-oss-free
-            elif any(x in model_lower for x in ["free", "trinity", "chimera", "coder", "deepseek", "nemotron", "gpt-oss"]):
+            elif route_skill == "auto":
                 llm_skill = self._skill_registry.get("ollama") or self._skill_registry.get("moonshot")
-            
             else:
                 # Default: try local first, then cloud
                 llm_skill = self._skill_registry.get("ollama") or self._skill_registry.get("moonshot")

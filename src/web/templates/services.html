@@ -29,6 +29,19 @@
     gap: 0.5rem;
     align-items: center;
 }
+.admin-token-btn {
+    background: transparent;
+    border: 1px dashed var(--border-color);
+    color: var(--text-muted);
+    padding: 0.35rem 0.6rem;
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+.admin-token-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--border-accent);
+}
 .status-summary {
     display: flex;
     gap: 1rem;
@@ -160,9 +173,106 @@
 .legend-dot.online { background: var(--success); }
 .legend-dot.offline { background: var(--danger); }
 .legend-dot.checking { background: var(--warning); }
+
+.control-panel {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+.control-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+}
+.control-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.control-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+.control-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border-color);
+}
+.control-card.online .control-status {
+    background: var(--success);
+    box-shadow: 0 0 6px var(--success);
+}
+.control-card.offline .control-status { background: var(--danger); }
+.control-card.checking .control-status {
+    background: var(--warning);
+    animation: pulse 1s infinite;
+}
+.control-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+.control-btn {
+    flex: 1;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    cursor: pointer;
+}
+.control-btn:hover { border-color: var(--border-accent); }
+.control-btn.danger {
+    border-color: rgba(239, 68, 68, 0.6);
+    color: #ef4444;
+}
+.control-btn.danger:hover { background: rgba(239, 68, 68, 0.1); }
+.control-note {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+.app-flow-section {
+    margin-top: 1.5rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+.app-flow-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+.app-flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: center;
+}
+.app-node {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 0.6rem 0.9rem;
+    font-size: 0.85rem;
+    text-align: center;
+    min-width: 120px;
+}
+.app-arrow {
+    color: var(--text-muted);
+    font-size: 1.2rem;
+}
 </style>
 {% endblock %}
-
 {% block content %}
 <div class="page-header">
     <h1>⚙️ Services</h1>
@@ -178,6 +288,7 @@
                 <span class="online" id="online-count">0 online</span>
                 <span class="offline" id="offline-count">0 offline</span>
             </div>
+            <button class="admin-token-btn" id="set-admin-token">Set Admin Token</button>
             <button class="btn btn-primary" onclick="refreshAllStatus()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 12a9 9 0 11-6.22-8.56"/>
@@ -299,6 +410,95 @@
             <div class="legend-item"><span class="legend-dot offline"></span> Offline</div>
             <div class="legend-item"><span class="legend-dot checking"></span> Checking</div>
         </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="arch-layer-title">🧯 Service Controls (Admin)</div>
+            <div class="control-grid">
+                <div class="control-card checking" data-service="litellm">
+                    <div class="control-header">LiteLLM<span class="control-status"></span></div>
+                    <div class="control-actions">
+                        <button class="control-btn" data-action="restart">Restart</button>
+                        <button class="control-btn danger" data-action="stop">Kill</button>
+                    </div>
+                    <div class="control-note">Router</div>
+                </div>
+                <div class="control-card checking" data-service="ollama">
+                    <div class="control-header">Ollama<span class="control-status"></span></div>
+                    <div class="control-actions">
+                        <button class="control-btn" data-action="restart">Restart</button>
+                        <button class="control-btn danger" data-action="stop">Kill</button>
+                    </div>
+                    <div class="control-note">Local LLM</div>
+                </div>
+                <div class="control-card checking" data-service="mlx">
+                    <div class="control-header">MLX<span class="control-status"></span></div>
+                    <div class="control-actions">
+                        <button class="control-btn" data-action="restart">Restart</button>
+                        <button class="control-btn danger" data-action="stop">Kill</button>
+                    </div>
+                    <div class="control-note">Apple Silicon</div>
+                </div>
+                <div class="control-card checking" data-service="aria-api">
+                    <div class="control-header">aria-api<span class="control-status"></span></div>
+                    <div class="control-actions">
+                        <button class="control-btn" data-action="restart">Restart</button>
+                        <button class="control-btn danger" data-action="stop">Kill</button>
+                    </div>
+                    <div class="control-note">FastAPI</div>
+                </div>
+                <div class="control-card checking" data-service="aria-web">
+                    <div class="control-header">aria-web<span class="control-status"></span></div>
+                    <div class="control-actions">
+                        <button class="control-btn" data-action="restart">Restart</button>
+                        <button class="control-btn danger" data-action="stop">Kill</button>
+                    </div>
+                    <div class="control-note">Flask UI</div>
+                </div>
+                <div class="control-card checking" data-service="clawdbot">
+                    <div class="control-header">OpenClaw<span class="control-status"></span></div>
+                    <div class="control-actions">
+                        <button class="control-btn" data-action="restart">Restart</button>
+                        <button class="control-btn danger" data-action="stop">Kill</button>
+                    </div>
+                    <div class="control-note">Gateway</div>
+                </div>
+                <div class="control-card checking" data-service="grafana">
+                    <div class="control-header">Grafana<span class="control-status"></span></div>
+                    <div class="control-actions">
+                        <button class="control-btn" data-action="restart">Restart</button>
+                        <button class="control-btn danger" data-action="stop">Kill</button>
+                    </div>
+                    <div class="control-note">Dashboards</div>
+                </div>
+                <div class="control-card checking" data-service="prometheus">
+                    <div class="control-header">Prometheus<span class="control-status"></span></div>
+                    <div class="control-actions">
+                        <button class="control-btn" data-action="restart">Restart</button>
+                        <button class="control-btn danger" data-action="stop">Kill</button>
+                    </div>
+                    <div class="control-note">Metrics</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Application Flow Diagram -->
+<div class="app-flow-section">
+    <div class="app-flow-title">🧩 Application Flow</div>
+    <div class="app-flow">
+        <div class="app-node">User</div>
+        <div class="app-arrow">→</div>
+        <div class="app-node">aria-web</div>
+        <div class="app-arrow">→</div>
+        <div class="app-node">aria-api</div>
+        <div class="app-arrow">→</div>
+        <div class="app-node">aria-db</div>
+        <div class="app-arrow">↔</div>
+        <div class="app-node">LiteLLM</div>
+        <div class="app-arrow">→</div>
+        <div class="app-node">MLX / Ollama</div>
     </div>
 </div>
 {% endblock %}
@@ -331,11 +531,13 @@ async function checkServiceStatus(serviceId) {
 }
 
 function updateServiceStatus(serviceId, online) {
-    const el = document.querySelector(`[data-service="${serviceId}"]`);
-    if (!el) return;
+    const elements = document.querySelectorAll(`[data-service="${serviceId}"]`);
+    if (!elements.length) return;
     
-    el.classList.remove('checking', 'online', 'offline');
-    el.classList.add(online ? 'online' : 'offline');
+    elements.forEach(el => {
+        el.classList.remove('checking', 'online', 'offline');
+        el.classList.add(online ? 'online' : 'offline');
+    });
     
     if (online) onlineCount++;
     else offlineCount++;
@@ -350,11 +552,11 @@ async function refreshAllStatus() {
     
     // Reset all to checking
     services.forEach(id => {
-        const el = document.querySelector(`[data-service="${id}"]`);
-        if (el) {
+        const elements = document.querySelectorAll(`[data-service="${id}"]`);
+        elements.forEach(el => {
             el.classList.remove('online', 'offline');
             el.classList.add('checking');
-        }
+        });
     });
     
     document.getElementById('online-count').textContent = '... checking';
@@ -368,7 +570,62 @@ async function refreshAllStatus() {
     }
 }
 
+function getAdminToken() {
+    let token = localStorage.getItem('ariaAdminToken');
+    if (!token) {
+        token = prompt('Enter admin token (stored locally):');
+        if (token) localStorage.setItem('ariaAdminToken', token);
+    }
+    return token || '';
+}
+
+async function runServiceAction(serviceId, action) {
+    const confirmText = action === 'stop'
+        ? `Kill ${serviceId}? This will stop the service.`
+        : `Restart ${serviceId}?`;
+    if (!confirm(confirmText)) return;
+
+    const token = getAdminToken();
+    const headers = token ? { 'X-Admin-Token': token } : {};
+
+    try {
+        const response = await fetch(
+            `${window.ARIA_API_BASE_URL}/admin/services/${serviceId}/${action}`,
+            { method: 'POST', headers }
+        );
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            alert(data.detail || 'Service action failed');
+            return;
+        }
+        alert(`${serviceId} ${action}: ${data.status || 'ok'}`);
+        refreshAllStatus();
+    } catch (err) {
+        alert(`Request failed: ${err}`);
+    }
+}
+
 // Initial load
 document.addEventListener('DOMContentLoaded', refreshAllStatus);
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.control-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const card = btn.closest('[data-service]');
+            if (!card) return;
+            const serviceId = card.getAttribute('data-service');
+            const action = btn.getAttribute('data-action');
+            if (serviceId && action) runServiceAction(serviceId, action);
+        });
+    });
+
+    const setTokenBtn = document.getElementById('set-admin-token');
+    if (setTokenBtn) {
+        setTokenBtn.addEventListener('click', () => {
+            const token = prompt('Enter admin token (stored locally):');
+            if (token) localStorage.setItem('ariaAdminToken', token);
+        });
+    }
+});
 </script>
 {% endblock %}

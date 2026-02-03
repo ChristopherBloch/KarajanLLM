@@ -19,6 +19,8 @@ from enum import Enum
 from typing import Dict, List, Optional
 from pathlib import Path
 
+from aria_models.loader import get_focus_default
+
 
 class FocusType(Enum):
     """Available focus personas."""
@@ -231,6 +233,12 @@ Key patterns:
         delegation_hint="Route data analysis to Data focus, publishing to Social focus."
     ),
 }
+
+# Apply YAML-defined focus model defaults (if present)
+for focus_type, focus in FOCUSES.items():
+    yaml_default = get_focus_default(focus_type.value)
+    if yaml_default:
+        focus.model_hint = yaml_default
 
 
 # ─────────────────────────────────────────────────────────────────────────────
