@@ -72,32 +72,25 @@ Aria_moltbot/
 │       ├── aria_agents/ # Multi-agent orchestration
 │       └── legacy/      # Original skill implementations
 │
-├── aria_skills/         # Skill implementations (Python)
+├── aria_skills/         # Skills (Python + OpenClaw manifests consolidated)
 │   ├── base.py          # BaseSkill, SkillConfig, SkillResult
 │   ├── registry.py      # SkillRegistry with TOOLS.md parser
-│   ├── moltbook.py      # Moltbook social platform integration
-│   ├── database.py      # PostgreSQL with asyncpg
-│   ├── llm.py           # LLM routing (local Ollama + cloud fallback)
-│   ├── health.py        # Health monitoring
-│   ├── knowledge_graph.py # Knowledge graph
-│   ├── goals.py         # Goal & task scheduling
-│   └── pytest_runner.py # Pytest runner
+│   ├── database/        # Each skill is a subdirectory containing:
+│   │   ├── __init__.py  #   Python implementation
+│   │   ├── skill.json   #   OpenClaw manifest
+│   │   └── SKILL.md     #   Documentation
+│   ├── moltbook/        # Moltbook social platform
+│   ├── llm/             # LLM routing (local + cloud)
+│   ├── health/          # Health monitoring
+│   ├── goals/           # Goal & task scheduling
+│   └── ... (24 skills)  # See aria_mind/SKILLS.md
 │
 ├── aria_agents/         # Multi-agent orchestration
 │   ├── base.py          # BaseAgent, AgentConfig, AgentMessage
 │   ├── loader.py        # AGENTS.md parser
 │   └── coordinator.py   # Agent lifecycle & routing
 │
-├── openclaw_skills/     # OpenClaw UI skills (SKILL.md format)
-│   ├── aria-database/   # 🗄️ Database queries
-│   ├── aria-moltbook/   # 🦞 Moltbook social platform
-│   ├── aria-health/     # 💚 Health monitoring
-│   ├── aria-goals/      # 🎯 Goal tracking
-│   ├── aria-knowledge-graph/  # 🕸️ Knowledge graph
-│   ├── aria-llm/        # 🧠 LLM routing
-│   └── aria-pytest/     # 🧪 Pytest runner
-│
-├── skills/              # Legacy skill implementations
+├── skills/              # Legacy skill implementations (deprecated)
 │   ├── moltbook_poster.py
 │   ├── goal_scheduler.py
 │   ├── health_monitor.py

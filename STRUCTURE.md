@@ -30,23 +30,27 @@ Aria_moltbot/
 │       ├── values.py             # Core values
 │       └── boundaries.py         # Operational boundaries
 │
-├── aria_skills/                  # Core skill implementations (mounted to clawdbot)
-│   ├── __init__.py
+├── aria_skills/                  # Skills (Python + manifests consolidated)
+│   ├── __init__.py               # Package exports
 │   ├── base.py                   # BaseSkill, SkillConfig, SkillResult
 │   ├── registry.py               # SkillRegistry with TOOLS.md parser
-│   ├── moltbook.py               # Moltbook social platform
-│   ├── database.py               # PostgreSQL with asyncpg
-│   ├── llm.py                    # LLM routing (Ollama + cloud fallback)
-│   ├── health.py                 # Health monitoring
-│   ├── knowledge_graph.py        # Knowledge graph operations
-│   ├── goals.py                  # Goal & task scheduling
-│   ├── performance.py            # Performance tracking (v1.1.0)
-│   ├── social.py                 # Social media posting (v1.1.0)
-│   ├── hourly_goals.py           # Hourly goal tracking (v1.1.0)
-│   ├── litellm_skill.py          # LiteLLM proxy management (v1.1.0)
-│   ├── schedule.py               # Schedule & task management (v1.1.0)
-│   ├── model_switcher.py         # Ollama model switching
-│   └── pytest_runner.py          # Pytest test runner
+│   ├── database/                 # Each skill is a subdirectory
+│   │   ├── __init__.py           # Python implementation
+│   │   ├── skill.json            # OpenClaw manifest
+│   │   └── SKILL.md              # Documentation
+│   ├── moltbook/                 # Moltbook social platform
+│   ├── llm/                      # LLM routing (Ollama + cloud fallback)
+│   ├── health/                   # Health monitoring
+│   ├── goals/                    # Goal & task scheduling
+│   ├── knowledge_graph/          # Knowledge graph operations
+│   ├── performance/              # Performance tracking
+│   ├── social/                   # Social media posting
+│   ├── hourly_goals/             # Hourly goal tracking
+│   ├── litellm/                  # LiteLLM proxy management
+│   ├── schedule/                 # Schedule & task management
+│   ├── model_switcher/           # Ollama model switching
+│   ├── pytest_runner/            # Pytest test runner
+│   └── ... (24 skills total)     # See aria_mind/SKILLS.md for full list
 │
 ├── aria_agents/                  # Multi-agent orchestration (mounted to clawdbot)
 │   ├── __init__.py
@@ -91,34 +95,6 @@ Aria_moltbot/
 │   │   └── requirements.txt
 │   └── web/
 │       └── index.html            # Dashboard UI
-│
-├── openclaw_skills/              # OpenClaw UI skills (SKILL.md format)
-│   ├── aria-database/            # 🗄️ Database queries
-│   │   └── SKILL.md
-│   ├── aria-moltbook/            # 🦞 Moltbook social platform
-│   │   └── SKILL.md
-│   ├── aria-health/              # 💚 Health monitoring
-│   │   └── SKILL.md
-│   ├── aria-goals/               # 🎯 Goal tracking
-│   │   └── SKILL.md
-│   ├── aria-knowledge-graph/     # 🕸️ Knowledge graph
-│   │   └── SKILL.md
-│   ├── aria-llm/                 # 🧠 LLM routing
-│   │   └── SKILL.md
-│   ├── aria-pytest/              # 🧪 Pytest runner
-│   │   └── SKILL.md
-│   ├── aria-model-switcher/      # 🔄 Model switching
-│   │   └── SKILL.md
-│   ├── aria-performance/         # 📊 Performance tracking (v1.1.0)
-│   │   └── SKILL.md
-│   ├── aria-social/              # 📱 Social media posting (v1.1.0)
-│   │   └── SKILL.md
-│   ├── aria-hourly-goals/        # ⏰ Hourly goals (v1.1.0)
-│   │   └── SKILL.md
-│   ├── aria-litellm/             # 💰 LiteLLM proxy (v1.1.0)
-│   │   └── SKILL.md
-│   └── aria-schedule/            # 📅 Scheduling (v1.1.0)
-│       └── SKILL.md
 │
 ├── tests/                        # pytest test suite
 │   ├── conftest.py               # Fixtures
@@ -172,28 +148,28 @@ Aria's Python skills are mounted into the OpenClaw container at runtime:
 └── skills/                         # Python skill modules
     ├── run_skill.py                # Skill runner (generated at startup)
     ├── aria_skills/                # ← mounted from ../../aria_skills
-    │   ├── base.py
-    │   ├── database.py
-    │   ├── moltbook.py
-    │   ├── health.py
-    │   ├── goals.py
-    │   ├── llm.py
-    │   ├── knowledge_graph.py
-    │   ├── model_switcher.py
-    │   ├── pytest_runner.py
-    │   ├── performance.py          # v1.1.0
-    │   ├── social.py               # v1.1.0
-    │   ├── hourly_goals.py         # v1.1.0
-    │   ├── litellm_skill.py        # v1.1.0
-    │   └── schedule.py             # v1.1.0
+    │   ├── base.py                 # BaseSkill, SkillConfig, SkillResult
+    │   ├── registry.py             # SkillRegistry
+    │   ├── database/               # Each skill is a subdirectory
+    │   │   ├── __init__.py         # Python implementation
+    │   │   ├── skill.json          # OpenClaw manifest
+    │   │   └── SKILL.md            # Documentation
+    │   ├── moltbook/
+    │   ├── llm/
+    │   ├── health/
+    │   ├── goals/
+    │   └── ... (24 skills)
     ├── aria_agents/                # ← mounted from ../../aria_agents
     │   ├── base.py
     │   ├── loader.py
     │   └── coordinator.py
     └── legacy/                     # ← mounted from ../../skills
-        ├── moltbook_poster.py
-        ├── goal_scheduler.py
-        └── health_monitor.py
+        └── (deprecated)
+
+/root/.openclaw/skills/             # OpenClaw skill manifests (symlinked)
+├── aria-database/skill.json        # → /root/.openclaw/workspace/skills/aria_skills/database/skill.json
+├── aria-moltbook/skill.json        # → .../aria_skills/moltbook/skill.json
+└── ... (24 symlinks created at startup by entrypoint)
 ```
 
 ### Skill Execution Flow

@@ -196,10 +196,12 @@ The `aria_mind/` folder is mounted to OpenClaw at `/root/.openclaw/workspace/`:
 # docker-compose.yml volumes for clawdbot
 volumes:
   - ../../aria_mind:/root/.openclaw/workspace              # Workspace (read-write for memory)
-  - ../../aria_skills:/root/.openclaw/workspace/skills/aria_skills:ro  # Python skills
+  - ../../aria_skills:/root/.openclaw/workspace/skills/aria_skills:ro  # Python skills + manifests
   - ../../aria_agents:/root/.openclaw/workspace/skills/aria_agents:ro  # Agent orchestration
-  - ../../skills:/root/.openclaw/workspace/skills/legacy:ro            # Legacy skills
+  - ../../skills:/root/.openclaw/workspace/skills/legacy:ro            # Legacy skills (deprecated)
 ```
+
+> **Note**: The entrypoint script creates symlinks from `/root/.openclaw/skills/aria-<skill>/` to each `skill.json` in `aria_skills/<skill>/` at container startup.
 
 Files available to OpenClaw:
 - `SOUL.md` - Persona and boundaries
@@ -256,7 +258,7 @@ PYTHONPATH=/root/.openclaw/workspace:/root/.openclaw/workspace/skills
 
 ## OpenClaw Skills (UI)
 
-Skills visible in the OpenClaw UI (`/clawdbot/skills`) are defined in `openclaw_skills/`:
+Skills visible in the OpenClaw UI (`/clawdbot/skills`) are now consolidated in `aria_skills/<skill>/`:
 
 | Skill | Emoji | Description |
 |-------|-------|-------------|
@@ -265,17 +267,15 @@ Skills visible in the OpenClaw UI (`/clawdbot/skills`) are defined in `openclaw_
 | aria-health | 💚 | System health monitoring |
 | aria-goals | 🎯 | Goal & task tracking |
 | aria-knowledge-graph | 🕸️ | Knowledge graph operations |
-| aria-llm | 🧠 | LLM routing (Kimi, Moonshot, Ollama) |
+| aria-llm | 🧠 | LLM routing (local + cloud) |
+| ... | ... | 24 skills total (see aria_mind/SKILLS.md) |
 
-Each skill has a `SKILL.md` with YAML frontmatter:
+Each skill directory contains:
+- `__init__.py` - Python implementation
+- `skill.json` - OpenClaw manifest
+- `SKILL.md` - Documentation (optional)
 
-```yaml
----
-name: aria-moltbook
-description: Interact with Moltbook - the social network for AI agents.
-metadata: {"openclaw": {"emoji": "🦞", "requires": {"env": ["MOLTBOOK_TOKEN"]}, "primaryEnv": "MOLTBOOK_TOKEN"}}
----
-```
+The entrypoint creates symlinks so OpenClaw finds them at `/root/.openclaw/skills/aria-<skill>/skill.json`.
 
 ---
 
