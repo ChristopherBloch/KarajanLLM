@@ -1,55 +1,49 @@
-# Aria Moltbot - Deployment System
+# Aria Deployment
 
-## Project Structure
+## Quick Start
 
-```
-Aria_moltbot/
-├── deploy/                    # Deployment scripts & configs
-│   ├── scripts/
-│   │   ├── 01_clean.sh       # Kill processes, clean server
-│   │   ├── 02_build.sh       # Build Docker images
-│   │   ├── 03_deploy.sh      # Deploy full stack
-│   │   ├── 04_import.sh      # Import data & soul
-│   │   └── 05_verify.sh      # Health checks
-│   ├── docker/
-│   │   ├── Dockerfile.aria   # Alpine-based Aria image
-│   │   ├── Dockerfile.brain  # Brain/API image
-│   │   └── docker-compose.yml
-│   ├── nginx/
-│   │   └── nginx.conf        # Reverse proxy for web access
-│   └── config/
-│       └── .env.production
-│
-├── aria_memory/              # Preserved data (extracted)
-├── skills/                   # Python skills
-├── stacks/                   # Stack configurations
-└── src/                      # Source code
-    ├── api/                  # FastAPI backend
-    ├── brain/                # Brain logic
-    └── web/                  # Web dashboard
+All deployment is handled from `stacks/brain/`:
+
+```bash
+cd stacks/brain
+./deploy.sh deploy
 ```
 
-## Quick Deploy (from Windows)
+## Deploy Commands
 
-```powershell
-# One-command deploy
-.\deploy\deploy.ps1 -Target <SERVICE_HOST>
-```
+| Command | Action |
+|---------|--------|
+| `./deploy.sh deploy` | Build & start all services |
+| `./deploy.sh rebuild` | Force rebuild everything |
+| `./deploy.sh stop` | Stop all containers |
+| `./deploy.sh logs` | View container logs |
+| `./deploy.sh status` | Health check all services |
+| `./deploy.sh clean` | Remove all containers & volumes |
 
-## Web Access (after deployment)
+## Services (12 total)
 
-| Service | URL | Purpose |
-|---------|-----|---------|
-| Dashboard | https://<SERVICE_HOST>/ | Main Aria UI |
-| Grafana | https://<SERVICE_HOST>/grafana | Monitoring |
-| Traefik | https://<SERVICE_HOST>/traefik/dashboard | Proxy dashboard |
-| API | https://<SERVICE_HOST>/api | REST API |
-| PGAdmin | https://<SERVICE_HOST>/pgadmin | Database UI |
+| Service | Port | Purpose |
+|---------|------|---------|
+| aria-web | 5001 | Dashboard UI |
+| aria-api | 8000 | FastAPI backend |
+| aria-brain | 8001 | Core agent logic |
+| litellm | 4000 | LLM router |
+| traefik | 80/443 | Reverse proxy |
+| clawdbot | 3000 | Chat interface |
+| aria-db | 5432 | PostgreSQL |
+| prometheus | 9090 | Metrics |
+| grafana | 3001 | Dashboards |
+| aria-pgadmin | 5050 | DB admin |
+| aria-browser | 9222 | Headless Chrome |
+| tor-proxy | 9050 | Tor network |
 
-## Components
+## Mac-Specific
 
-- **OpenClaw/Clawdbot**: AI chat interface (from git)
-- **PostgreSQL**: Data warehouse
-- **Traefik**: Reverse proxy + SSL
-- **Grafana + Prometheus**: Monitoring
-- **LiteLLM**: Model router
+The `mac/` folder contains:
+- MLX server setup (for local models on Apple Silicon)
+- Nginx proxy config for local development
+
+## Requirements
+
+- Docker & Docker Compose
+- `.env` file in `stacks/brain/` with required variables
