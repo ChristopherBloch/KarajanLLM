@@ -12,6 +12,8 @@ import pytest_asyncio
 
 # Ensure API URL resolves when running tests outside Docker
 os.environ.setdefault("ARIA_API_URL", "http://localhost:8000/api")
+os.environ.setdefault("ARIA_API_BASE", "http://aria-api:8000/api")
+os.environ.setdefault("ARIA_WEB_BASE", "http://aria-web:5000")
 
 from aria_skills.base import SkillConfig, SkillStatus
 from aria_skills.registry import SkillRegistry

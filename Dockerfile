@@ -14,6 +14,7 @@ COPY pyproject.toml README.md ./
 COPY aria_mind/ ./aria_mind/
 COPY aria_skills/ ./aria_skills/
 COPY aria_agents/ ./aria_agents/
+COPY aria_models/ ./aria_models/
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -e .

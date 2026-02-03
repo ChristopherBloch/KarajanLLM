@@ -3,13 +3,14 @@
 Live endpoint tests for Aria services.
 Tests actual running services via HTTP.
 """
+import os
 import pytest
 import requests
 from typing import Dict, Any
 
 # Configuration
-API_BASE = "http://localhost:8000/api"
-WEB_BASE = "http://localhost:5000"
+API_BASE = os.getenv("ARIA_API_BASE", "http://localhost:8000/api")
+WEB_BASE = os.getenv("ARIA_WEB_BASE", "http://localhost:5000")
 TIMEOUT = 10
 
 
