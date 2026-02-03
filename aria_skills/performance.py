@@ -2,16 +2,11 @@
 """
 Performance logging and self-assessment skill.
 """
-import logging
-from datetime import datetime
 from typing import Any, Dict, List, Optional
-
-import httpx
 
 from aria_skills.base import BaseSkill, SkillConfig, SkillResult, SkillStatus
 from aria_skills.registry import SkillRegistry
-
-logger = logging.getLogger("aria.skills.performance")
+from aria_skills.api_client import AriaAPIClient, get_api_client
 
 
 @SkillRegistry.register
@@ -25,24 +20,22 @@ class PerformanceSkill(BaseSkill):
     
     def __init__(self, config: SkillConfig):
         super().__init__(config)
-        self.api_base = config.config.get("api_url", "http://aria-api:8000")
+        self._api_client: Optional[AriaAPIClient] = None
     
     async def initialize(self) -> bool:
         """Initialize the skill."""
-        status = await self.health_check()
+        self._api_client = await get_api_client()
+        status = await self._api_client.health_check()
+        self._status = status
         return status == SkillStatus.AVAILABLE
     
     async def health_check(self) -> SkillStatus:
         """Check if the API is accessible."""
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(f"{self.api_base}/health", timeout=5.0)
-                if response.status_code == 200:
-                    return SkillStatus.AVAILABLE
-                return SkillStatus.ERROR
-        except Exception as e:
-            logger.error(f"Performance API health check failed: {e}")
-            return SkillStatus.UNAVAILABLE
+        if not self._api_client:
+            self._status = SkillStatus.UNAVAILABLE
+            return self._status
+        self._status = await self._api_client.health_check()
+        return self._status
     
     async def log(
         self,
@@ -64,60 +57,40 @@ class PerformanceSkill(BaseSkill):
             improvements: Areas for improvement
             metadata: Additional metadata
         """
-        try:
-            payload = {
-                "period": period,
-                "summary": summary,
-            }
-            if score is not None:
-                payload["score"] = score
-            if strengths:
-                payload["strengths"] = strengths
-            if improvements:
-                payload["improvements"] = improvements
-            if metadata:
-                payload["metadata"] = metadata
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{self.api_base}/performance",
-                    json=payload,
-                    timeout=10.0
-                )
-                response.raise_for_status()
-                return SkillResult(success=True, data=response.json())
-        except Exception as e:
-            logger.error(f"Failed to log performance: {e}")
-            return SkillResult(success=False, error=str(e))
+        if not self._api_client:
+            return SkillResult.fail("API client not available")
+
+        failures = None
+        if metadata and isinstance(metadata, dict):
+            failures = metadata.get("failures")
+
+        improvements_text = None
+        if improvements:
+            improvements_text = ", ".join(improvements) if isinstance(improvements, list) else str(improvements)
+
+        return await self._api_client.create_performance_log(
+            review_period=period,
+            successes=summary,
+            failures=failures,
+            improvements=improvements_text,
+        )
     
     async def list(
         self,
         period: Optional[str] = None,
-        limit: int = 20
+        limit: int = 20,
     ) -> SkillResult:
         """
         Get performance review history.
-        
+
         Args:
-            period: Filter by period type
-            limit: Maximum entries to return
+            period: Filter by period (not currently supported by API)
+            limit: Maximum logs to return
         """
-        try:
-            params = {"limit": limit}
-            if period:
-                params["period"] = period
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    f"{self.api_base}/performance",
-                    params=params,
-                    timeout=10.0
-                )
-                response.raise_for_status()
-                return SkillResult(success=True, data=response.json())
-        except Exception as e:
-            logger.error(f"Failed to list performance: {e}")
-            return SkillResult(success=False, error=str(e))
+        if not self._api_client:
+            return SkillResult.fail("API client not available")
+
+        return await self._api_client.get_performance_logs(limit=limit)
     
     async def stats(self, days: int = 30) -> SkillResult:
         """
@@ -126,20 +99,12 @@ class PerformanceSkill(BaseSkill):
         Args:
             days: Number of days to analyze
         """
-        # For now, fetch recent entries and calculate stats
         result = await self.list(limit=days)
         if not result.success:
             return result
         
         entries = result.data or []
-        if not entries:
-            return SkillResult(success=True, data={"message": "No performance data"})
-        
-        scores = [e.get("score", 0) for e in entries if e.get("score")]
-        avg_score = sum(scores) / len(scores) if scores else 0
-        
-        return SkillResult(success=True, data={
+        return SkillResult.ok({
             "total_entries": len(entries),
-            "average_score": round(avg_score, 2),
             "days_analyzed": days
         })

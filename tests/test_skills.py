@@ -198,36 +198,84 @@ class TestGoalSchedulerSkill:
         """Test adding a goal."""
         from aria_skills.goals import GoalSchedulerSkill, TaskPriority
         
-        config = SkillConfig(name="goal_scheduler")
-        scheduler = GoalSchedulerSkill(config)
-        await scheduler.initialize()
+        mock_client = AsyncMock()
+        mock_client.health_check = AsyncMock(return_value=SkillStatus.AVAILABLE)
+        mock_client.get_goals = AsyncMock(return_value=SkillResult.ok([]))
+        mock_client.create_goal = AsyncMock(return_value=SkillResult.ok({"created": True}))
+
+        with patch("aria_skills.goals.get_api_client", AsyncMock(return_value=mock_client)):
+            config = SkillConfig(name="goal_scheduler")
+            scheduler = GoalSchedulerSkill(config)
+            await scheduler.initialize()
         
-        result = await scheduler.add_goal(
-            goal_id="test_goal",
-            title="Test Goal",
-            description="A test goal",
-            priority=TaskPriority.HIGH,
-        )
+            result = await scheduler.add_goal(
+                goal_id="test_goal",
+                title="Test Goal",
+                description="A test goal",
+                priority=TaskPriority.HIGH,
+            )
         
-        assert result.success
-        assert result.data["goal_id"] == "test_goal"
+            assert result.success
+            assert result.data["goal_id"] == "test_goal"
     
     @pytest.mark.asyncio
     async def test_add_task(self):
         """Test adding a scheduled task."""
         from aria_skills.goals import GoalSchedulerSkill
         
-        config = SkillConfig(name="goal_scheduler")
-        scheduler = GoalSchedulerSkill(config)
-        await scheduler.initialize()
+        mock_client = AsyncMock()
+        mock_client.health_check = AsyncMock(return_value=SkillStatus.AVAILABLE)
+        mock_client.get_goals = AsyncMock(return_value=SkillResult.ok([]))
+
+        with patch("aria_skills.goals.get_api_client", AsyncMock(return_value=mock_client)):
+            config = SkillConfig(name="goal_scheduler")
+            scheduler = GoalSchedulerSkill(config)
+            await scheduler.initialize()
         
-        result = await scheduler.add_task(
-            task_id="test_task",
-            name="Test Task",
-            handler="test.handler",
-            interval_seconds=3600,
-        )
+            result = await scheduler.add_task(
+                task_id="test_task",
+                name="Test Task",
+                handler="test.handler",
+                interval_seconds=3600,
+            )
         
-        assert result.success
-        assert result.data["task_id"] == "test_task"
-        assert result.data["next_run"] is not None
+            assert result.success
+            assert result.data["task_id"] == "test_task"
+            assert result.data["next_run"] is not None
+
+
+class TestAriaAPIClient:
+    """Tests for AriaAPIClient."""
+    
+    @pytest.mark.asyncio
+    async def test_api_client_init(self):
+        """Test API client initialization."""
+        from aria_skills.api_client import AriaAPIClient
+        
+        config = SkillConfig(name="api_client", config={
+            "api_url": "http://localhost:8000/api"
+        })
+        client = AriaAPIClient(config)
+        
+        # Without httpx available, should fail gracefully
+        # In real environment with httpx, would succeed
+        assert client.name == "api_client"
+    
+    @pytest.mark.asyncio
+    async def test_api_client_methods_exist(self):
+        """Test API client has all required methods."""
+        from aria_skills.api_client import AriaAPIClient
+        
+        # Check all expected methods exist
+        assert hasattr(AriaAPIClient, 'get_memories')
+        assert hasattr(AriaAPIClient, 'set_memory')
+        assert hasattr(AriaAPIClient, 'get_thoughts')
+        assert hasattr(AriaAPIClient, 'create_thought')
+        assert hasattr(AriaAPIClient, 'get_activities')
+        assert hasattr(AriaAPIClient, 'create_activity')
+        assert hasattr(AriaAPIClient, 'get_goals')
+        assert hasattr(AriaAPIClient, 'create_goal')
+        assert hasattr(AriaAPIClient, 'get_heartbeats')
+        assert hasattr(AriaAPIClient, 'create_heartbeat')
+        assert hasattr(AriaAPIClient, 'get_knowledge_graph')
+        assert hasattr(AriaAPIClient, 'get_social_posts')

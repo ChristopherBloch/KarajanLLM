@@ -8,6 +8,7 @@ Canonical data API for Aria Blue (aria_warehouse)
 """
 
 import os
+import asyncio
 from datetime import datetime
 from contextlib import asynccontextmanager
 from typing import Optional
@@ -46,6 +47,9 @@ SERVICE_URLS = {
     "aria-web": (os.getenv("ARIA_WEB_URL", "http://aria-web:5000"), "/"),
     "aria-api": ("http://localhost:8000", "/health"),
 }
+
+ARIA_ADMIN_TOKEN = os.getenv("ARIA_ADMIN_TOKEN", "")
+SERVICE_CONTROL_ENABLED = os.getenv("ARIA_SERVICE_CONTROL_ENABLED", "false").lower() in {"1", "true", "yes"}
 
 # Remove MLX from services if disabled
 if not MLX_ENABLED:
@@ -123,6 +127,45 @@ def serialize_record(row) -> dict:
         elif hasattr(value, '__json__'):
             result[key] = value.__json__()
     return result
+
+
+def _service_cmd_env(service_id: str, action: str) -> str:
+    normalized_service = service_id.upper().replace("-", "_")
+    normalized_action = action.upper().replace("-", "_")
+    return f"ARIA_SERVICE_CMD_{normalized_service}_{normalized_action}"
+
+
+async def _run_docker_command(command: str) -> Optional[dict]:
+    tokens = command.strip().split()
+    if len(tokens) < 3 or tokens[0] != "docker":
+        return None
+
+    action = tokens[1]
+    target = tokens[2]
+    if action not in {"restart", "stop", "start"}:
+        return None
+
+    socket_path = "/var/run/docker.sock"
+    if not os.path.exists(socket_path):
+        return {
+            "status": "error",
+            "code": 1,
+            "stdout": "",
+            "stderr": "docker socket not found",
+        }
+
+    endpoint = f"/containers/{target}/{action}"
+    transport = httpx.AsyncHTTPTransport(uds=socket_path)
+    async with httpx.AsyncClient(transport=transport, base_url="http://docker") as client:
+        resp = await client.post(endpoint)
+        if resp.status_code in {204, 200}:
+            return {"status": "ok", "code": 0, "stdout": "", "stderr": ""}
+        return {
+            "status": "error",
+            "code": resp.status_code,
+            "stdout": "",
+            "stderr": resp.text[:2000],
+        }
 
 
 class HealthResponse(BaseModel):
@@ -211,6 +254,45 @@ async def api_status_service(service_id: str):
         return {"status": "online", "code": resp.status_code}
     except Exception:
         return {"status": "offline", "code": None}
+
+
+@app.post("/admin/services/{service_id}/{action}")
+async def api_service_control(service_id: str, action: str, request: Request):
+    if not SERVICE_CONTROL_ENABLED:
+        raise HTTPException(status_code=403, detail="Service control disabled")
+
+    if ARIA_ADMIN_TOKEN:
+        token = request.headers.get("X-Admin-Token", "")
+        if token != ARIA_ADMIN_TOKEN:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+
+    if action not in {"restart", "stop", "start"}:
+        raise HTTPException(status_code=400, detail="Invalid action")
+
+    env_key = _service_cmd_env(service_id, action)
+    command = os.getenv(env_key)
+    if not command:
+        raise HTTPException(status_code=400, detail=f"No command configured for {service_id}:{action}")
+
+    try:
+        docker_result = await _run_docker_command(command)
+        if docker_result is not None:
+            return docker_result
+
+        proc = await asyncio.create_subprocess_shell(
+            command,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        stdout, stderr = await proc.communicate()
+        return {
+            "status": "ok" if proc.returncode == 0 else "error",
+            "code": proc.returncode,
+            "stdout": (stdout or b"")[-2000:].decode("utf-8", errors="ignore"),
+            "stderr": (stderr or b"")[-2000:].decode("utf-8", errors="ignore"),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 # ============================================

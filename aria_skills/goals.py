@@ -3,6 +3,7 @@
 Goal and task scheduling skill.
 
 Manages Aria's objectives, tasks, and schedules.
+Uses Aria API for goal persistence.
 """
 import asyncio
 from datetime import datetime, timedelta
@@ -12,6 +13,7 @@ from dataclasses import dataclass, field
 
 from aria_skills.base import BaseSkill, SkillConfig, SkillResult, SkillStatus
 from aria_skills.registry import SkillRegistry
+from aria_skills.api_client import AriaAPIClient, get_api_client
 
 
 class TaskPriority(Enum):
@@ -68,38 +70,68 @@ class GoalSchedulerSkill(BaseSkill):
     Goal and task scheduling.
     
     Config:
-        persistence: database | file | memory
+        api_url: Base URL for aria-api (default: http://aria-api:8000)
         check_interval: Seconds between schedule checks (default: 60)
     """
     
     def __init__(self, config: SkillConfig):
         super().__init__(config)
-        self._persistence = config.config.get("persistence", "memory")
         self._check_interval = config.config.get("check_interval", 60)
         self._tasks: Dict[str, ScheduledTask] = {}
-        self._goals: Dict[str, Goal] = {}
+        self._goals: Dict[str, Goal] = {}  # Local cache
         self._handlers: Dict[str, Callable] = {}
         self._running = False
-        self._db_skill: Optional["DatabaseSkill"] = None
+        self._api_client: Optional[AriaAPIClient] = None
     
     @property
     def name(self) -> str:
         return "goal_scheduler"
     
-    def set_database(self, db_skill: "DatabaseSkill") -> None:
-        """Inject database skill for persistence."""
-        self._db_skill = db_skill
-    
     async def initialize(self) -> bool:
-        """Initialize scheduler."""
+        """Initialize scheduler and API client."""
+        self._api_client = await get_api_client()
+        status = await self._api_client.health_check()
+
         # Load scheduled tasks from HEARTBEAT.md if available
         await self._load_scheduled_tasks()
-        self._status = SkillStatus.AVAILABLE
-        return True
-    
+
+        # Load goals from API
+        if status == SkillStatus.AVAILABLE:
+            await self._sync_goals_from_api()
+
+        self._status = status
+        return status == SkillStatus.AVAILABLE
+
+    async def _sync_goals_from_api(self) -> None:
+        """Load goals from API into local cache."""
+        if not self._api_client:
+            return
+        result = await self._api_client.get_goals(limit=100)
+        if not result.success:
+            self.logger.warning(f"Failed to sync goals from API: {result.error}")
+            return
+
+        for g in result.data or []:
+            try:
+                goal = Goal(
+                    id=g.get("goal_id", str(g.get("id"))),
+                    title=g.get("title", ""),
+                    description=g.get("description", ""),
+                    status=TaskStatus(g.get("status", "pending")),
+                    priority=TaskPriority(g.get("priority", 2)),
+                    progress=float(g.get("progress", 0)),
+                )
+                self._goals[goal.id] = goal
+            except Exception:
+                continue
+
     async def health_check(self) -> SkillStatus:
         """Scheduler health check."""
-        return SkillStatus.AVAILABLE
+        if not self._api_client:
+            self._status = SkillStatus.UNAVAILABLE
+            return self._status
+        self._status = await self._api_client.health_check()
+        return self._status
     
     async def _load_scheduled_tasks(self) -> None:
         """Load tasks from HEARTBEAT.md configuration."""
@@ -260,10 +292,23 @@ class GoalSchedulerSkill(BaseSkill):
         priority: TaskPriority = TaskPriority.MEDIUM,
         due_date: Optional[datetime] = None,
     ) -> SkillResult:
-        """Add a new goal."""
+        """Add a new goal (persists to API)."""
         if goal_id in self._goals:
             return SkillResult.fail(f"Goal {goal_id} already exists")
-        
+        if not self._api_client or not self.is_available:
+            return SkillResult.fail("API client not available")
+
+        api_result = await self._api_client.create_goal(
+            goal_id=goal_id,
+            title=title,
+            description=description,
+            priority=priority.value,
+            status=TaskStatus.PENDING.value,
+            due_date=due_date.isoformat() if due_date else None,
+        )
+        if not api_result.success:
+            return api_result
+
         goal = Goal(
             id=goal_id,
             title=title,
@@ -271,10 +316,10 @@ class GoalSchedulerSkill(BaseSkill):
             priority=priority,
             due_date=due_date,
         )
-        
+
         self._goals[goal_id] = goal
         self._log_usage("add_goal", True)
-        
+
         return SkillResult.ok({
             "goal_id": goal_id,
             "title": title,
@@ -286,19 +331,29 @@ class GoalSchedulerSkill(BaseSkill):
         progress: float,
         status: Optional[TaskStatus] = None,
     ) -> SkillResult:
-        """Update goal progress."""
+        """Update goal progress (persists to API)."""
         if goal_id not in self._goals:
             return SkillResult.fail(f"Goal {goal_id} not found")
-        
+        if not self._api_client or not self.is_available:
+            return SkillResult.fail("API client not available")
+
         goal = self._goals[goal_id]
         goal.progress = min(100.0, max(0.0, progress))
-        
+
         if status:
             goal.status = status
         elif goal.progress >= 100:
             goal.status = TaskStatus.COMPLETED
             goal.completed_at = datetime.utcnow()
-        
+
+        api_result = await self._api_client.update_goal(
+            goal_id=goal_id,
+            status=goal.status.value,
+            progress=int(goal.progress),
+        )
+        if not api_result.success:
+            return api_result
+
         return SkillResult.ok({
             "goal_id": goal_id,
             "progress": goal.progress,

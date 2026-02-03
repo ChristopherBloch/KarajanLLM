@@ -2,16 +2,11 @@
 """
 Social media posting and management skill.
 """
-import logging
-from datetime import datetime
 from typing import Any, Dict, List, Optional
-
-import httpx
 
 from aria_skills.base import BaseSkill, SkillConfig, SkillResult, SkillStatus
 from aria_skills.registry import SkillRegistry
-
-logger = logging.getLogger("aria.skills.social")
+from aria_skills.api_client import AriaAPIClient, get_api_client
 
 
 @SkillRegistry.register
@@ -25,24 +20,22 @@ class SocialSkill(BaseSkill):
     
     def __init__(self, config: SkillConfig):
         super().__init__(config)
-        self.api_base = config.config.get("api_url", "http://aria-api:8000")
+        self._api_client: Optional[AriaAPIClient] = None
     
     async def initialize(self) -> bool:
         """Initialize the skill."""
-        status = await self.health_check()
+        self._api_client = await get_api_client()
+        status = await self._api_client.health_check()
+        self._status = status
         return status == SkillStatus.AVAILABLE
     
     async def health_check(self) -> SkillStatus:
         """Check if the API is accessible."""
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(f"{self.api_base}/health", timeout=5.0)
-                if response.status_code == 200:
-                    return SkillStatus.AVAILABLE
-                return SkillStatus.ERROR
-        except Exception as e:
-            logger.error(f"Social API health check failed: {e}")
-            return SkillStatus.UNAVAILABLE
+        if not self._api_client:
+            self._status = SkillStatus.UNAVAILABLE
+            return self._status
+        self._status = await self._api_client.health_check()
+        return self._status
     
     async def post(
         self,
@@ -62,33 +55,25 @@ class SocialSkill(BaseSkill):
             tags: Hashtags or topics
             visibility: Post visibility (public, private, followers)
         """
-        try:
-            payload = {
-                "content": content,
-                "platform": platform,
-                "visibility": visibility,
-            }
-            if mood:
-                payload["mood"] = mood
-            if tags:
-                payload["tags"] = tags
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{self.api_base}/social",
-                    json=payload,
-                    timeout=10.0
-                )
-                response.raise_for_status()
-                return SkillResult(success=True, data=response.json())
-        except Exception as e:
-            logger.error(f"Failed to create post: {e}")
-            return SkillResult(success=False, error=str(e))
+        if not self._api_client:
+            return SkillResult.fail("API client not available")
+
+        payload = {
+            "content": content,
+            "platform": platform,
+            "visibility": visibility,
+        }
+        if mood:
+            payload["mood"] = mood
+        if tags:
+            payload["tags"] = tags
+
+        return await self._api_client.create_social_post(**payload)
     
     async def list(
         self,
         platform: Optional[str] = None,
-        limit: int = 20
+        limit: int = 20,
     ) -> SkillResult:
         """
         Get recent social posts.
@@ -97,22 +82,13 @@ class SocialSkill(BaseSkill):
             platform: Filter by platform
             limit: Maximum posts to return
         """
-        try:
-            params = {"limit": limit}
-            if platform:
-                params["platform"] = platform
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    f"{self.api_base}/social",
-                    params=params,
-                    timeout=10.0
-                )
-                response.raise_for_status()
-                return SkillResult(success=True, data=response.json())
-        except Exception as e:
-            logger.error(f"Failed to list posts: {e}")
-            return SkillResult(success=False, error=str(e))
+        if not self._api_client:
+            return SkillResult.fail("API client not available")
+
+        return await self._api_client.get_social_posts(
+            limit=limit,
+            platform=platform,
+        )
     
     async def schedule(
         self,
@@ -122,29 +98,20 @@ class SocialSkill(BaseSkill):
         **kwargs
     ) -> SkillResult:
         """
-        Schedule a post for later.
+        Schedule a post for later (stores schedule metadata only).
         
         Args:
             content: Post content
             platform: Target platform
             scheduled_for: ISO timestamp for posting
         """
-        try:
-            payload = {
-                "content": content,
-                "platform": platform,
-                "scheduled_for": scheduled_for,
-                **kwargs
-            }
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{self.api_base}/social",
-                    json=payload,
-                    timeout=10.0
-                )
-                response.raise_for_status()
-                return SkillResult(success=True, data=response.json())
-        except Exception as e:
-            logger.error(f"Failed to schedule post: {e}")
-            return SkillResult(success=False, error=str(e))
+        if not self._api_client:
+            return SkillResult.fail("API client not available")
+
+        metadata = {"scheduled_for": scheduled_for, **kwargs}
+        return await self._api_client.create_social_post(
+            content=content,
+            platform=platform,
+            visibility="scheduled",
+            metadata=metadata,
+        )
