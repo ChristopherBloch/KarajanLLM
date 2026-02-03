@@ -31,13 +31,16 @@ if [ -d "$ARIA_SKILLS_DIR" ]; then
             manifest="$skill_dir/skill.json"
             
             if [ -f "$manifest" ]; then
+                # Convert underscores to hyphens for OpenClaw compatibility
+                skill_name_hyphen=$(echo "$skill_name" | tr '_' '-')
+                
                 # Create aria-<skill> directory in OpenClaw skills dir
-                target_dir="$OPENCLAW_SKILLS_DIR/aria-$skill_name"
+                target_dir="$OPENCLAW_SKILLS_DIR/aria-$skill_name_hyphen"
                 mkdir -p "$target_dir"
                 
                 # Create symlink to skill.json
                 ln -sf "$manifest" "$target_dir/skill.json"
-                echo "  Linked: aria-$skill_name -> $manifest"
+                echo "  Linked: aria-$skill_name_hyphen -> $manifest"
                 
                 # Also link SKILL.md if it exists
                 if [ -f "$skill_dir/SKILL.md" ]; then
