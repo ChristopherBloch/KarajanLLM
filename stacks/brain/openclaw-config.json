@@ -39,9 +39,14 @@
     "mode": "local",
     "bind": "lan",
     "auth": {
-      "mode": "token"
+      "mode": "none"
     },
-    "trustedProxies": ["0.0.0.0/0", "::0/0"]
+    "trustedProxies": ["0.0.0.0/0", "::/0"],
+    "controlUi": {
+      "basePath": "/clawdbot",
+      "allowInsecureAuth": true,
+      "dangerouslyDisableDeviceAuth": true
+    }
   },
   "agents": {
     "defaults": {

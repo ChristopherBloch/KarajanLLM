@@ -348,6 +348,9 @@ cat > /root/.openclaw/openclaw.json << EOF
     "port": 18789,
     "mode": "local",
     "bind": "lan",
+    "auth": {
+      "mode": "none"
+    },
     "trustedProxies": ["0.0.0.0/0", "::/0"],
     "controlUi": {
       "basePath": "/clawdbot",
