@@ -24,6 +24,10 @@ echo "Creating skill manifest symlinks..."
 ARIA_SKILLS_DIR="/root/.openclaw/workspace/skills/aria_skills"
 OPENCLAW_SKILLS_DIR="/root/.openclaw/skills"
 
+# Clean up any existing aria-* skill directories to ensure fresh symlinks
+echo "Cleaning up existing aria-* skill directories..."
+rm -rf "$OPENCLAW_SKILLS_DIR"/aria-*
+
 if [ -d "$ARIA_SKILLS_DIR" ]; then
     for skill_dir in "$ARIA_SKILLS_DIR"/*/; do
         if [ -d "$skill_dir" ]; then
