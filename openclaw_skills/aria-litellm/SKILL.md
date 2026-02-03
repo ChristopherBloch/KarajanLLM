@@ -1,7 +1,7 @@
 ---
 name: aria-litellm
 description: Manage LiteLLM proxy, models, and API spend tracking.
-metadata: {"openclaw": {"emoji": "⚡", "requires": {"env": ["LITELLM_MASTER_KEY"]}}}
+metadata: {"openclaw": {"emoji": "⚡"}}
 ---
 
 # aria-litellm

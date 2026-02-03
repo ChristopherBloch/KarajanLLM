@@ -1,7 +1,7 @@
 ---
 name: aria-performance
 description: Log and query Aria's performance reviews and self-assessments.
-metadata: {"openclaw": {"emoji": "📊", "requires": {"env": ["ARIA_API_URL"]}}}
+metadata: {"openclaw": {"emoji": "📊", "requires": {"env": ["DATABASE_URL"]}}}
 ---
 
 # aria-performance

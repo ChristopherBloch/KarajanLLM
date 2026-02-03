@@ -1,7 +1,7 @@
 ---
 name: aria-knowledge-graph
 description: Build and query Aria's knowledge graph. Store entities and relationships.
-metadata: {"openclaw": {"emoji": "🕸️", "requires": {"env": ["DB_USER"]}}}
+metadata: {"openclaw": {"emoji": "🕸️", "requires": {"env": ["DATABASE_URL"]}}}
 ---
 
 # aria-knowledge-graph
