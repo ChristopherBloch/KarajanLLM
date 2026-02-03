@@ -647,7 +647,6 @@ async function loadBalances() {
         
         // Update total
         document.getElementById('total-balance').textContent = '$' + totalUSD.toFixed(2);
-        document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
         
     } catch (error) {
         console.error('Error loading balances:', error);
