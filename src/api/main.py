@@ -420,6 +420,25 @@ async def api_activities(limit: int = 100, conn=Depends(get_db)):
     return results
 
 
+@app.post("/activities")
+async def create_activity(request: Request, conn=Depends(get_db)):
+    """Create a new activity log entry"""
+    import uuid
+    data = await request.json()
+    new_id = uuid.uuid4()
+    await conn.execute(
+        """INSERT INTO activity_log (id, action, skill, details, success, error_message, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, NOW())""",
+        new_id,
+        data.get('action'),
+        data.get('skill'),
+        data.get('details', {}),
+        data.get('success', True),
+        data.get('error_message')
+    )
+    return {"id": str(new_id), "created": True}
+
+
 @app.get("/thoughts")
 async def api_thoughts(limit: int = 100, conn=Depends(get_db)):
     rows = await conn.fetch(
@@ -442,6 +461,83 @@ async def api_thoughts(limit: int = 100, conn=Depends(get_db)):
             for r in rows
         ]
     }
+
+
+@app.post("/thoughts")
+async def create_thought(request: Request, conn=Depends(get_db)):
+    """Create a new thought"""
+    import uuid
+    data = await request.json()
+    new_id = uuid.uuid4()
+    await conn.execute(
+        """INSERT INTO thoughts (id, content, category, metadata, created_at)
+           VALUES ($1, $2, $3, $4, NOW())""",
+        new_id,
+        data.get('content'),
+        data.get('category', 'general'),
+        data.get('metadata', {})
+    )
+    return {"id": str(new_id), "created": True}
+
+
+# ============================================
+# Routes: Memories
+# ============================================
+@app.get("/memories")
+async def get_memories(limit: int = 100, category: str = None, conn=Depends(get_db)):
+    """Get memories with optional category filter"""
+    if category:
+        rows = await conn.fetch(
+            "SELECT * FROM memories WHERE category = $1 ORDER BY updated_at DESC LIMIT $2",
+            category, limit
+        )
+    else:
+        rows = await conn.fetch(
+            "SELECT * FROM memories ORDER BY updated_at DESC LIMIT $1",
+            limit
+        )
+    return {"memories": [serialize_record(r) for r in rows], "count": len(rows)}
+
+
+@app.post("/memories")
+async def create_or_update_memory(request: Request, conn=Depends(get_db)):
+    """Create or update a memory by key (upsert)"""
+    import uuid
+    data = await request.json()
+    key = data.get('key')
+    value = data.get('value')
+    category = data.get('category', 'general')
+    
+    if not key:
+        raise HTTPException(status_code=400, detail="key is required")
+    
+    # Upsert: insert or update on conflict
+    result = await conn.fetchrow(
+        """INSERT INTO memories (id, key, value, category, created_at, updated_at)
+           VALUES (uuid_generate_v4(), $1, $2, $3, NOW(), NOW())
+           ON CONFLICT (key) DO UPDATE SET value = $2, category = $3, updated_at = NOW()
+           RETURNING id""",
+        key, value, category
+    )
+    return {"id": str(result['id']), "key": key, "upserted": True}
+
+
+@app.get("/memories/{key}")
+async def get_memory_by_key(key: str, conn=Depends(get_db)):
+    """Get a specific memory by key"""
+    row = await conn.fetchrow(
+        "SELECT * FROM memories WHERE key = $1", key
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail="Memory not found")
+    return serialize_record(row)
+
+
+@app.delete("/memories/{key}")
+async def delete_memory(key: str, conn=Depends(get_db)):
+    """Delete a memory by key"""
+    await conn.execute("DELETE FROM memories WHERE key = $1", key)
+    return {"deleted": True, "key": key}
 
 
 @app.get("/search")
@@ -894,6 +990,47 @@ async def api_export(table: str = "activities", conn=Depends(get_db)):
     rows = await conn.fetch(f"SELECT * FROM {db_table} ORDER BY {order_col} DESC")
     records = [serialize_record(r) for r in rows]
     return {"records": records}
+
+
+# ============================================
+# Routes: Heartbeat
+# ============================================
+@app.get("/heartbeat")
+async def get_heartbeats(limit: int = 50, conn=Depends(get_db)):
+    """Get recent heartbeat logs"""
+    rows = await conn.fetch(
+        "SELECT * FROM heartbeat_log ORDER BY created_at DESC LIMIT $1",
+        limit
+    )
+    return {"heartbeats": [serialize_record(r) for r in rows], "count": len(rows)}
+
+
+@app.post("/heartbeat")
+async def create_heartbeat(request: Request, conn=Depends(get_db)):
+    """Log a heartbeat"""
+    import uuid
+    data = await request.json()
+    new_id = uuid.uuid4()
+    await conn.execute(
+        """INSERT INTO heartbeat_log (id, beat_number, status, details, created_at)
+           VALUES ($1, $2, $3, $4, NOW())""",
+        new_id,
+        data.get('beat_number', 0),
+        data.get('status', 'healthy'),
+        data.get('details', {})
+    )
+    return {"id": str(new_id), "created": True}
+
+
+@app.get("/heartbeat/latest")
+async def get_latest_heartbeat(conn=Depends(get_db)):
+    """Get the most recent heartbeat"""
+    row = await conn.fetchrow(
+        "SELECT * FROM heartbeat_log ORDER BY created_at DESC LIMIT 1"
+    )
+    if not row:
+        return {"error": "No heartbeats found"}
+    return serialize_record(row)
 
 
 # ============================================
