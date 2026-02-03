@@ -1019,3 +1019,146 @@ cat openclaw_skills/aria-my-skill/skill.json | python3 -m json.tool
 ---
 
 > **Remember**: Skills are Aria's hands. They must be reliable, secure, and well-documented. Each skill should do one thing well.
+
+---
+
+## Appendix A: LLM Models Available
+
+Aria has access to multiple LLM models via LiteLLM. **Cost Priority: Local → Free Cloud → Paid**
+
+### Model Reference
+
+| Model | Provider | Context | Best For | Cost |
+|-------|----------|---------|----------|------|
+| `qwen3-mlx` | Local MLX | 32K | **PRIMARY** - Fast local inference | FREE |
+| `trinity-free` | OpenRouter | 128K | Agentic, creative, roleplay | FREE |
+| `qwen3-coder-free` | OpenRouter | 262K | Code generation, review | FREE |
+| `chimera-free` | OpenRouter | 164K | Reasoning (2x faster than R1) | FREE |
+| `qwen3-next-free` | OpenRouter | 262K | RAG, long context, tools | FREE |
+| `glm-free` | OpenRouter | 131K | Agent-focused, thinking | FREE |
+| `deepseek-free` | OpenRouter | 164K | Deep reasoning (R1) | FREE |
+| `nemotron-free` | OpenRouter | 256K | Long context agentic | FREE |
+| `gpt-oss-free` | OpenRouter | 131K | Function calling | FREE |
+| `kimi` | Moonshot | 256K | Last resort only | 💰 PAID |
+
+### Model Selection by Focus
+
+| Focus | Primary Model | Fallback | Reason |
+|-------|---------------|----------|--------|
+| 🎯 Orchestrator | `qwen3-mlx` | `trinity-free` | Fast local, good coordination |
+| 🔒 DevSecOps | `qwen3-coder-free` | `gpt-oss-free` | Code-specialized |
+| 📊 Data Architect | `chimera-free` | `deepseek-free` | Deep reasoning |
+| 📈 Crypto Trader | `deepseek-free` | `chimera-free` | Analytical reasoning |
+| 🎨 Creative | `trinity-free` | `qwen3-next-free` | Creative, expressive |
+| 🌐 Social | `trinity-free` | `qwen3-mlx` | Engaging content |
+| 📰 Journalist | `qwen3-next-free` | `chimera-free` | Long context, fact-finding |
+
+---
+
+## Appendix B: Docker Architecture Awareness
+
+Aria runs as a distributed system across multiple Docker containers. Skills must be aware of this architecture.
+
+### Container Map
+
+| Container | Port | Purpose | Skill Access |
+|-----------|------|---------|--------------|
+| `clawdbot` | 18789 | OpenClaw Brain (Aria's mind) | This IS Aria |
+| `litellm` | 18793→4000 | Model routing/proxy | Auto via LLM skills |
+| `aria-db` | 18780→5432 | PostgreSQL memory | `database` skill |
+| `mlx-server` | 8080 | Local Qwen3 MLX | Via LiteLLM |
+| `aria-api` | 18791 | FastAPI backend | HTTP skills |
+| `aria-web` | 18790 | Web UI | Users only |
+
+### Network Topology
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    Docker Network (aria-net)                     │
+│                                                                  │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌──────────┐  │
+│  │ clawdbot │───▶│ litellm  │───▶│mlx-server│    │ aria-web │  │
+│  │  :18789  │    │  :4000   │    │  :8080   │    │  :18790  │  │
+│  │ (OpenClaw)    │(LLM Proxy)    │(Local LLM)    │  (UI)    │  │
+│  └─────┬────┘    └──────────┘    └──────────┘    └──────────┘  │
+│        │                                                         │
+│        │         ┌──────────┐    ┌──────────┐                   │
+│        └────────▶│ aria-db  │    │ aria-api │                   │
+│                  │  :5432   │◀───│  :8000   │                   │
+│                  │(Postgres)│    │(FastAPI) │                   │
+│                  └──────────┘    └──────────┘                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Writing Container-Aware Skills
+
+```python
+class ContainerAwareSkill(BaseSkill):
+    """Skill that interacts with Docker infrastructure."""
+    
+    # Use Docker service names, not localhost
+    CONTAINER_URLS = {
+        "api": "http://aria-api:8000",
+        "db": "postgresql://aria-db:5432",
+        "litellm": "http://litellm:4000",
+    }
+    
+    async def initialize(self) -> bool:
+        # Get URL from config, default to Docker service name
+        self._api_url = self.config.config.get(
+            "api_url", 
+            self.CONTAINER_URLS["api"]
+        )
+        return True
+```
+
+### Aria's Infrastructure Permissions
+
+**CAN DO:**
+- Query PostgreSQL via `database` skill
+- Call FastAPI via HTTP (port 8000 internal)
+- Read/write mounted workspace (`/root/.openclaw/workspace`)
+- Spawn sub-agents via OpenClaw
+- Switch LLM models via LiteLLM
+
+**CANNOT DO (requires host/human):**
+- Start/stop containers
+- Modify Docker Compose
+- Access host filesystem outside workspace
+- Open new network ports
+
+---
+
+## Appendix C: Focus-Specific Skills
+
+Each Focus persona has associated skills. These are the skills Aria should use when operating in that Focus.
+
+### Skill-to-Focus Matrix
+
+| Skill | 🎯 Orch | 🔒 DevSec | 📊 Data | 📈 Trade | 🎨 Create | 🌐 Social | 📰 Journal |
+|-------|---------|-----------|---------|----------|-----------|-----------|------------|
+| `goals` | ✅ | - | - | - | - | - | - |
+| `schedule` | ✅ | - | - | ✅ | - | ✅ | - |
+| `health` | ✅ | ✅ | - | - | - | - | - |
+| `database` | - | ✅ | ✅ | ✅ | - | - | - |
+| `pytest_runner` | - | ✅ | - | - | - | - | - |
+| `knowledge_graph` | - | - | ✅ | - | - | - | ✅ |
+| `performance` | - | - | ✅ | - | - | - | - |
+| `moltbook` | - | - | - | - | ✅ | ✅ | ✅ |
+| `social` | - | - | - | - | ✅ | ✅ | - |
+| `llm` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+### Planned Focus-Specific Skills (To Create)
+
+| Focus | Planned Skill | Purpose |
+|-------|---------------|---------|
+| 🔒 DevSecOps | `security_scan` | Vulnerability scanning, SAST |
+| 🔒 DevSecOps | `ci_cd` | Pipeline management |
+| 📊 Data | `data_pipeline` | ETL, data transformation |
+| 📊 Data | `experiment` | ML experiment tracking |
+| 📈 Trader | `market_data` | Price feeds, charts |
+| 📈 Trader | `portfolio` | Position tracking |
+| 🎨 Creative | `brainstorm` | Idea generation |
+| 🌐 Social | `analytics` | Social metrics tracking |
+| 📰 Journalist | `fact_check` | Source verification |
+

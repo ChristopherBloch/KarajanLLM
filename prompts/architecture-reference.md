@@ -7,46 +7,50 @@
 ## Table of Contents
 
 1. [System Overview](#system-overview)
-2. [Agent Architecture](#agent-architecture)
-3. [Mind Architecture](#mind-architecture)
-4. [Configuration Reference](#configuration-reference)
-5. [Creating Custom Agents](#creating-custom-agents)
-6. [Extending the Mind](#extending-the-mind)
-7. [Integration Patterns](#integration-patterns)
+2. [Focus System (Personas)](#focus-system-personas)
+3. [Agent Architecture](#agent-architecture)
+4. [Mind Architecture](#mind-architecture)
+5. [Configuration Reference](#configuration-reference)
+6. [Creating Custom Agents](#creating-custom-agents)
+7. [Extending the Mind](#extending-the-mind)
+8. [Integration Patterns](#integration-patterns)
 
 ---
 
 ## System Overview
 
-Aria is a **distributed cognitive architecture** consisting of:
+Aria is a **distributed cognitive architecture** with a **Focus-based persona system**:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                          AriaMind                                    │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐ │
-│  │    Soul     │  │  Cognition  │  │   Memory    │  │  Heartbeat │ │
-│  │  (Identity  │  │ (Processing │  │ (Short/Long │  │  (Health/  │ │
-│  │   Values    │  │  Pipeline)  │  │   Term)     │  │  Scheduling│ │
-│  │ Boundaries) │  │             │  │             │  │            │ │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬─────┘ │
-│         │                │                │                │        │
-│         └────────────────┼────────────────┼────────────────┘        │
-│                          ▼                ▼                          │
+│  ┌─────────────────────────────────────────────────────────────────┐│
+│  │                    Soul (Core Identity)                          ││
+│  │  ┌──────────┐  ┌────────┐  ┌──────────┐  ┌────────────────────┐││
+│  │  │ Identity │  │ Values │  │Boundaries│  │  Focus (Persona)   │││
+│  │  │ (immut.) │  │(immut.)│  │ (immut.) │  │ 🎯🔒📊📈🎨🌐📰   │││
+│  │  └──────────┘  └────────┘  └──────────┘  └────────────────────┘││
+│  └─────────────────────────────────────────────────────────────────┘│
+│  ┌─────────────┐  ┌─────────────┐  ┌────────────┐                   │
+│  │  Cognition  │  │   Memory    │  │  Heartbeat │                   │
+│  │ (Processing)│  │(Short/Long) │  │ (Schedule) │                   │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬─────┘                   │
+│         └────────────────┼────────────────┘                          │
+│                          ▼                                           │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │                    AgentCoordinator                           │   │
+│  │               AgentCoordinator (Focus-mapped)                 │   │
 │  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐     │   │
-│  │  │   aria   │  │researcher│  │  social  │  │  coder   │ ... │   │
-│  │  │  (main)  │  │          │  │          │  │          │     │   │
+│  │  │   aria   │  │  devops  │  │ analyst  │  │ creator  │     │   │
+│  │  │ 🎯 Orch. │  │ 🔒 Sec.  │  │ 📊 Data  │  │ 🌐 Social│     │   │
 │  │  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘     │   │
-│  │       │             │             │             │             │   │
 │  │       └─────────────┴─────────────┴─────────────┘             │   │
-│  │                          │                                     │   │
-│  └──────────────────────────┼───────────────────────────────────┘   │
-│                             ▼                                        │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │                     SkillRegistry                             │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+│                             │                                        │
+│  ┌──────────────────────────┼───────────────────────────────────┐   │
+│  │                  SkillRegistry (Focus-tagged)                 │   │
 │  │  ┌──────┐  ┌────────┐  ┌────────┐  ┌───────┐  ┌──────────┐  │   │
 │  │  │ llm  │  │database│  │moltbook│  │ goals │  │ health   │  │   │
+│  │  │ All  │  │ 🔒📊📈 │  │  🌐📰  │  │  🎯   │  │   🎯🔒   │  │   │
 │  │  └──────┘  └────────┘  └────────┘  └───────┘  └──────────┘  │   │
 │  └──────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────┘
@@ -57,13 +61,70 @@ Aria is a **distributed cognitive architecture** consisting of:
 | Component | Responsibility | Location |
 |-----------|----------------|----------|
 | **AriaMind** | Main cognitive container | `aria_mind/` |
-| **Soul** | Identity, values, boundaries (immutable) | `aria_mind/soul/` |
+| **Soul** | Identity, values, boundaries, focus | `aria_mind/soul/` |
+| **Focus** | Specialized persona overlays | `aria_mind/soul/focus.py` |
 | **Cognition** | Request processing, reasoning | `aria_mind/cognition.py` |
 | **Memory** | Short-term and long-term storage | `aria_mind/memory.py` |
 | **Heartbeat** | Health monitoring, scheduling | `aria_mind/heartbeat.py` |
 | **AgentCoordinator** | Multi-agent orchestration | `aria_agents/coordinator.py` |
-| **Agents** | Specialized task execution | `aria_agents/` |
+| **Agents** | Focus-mapped task execution | `aria_agents/` |
 | **Skills** | Tool implementations | `aria_skills/` |
+
+---
+
+## Focus System (Personas)
+
+Aria has 7 specialized **focuses** (personas) that enhance her core identity:
+
+### Available Focuses
+
+| Focus | Emoji | Vibe | Skills | Model |
+|-------|-------|------|--------|-------|
+| **Orchestrator** | 🎯 | Meta-cognitive, strategic | goals, schedule, health | qwen3-mlx |
+| **DevSecOps** | 🔒 | Security-paranoid | pytest_runner, database | qwen3-coder-free |
+| **Data Architect** | 📊 | Analytical, metrics-driven | knowledge_graph, performance | chimera-free |
+| **Crypto Trader** | 📈 | Risk-aware, disciplined | database, schedule | deepseek-free |
+| **Creative** | 🎨 | Exploratory, playful | llm, moltbook | trinity-free |
+| **Social Architect** | 🌐 | Community-building | moltbook, social | trinity-free |
+| **Journalist** | 📰 | Investigative | knowledge_graph, social | qwen3-next-free |
+
+### Focus Rules
+
+1. **Additive**: Focuses ADD traits, never REPLACE core identity
+2. **Default**: Orchestrator 🎯 is the default focus
+3. **Immutable Core**: Values and boundaries never change with focus
+4. **Agent Mapping**: Each agent has a primary focus
+5. **Auto-Selection**: Focus can be selected based on task keywords
+
+### Focus → Agent Mapping
+
+| Focus | Agent | Handles |
+|-------|-------|---------|
+| Orchestrator | aria | Coordination, delegation |
+| DevSecOps | devops | Code, security, tests |
+| Data + Trader | analyst | Analysis, metrics, trading |
+| Creative + Social + Journalist | creator | Content, community |
+| (support) | memory | Storage, recall |
+
+### Using Focus
+
+```python
+from aria_mind.soul import Soul, FocusType
+
+soul = Soul()
+await soul.load()
+
+# Set focus explicitly
+soul.set_focus(FocusType.DEVSECOPS)
+
+# Auto-select based on keywords
+focus_type = soul.focus.get_focus_for_task(["code", "security", "test"])
+soul.set_focus(focus_type)
+
+# Get current focus info
+print(soul.active_focus.name)  # "DevSecOps"
+print(soul.active_focus.emoji)  # "🔒"
+```
 
 ---
 

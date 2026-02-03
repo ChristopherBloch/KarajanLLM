@@ -21,7 +21,9 @@
     </div>
     <div class="summary-amount" id="total-balance">Loading...</div>
     <div class="summary-note">Combined balance across all providers (USD equivalent)</div>
-    <div class="summary-updated">Last updated: <span id="last-updated">--</span></div>
+    <div class="summary-updated">
+        <span class="auto-refresh-indicator">🔄 Auto-refresh: <span id="last-refresh">Loading...</span></span>
+    </div>
 </div>
 
 <!-- Provider Wallets -->
@@ -349,6 +351,22 @@
     background-clip: text;
 }
 
+.balance-main.negative {
+    color: #ef4444;
+}
+
+.auto-refresh-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    color: #22c55e;
+}
+
 .balance-currency {
     font-size: 0.875rem;
     color: var(--text-muted);
@@ -571,37 +589,43 @@ async function loadBalances() {
             }
         }
         
-        // OpenRouter
+        // OpenRouter - shows real spend (can be negative)
         if (data.openrouter) {
             const or = data.openrouter;
             if (or.status === 'ok') {
-                const remaining = or.remaining || 0;
                 const usage = or.usage || 0;
                 const limit = or.limit;
                 
-                // Only add positive remaining to total
-                if (remaining > 0) {
-                    totalUSD += remaining;
-                }
-                
-                document.getElementById('openrouter-status').textContent = or.is_free_tier ? 'Free Tier' : 'Active';
-                document.getElementById('openrouter-status').className = 'wallet-status ' + (or.is_free_tier ? 'free' : 'ok');
-                
-                if (or.is_free_tier) {
-                    // Free tier - show usage as spend
-                    document.getElementById('openrouter-balance').textContent = usage > 0 ? '-$' + usage.toFixed(2) : 'FREE';
-                    if (usage > 0) {
-                        document.getElementById('openrouter-balance').classList.add('negative');
-                    } else {
-                        document.getElementById('openrouter-balance').classList.add('free');
-                    }
-                    document.getElementById('openrouter-limit').textContent = 'No limit (free)';
+                // Calculate balance: if limit exists, remaining = limit - usage
+                // If no limit (prepaid/free), show negative usage as spend
+                let displayBalance;
+                if (limit !== null && limit !== undefined) {
+                    displayBalance = limit - usage;
                 } else {
-                    document.getElementById('openrouter-balance').textContent = '$' + remaining.toFixed(2);
-                    document.getElementById('openrouter-limit').textContent = '$' + (limit || 0).toFixed(2);
+                    displayBalance = -usage; // Negative = money spent
                 }
+                
+                // Add to total if positive
+                if (displayBalance > 0) {
+                    totalUSD += displayBalance;
+                }
+                
+                document.getElementById('openrouter-status').textContent = 'Active';
+                document.getElementById('openrouter-status').className = 'wallet-status ok';
+                
+                // Format balance display
+                const balanceEl = document.getElementById('openrouter-balance');
+                if (displayBalance >= 0) {
+                    balanceEl.textContent = '$' + displayBalance.toFixed(2);
+                    balanceEl.className = 'balance-main';
+                } else {
+                    balanceEl.textContent = '-$' + Math.abs(displayBalance).toFixed(2);
+                    balanceEl.className = 'balance-main negative';
+                }
+                
+                document.getElementById('openrouter-limit').textContent = limit !== null ? '$' + limit.toFixed(2) : 'No limit';
                 document.getElementById('openrouter-used').textContent = '$' + usage.toFixed(2);
-                document.getElementById('openrouter-remaining').textContent = remaining >= 0 ? '$' + remaining.toFixed(2) : '-$' + Math.abs(remaining).toFixed(2);
+                document.getElementById('openrouter-remaining').textContent = displayBalance >= 0 ? '$' + displayBalance.toFixed(2) : '-$' + Math.abs(displayBalance).toFixed(2);
             } else if (or.status === 'free_tier') {
                 document.getElementById('openrouter-status').textContent = 'Free Tier';
                 document.getElementById('openrouter-status').className = 'wallet-status free';
@@ -751,6 +775,37 @@ function calculateEstimate() {
 function refreshAll() {
     loadBalances();
     loadSpend();
+    updateLastRefresh();
+}
+
+// Update last refresh timestamp
+let lastRefreshTime = null;
+let refreshInterval = null;
+let countdownInterval = null;
+
+function updateLastRefresh() {
+    lastRefreshTime = new Date();
+    const el = document.getElementById('last-refresh');
+    if (el) {
+        el.textContent = 'Just now';
+    }
+}
+
+function updateCountdown() {
+    if (!lastRefreshTime) return;
+    const el = document.getElementById('last-refresh');
+    if (!el) return;
+    
+    const elapsed = Math.floor((new Date() - lastRefreshTime) / 1000);
+    const remaining = 60 - elapsed;
+    
+    if (elapsed < 5) {
+        el.textContent = 'Just now';
+    } else if (remaining > 0) {
+        el.textContent = `${elapsed}s ago (refresh in ${remaining}s)`;
+    } else {
+        el.textContent = 'Refreshing...';
+    }
 }
 
 // Initialize
@@ -759,6 +814,15 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSpend();
     createBalanceChart();
     calculateEstimate();
+    updateLastRefresh();
+    
+    // Auto-refresh every 60 seconds
+    refreshInterval = setInterval(refreshAll, 60000);
+    
+    // Update countdown every second
+    countdownInterval = setInterval(updateCountdown, 1000);
+    
+    console.log('💰 Wallet auto-refresh enabled (every 60s)');
 });
 </script>
 {% endblock %}

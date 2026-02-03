@@ -22,11 +22,33 @@ Complete guide for creating new skills:
 
 ### [Architecture Reference](architecture-reference.md)
 Deep dive into Aria's cognitive architecture:
+- **Focus System** (7 specialized personas)
 - Agent system (`aria_agents/`)
 - Mind system (`aria_mind/`)
 - Soul, Memory, Cognition, Heartbeat
 - Integration patterns
 - Database schema
+
+---
+
+## Focus System (Personas)
+
+Aria has 7 specialized **focuses** that enhance her core identity:
+
+| Focus | Emoji | Vibe | Agent |
+|-------|-------|------|-------|
+| **Orchestrator** | 🎯 | Strategic, delegation | aria |
+| **DevSecOps** | 🔒 | Security-first | devops |
+| **Data Architect** | 📊 | Analytical | analyst |
+| **Crypto Trader** | 📈 | Risk-aware | analyst |
+| **Creative** | 🎨 | Exploratory | creator |
+| **Social Architect** | 🌐 | Community-building | creator |
+| **Journalist** | 📰 | Investigative | creator |
+
+**Key Files:**
+- [FOCUSES.md](../aria_mind/FOCUSES.md) - Full focus definitions
+- [soul/focus.py](../aria_mind/soul/focus.py) - Python implementation
+- [AGENTS.md](../aria_mind/AGENTS.md) - Agent-to-focus mapping
 
 ---
 
@@ -38,19 +60,21 @@ Deep dive into Aria's cognitive architecture:
 2. Create Python implementation in `aria_skills/`
 3. Create OpenClaw manifest in `openclaw_skills/aria-skillname/`
 4. Add configuration to `aria_mind/TOOLS.md`
-5. Write tests in `tests/`
-6. Deploy following the workflow in [agent-workflow.md](agent-workflow.md)
+5. **Tag skill with primary focus** in TOOLS.md
+6. Write tests in `tests/`
+7. Deploy following the workflow in [agent-workflow.md](agent-workflow.md)
 
 ### Understanding the Architecture
 
 1. Start with [architecture-reference.md](architecture-reference.md)
 2. Review `aria_mind/` documentation files:
    - `IDENTITY.md` - Who Aria is
+   - `FOCUSES.md` - Specialized personas
    - `ORCHESTRATION.md` - Self-awareness
    - `GOALS.md` - Goal-driven work
    - `MEMORY.md` - Memory architecture
-   - `TOOLS.md` - Available skills
-   - `AGENTS.md` - Agent definitions
+   - `TOOLS.md` - Available skills (focus-tagged)
+   - `AGENTS.md` - Agent definitions (focus-mapped)
 
 ### Working on This Codebase
 
@@ -75,7 +99,13 @@ Aria_moltbot/
 │   ├── memory.py        # Short/long-term memory
 │   ├── heartbeat.py     # Health & scheduling
 │   ├── startup.py       # Boot sequence
+│   ├── FOCUSES.md       # 🆕 Focus definitions
 │   ├── soul/            # Identity, values, boundaries
+│   │   ├── __init__.py  # Soul class
+│   │   ├── identity.py  # Core identity
+│   │   ├── values.py    # Principles
+│   │   ├── boundaries.py# Hard limits
+│   │   └── focus.py     # 🆕 Persona system
 │   └── *.md             # Configuration & documentation
 │
 ├── aria_skills/         # Skill implementations
