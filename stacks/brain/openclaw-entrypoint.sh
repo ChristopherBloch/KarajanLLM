@@ -75,13 +75,13 @@ SKILL_REGISTRY = {
         'api_url': os.environ.get('MOLTBOOK_API_URL', 'https://moltbook.com/api'),
         'auth': os.environ.get('MOLTBOOK_API_KEY') or os.environ.get('MOLTBOOK_TOKEN')
     }),
-    'health': ('aria_skills.health', 'HealthSkill', lambda: {}),
-    'llm': ('aria_skills.llm', 'LLMSkill', lambda: {
+    'health': ('aria_skills.health', 'HealthMonitorSkill', lambda: {}),
+    'llm': ('aria_skills.llm', 'BaseLLMSkill', lambda: {
         'ollama_url': os.environ.get('OLLAMA_URL'),
         'model': os.environ.get('OLLAMA_MODEL', 'hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S')
     }),
     'knowledge_graph': ('aria_skills.knowledge_graph', 'KnowledgeGraphSkill', lambda: {'dsn': os.environ.get('DATABASE_URL')}),
-    'goals': ('aria_skills.goals', 'GoalSkill', lambda: {'dsn': os.environ.get('DATABASE_URL')}),
+    'goals': ('aria_skills.goals', 'GoalSchedulerSkill', lambda: {'dsn': os.environ.get('DATABASE_URL')}),
     'pytest': ('aria_skills.pytest_runner', 'PytestSkill', lambda: {
         'workspace': os.environ.get('PYTEST_WORKSPACE', '/root/.openclaw/workspace'),
         'timeout_sec': int(os.environ.get('PYTEST_TIMEOUT_SEC', '600')),
@@ -100,7 +100,7 @@ SKILL_REGISTRY = {
         'telegram_token': os.environ.get('TELEGRAM_TOKEN'),
         'telegram_chat_id': os.environ.get('TELEGRAM_CHAT_ID')
     }),
-    'hourly_goals': ('aria_skills.hourly_goals', 'HourlyGoalSkill', lambda: {'dsn': os.environ.get('DATABASE_URL')}),
+    'hourly_goals': ('aria_skills.hourly_goals', 'HourlyGoalsSkill', lambda: {'dsn': os.environ.get('DATABASE_URL')}),
     'litellm': ('aria_skills.litellm_skill', 'LiteLLMSkill', lambda: {
         'litellm_url': os.environ.get('LITELLM_URL', 'http://litellm:4000'),
         'api_key': os.environ.get('LITELLM_API_KEY', 'sk-aria')
