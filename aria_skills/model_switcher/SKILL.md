@@ -1,10 +1,10 @@
 ---
-name: aria-model-switcher
+name: aria-modelswitcher
 description: Switch between Ollama models at runtime - GLM for smart text, Qwen3-VL for vision.
 metadata: {"openclaw": {"emoji": "🔄", "requires": {"env": []}, "primaryEnv": "OLLAMA_URL"}}
 ---
 
-# aria-model-switcher
+# aria-modelswitcher
 
 Switch between Ollama models at runtime without restarting containers or reconfiguring LiteLLM/OpenClaw.
 

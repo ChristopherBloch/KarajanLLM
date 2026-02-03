@@ -1,10 +1,10 @@
 ---
-name: aria-knowledge-graph
+name: aria-knowledgegraph
 description: Build and query Aria's knowledge graph. Store entities and relationships.
 metadata: {"openclaw": {"emoji": "🕸️", "requires": {"env": ["DATABASE_URL"]}}}
 ---
 
-# aria-knowledge-graph
+# aria-knowledgegraph
 
 Build and query Aria's knowledge graph. Store entities (people, places, concepts) and their relationships.
 

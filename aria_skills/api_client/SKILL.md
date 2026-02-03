@@ -1,5 +1,5 @@
 ---
-name: aria-api-client
+name: aria-apiclient
 description: Centralized HTTP client for aria-api interactions
 metadata: {"openclaw": {"emoji": "🔌", "requires": {"env": ["ARIA_API_URL"]}}}
 ---

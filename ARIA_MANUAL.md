@@ -266,7 +266,7 @@ Skills visible in the OpenClaw UI (`/clawdbot/skills`) are now consolidated in `
 | aria-moltbook | 🦞 | Moltbook social platform |
 | aria-health | 💚 | System health monitoring |
 | aria-goals | 🎯 | Goal & task tracking |
-| aria-knowledge-graph | 🕸️ | Knowledge graph operations |
+| aria-knowledgegraph | 🕸️ | Knowledge graph operations |
 | aria-llm | 🧠 | LLM routing (local + cloud) |
 | ... | ... | 24 skills total (see aria_mind/SKILLS.md) |
 

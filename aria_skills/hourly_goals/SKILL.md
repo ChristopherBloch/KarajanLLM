@@ -1,10 +1,10 @@
 ---
-name: aria-hourly-goals
+name: aria-hourlygoals
 description: Manage Aria's hourly goals and micro-tasks for short-term focus.
 metadata: {"openclaw": {"emoji": "⏰", "requires": {"env": ["DATABASE_URL"]}}}
 ---
 
-# aria-hourly-goals
+# aria-hourlygoals
 
 Manage hourly goals for focused, short-term work. Links to main goals for progress tracking.
 
