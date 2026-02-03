@@ -74,11 +74,10 @@ services:
       # Mount aria_mind as the OpenClaw workspace (read-write for memory)
       - ../../aria_mind:/root/.openclaw/workspace
       # Mount Python skill modules into workspace/skills/
+      # NOTE: Each skill subdirectory now contains skill.json for OpenClaw
       - ../../aria_skills:/root/.openclaw/workspace/skills/aria_skills:ro
       - ../../aria_agents:/root/.openclaw/workspace/skills/aria_agents:ro
       - ../../skills:/root/.openclaw/workspace/skills/legacy:ro
-      # Mount OpenClaw native skill manifests
-      - ../../openclaw_skills:/root/.openclaw/skills:ro
       # Mount patch artifacts
       - ../../patch:/root/.openclaw/patches:ro
       # Mount tests + config for pytest skill

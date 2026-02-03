@@ -1,0 +1,132 @@
+# aria_skills/hourly_goals.py
+"""
+Hourly micro-goal skill.
+
+Manages small, time-boxed goals for Aria's hourly cycles.
+"""
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
+from aria_skills.base import BaseSkill, SkillConfig, SkillResult, SkillStatus
+from aria_skills.registry import SkillRegistry
+
+
+@SkillRegistry.register
+class HourlyGoalsSkill(BaseSkill):
+    """
+    Hourly micro-goal management.
+    
+    Creates and tracks small goals for each hour slot.
+    """
+    
+    def __init__(self, config: SkillConfig):
+        super().__init__(config)
+        self._hourly_goals: Dict[int, List[Dict]] = {}  # hour -> goals
+    
+    @property
+    def name(self) -> str:
+        return "hourly_goals"
+    
+    async def initialize(self) -> bool:
+        """Initialize hourly goals."""
+        self._status = SkillStatus.AVAILABLE
+        self.logger.info("Hourly goals initialized")
+        return True
+    
+    async def health_check(self) -> SkillStatus:
+        """Check availability."""
+        return self._status
+    
+    async def set_goal(
+        self,
+        hour: int,
+        goal: str,
+        priority: str = "normal",
+    ) -> SkillResult:
+        """
+        Set a goal for a specific hour.
+        
+        Args:
+            hour: Hour slot (0-23)
+            goal: Goal description
+            priority: low, normal, high
+            
+        Returns:
+            SkillResult with goal data
+        """
+        if hour < 0 or hour > 23:
+            return SkillResult.fail("Hour must be 0-23")
+        
+        if hour not in self._hourly_goals:
+            self._hourly_goals[hour] = []
+        
+        goal_data = {
+            "id": f"hg_{hour}_{len(self._hourly_goals[hour])}",
+            "goal": goal,
+            "priority": priority,
+            "status": "pending",
+            "created_at": datetime.utcnow().isoformat(),
+        }
+        
+        self._hourly_goals[hour].append(goal_data)
+        
+        return SkillResult.ok(goal_data)
+    
+    async def get_current_goals(self) -> SkillResult:
+        """Get goals for the current hour."""
+        current_hour = datetime.utcnow().hour
+        goals = self._hourly_goals.get(current_hour, [])
+        
+        return SkillResult.ok({
+            "hour": current_hour,
+            "goals": goals,
+            "pending": sum(1 for g in goals if g["status"] == "pending"),
+            "completed": sum(1 for g in goals if g["status"] == "completed"),
+        })
+    
+    async def complete_goal(self, goal_id: str) -> SkillResult:
+        """Mark an hourly goal as complete."""
+        for hour, goals in self._hourly_goals.items():
+            for goal in goals:
+                if goal["id"] == goal_id:
+                    goal["status"] = "completed"
+                    goal["completed_at"] = datetime.utcnow().isoformat()
+                    return SkillResult.ok(goal)
+        
+        return SkillResult.fail(f"Goal not found: {goal_id}")
+    
+    async def get_day_summary(self) -> SkillResult:
+        """Get summary of all hourly goals for today."""
+        total = sum(len(goals) for goals in self._hourly_goals.values())
+        completed = sum(
+            sum(1 for g in goals if g["status"] == "completed")
+            for goals in self._hourly_goals.values()
+        )
+        
+        return SkillResult.ok({
+            "total_goals": total,
+            "completed": completed,
+            "completion_rate": round(completed / total * 100, 1) if total > 0 else 0,
+            "by_hour": {
+                hour: {
+                    "total": len(goals),
+                    "completed": sum(1 for g in goals if g["status"] == "completed"),
+                }
+                for hour, goals in self._hourly_goals.items()
+            },
+        })
+    
+    async def clear_past_goals(self) -> SkillResult:
+        """Clear goals from past hours."""
+        current_hour = datetime.utcnow().hour
+        cleared = 0
+        
+        for hour in list(self._hourly_goals.keys()):
+            if hour < current_hour:
+                cleared += len(self._hourly_goals[hour])
+                del self._hourly_goals[hour]
+        
+        return SkillResult.ok({
+            "cleared": cleared,
+            "remaining_hours": list(self._hourly_goals.keys()),
+        })

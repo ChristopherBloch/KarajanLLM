@@ -16,6 +16,40 @@ fi
 mkdir -p /root/.openclaw
 mkdir -p /root/.openclaw/workspace/skills
 mkdir -p /root/.openclaw/workspace/memory
+mkdir -p /root/.openclaw/skills
+
+# Create symlinks for OpenClaw skill manifests
+# Skills are now consolidated under aria_skills/<skill>/ with skill.json inside
+echo "Creating skill manifest symlinks..."
+ARIA_SKILLS_DIR="/root/.openclaw/workspace/skills/aria_skills"
+OPENCLAW_SKILLS_DIR="/root/.openclaw/skills"
+
+if [ -d "$ARIA_SKILLS_DIR" ]; then
+    for skill_dir in "$ARIA_SKILLS_DIR"/*/; do
+        if [ -d "$skill_dir" ]; then
+            skill_name=$(basename "$skill_dir")
+            manifest="$skill_dir/skill.json"
+            
+            if [ -f "$manifest" ]; then
+                # Create aria-<skill> directory in OpenClaw skills dir
+                target_dir="$OPENCLAW_SKILLS_DIR/aria-$skill_name"
+                mkdir -p "$target_dir"
+                
+                # Create symlink to skill.json
+                ln -sf "$manifest" "$target_dir/skill.json"
+                echo "  Linked: aria-$skill_name -> $manifest"
+                
+                # Also link SKILL.md if it exists
+                if [ -f "$skill_dir/SKILL.md" ]; then
+                    ln -sf "$skill_dir/SKILL.md" "$target_dir/SKILL.md"
+                fi
+            fi
+        fi
+    done
+    echo "Skill manifest symlinks created."
+else
+    echo "WARNING: aria_skills directory not found at $ARIA_SKILLS_DIR"
+fi
 
 # Install Python dependencies for Aria skills
 echo "Installing Python dependencies for Aria skills..."
@@ -101,7 +135,7 @@ SKILL_REGISTRY = {
         'telegram_chat_id': os.environ.get('TELEGRAM_CHAT_ID')
     }),
     'hourly_goals': ('aria_skills.hourly_goals', 'HourlyGoalsSkill', lambda: {'dsn': os.environ.get('DATABASE_URL')}),
-    'litellm': ('aria_skills.litellm_skill', 'LiteLLMSkill', lambda: {
+    'litellm': ('aria_skills.litellm', 'LiteLLMSkill', lambda: {
         'litellm_url': os.environ.get('LITELLM_URL', 'http://litellm:4000'),
         'api_key': os.environ.get('LITELLM_API_KEY', 'sk-aria')
     }),

@@ -12,6 +12,12 @@ Each skill:
 - Provides health checks
 - Logs all operations
 
+NEW STRUCTURE (v2.0):
+Each skill is now a subdirectory containing:
+- __init__.py  - Python implementation
+- skill.json   - OpenClaw manifest
+- SKILL.md     - Documentation (optional)
+
 Usage:
     from aria_skills import SkillRegistry
     
@@ -22,25 +28,25 @@ Usage:
     await moltbook.post_status("Hello world!")
 """
 
-__version__ = "1.1.0"
+__version__ = "2.0.0"
 
 from aria_skills.base import BaseSkill, SkillConfig, SkillResult, SkillStatus
 from aria_skills.registry import SkillRegistry
 
-# Import skill implementations to register them
+# Import skill implementations from subdirectories
 from aria_skills.moltbook import MoltbookSkill
 from aria_skills.database import DatabaseSkill
 from aria_skills.llm import MoonshotSkill, OllamaSkill
 from aria_skills.health import HealthMonitorSkill
-from aria_skills.goals import GoalSchedulerSkill, Goal, ScheduledTask, TaskPriority, TaskStatus
+from aria_skills.goals import GoalSchedulerSkill
 from aria_skills.knowledge_graph import KnowledgeGraphSkill
 from aria_skills.pytest_runner import PytestSkill
 
-# New skill implementations (v1.1.0)
+# Communication skills (v1.1.0)
 from aria_skills.performance import PerformanceSkill
 from aria_skills.social import SocialSkill
 from aria_skills.hourly_goals import HourlyGoalsSkill
-from aria_skills.litellm_skill import LiteLLMSkill
+from aria_skills.litellm import LiteLLMSkill
 from aria_skills.schedule import ScheduleSkill
 
 # Focus-specific skills (v1.2.0)
@@ -49,7 +55,7 @@ from aria_skills.ci_cd import CICDSkill
 from aria_skills.data_pipeline import DataPipelineSkill
 from aria_skills.experiment import ExperimentSkill
 
-# API Client (v1.3.0) - Centralized HTTP client for all API interactions
+# API Client (v1.3.0) - Centralized HTTP client
 from aria_skills.api_client import AriaAPIClient, get_api_client
 from aria_skills.market_data import MarketDataSkill
 from aria_skills.portfolio import PortfolioSkill
@@ -57,6 +63,7 @@ from aria_skills.brainstorm import BrainstormSkill
 from aria_skills.research import ResearchSkill
 from aria_skills.fact_check import FactCheckSkill
 from aria_skills.community import CommunitySkill
+from aria_skills.model_switcher import ModelSwitcherSkill
 
 __all__ = [
     # Base classes
@@ -74,7 +81,8 @@ __all__ = [
     "HealthMonitorSkill",
     "GoalSchedulerSkill",
     "PytestSkill",
-    # New Skills (v1.1.0)
+    "ModelSwitcherSkill",
+    # Communication Skills (v1.1.0)
     "PerformanceSkill",
     "SocialSkill",
     "HourlyGoalsSkill",
@@ -91,9 +99,7 @@ __all__ = [
     "ResearchSkill",          # Journalist
     "FactCheckSkill",         # Journalist
     "CommunitySkill",         # Social Architect
-    # Goal types
-    "Goal",
-    "ScheduledTask",
-    "TaskPriority",
-    "TaskStatus",
+    # API Client
+    "AriaAPIClient",
+    "get_api_client",
 ]
