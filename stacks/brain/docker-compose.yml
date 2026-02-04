@@ -309,6 +309,10 @@ services:
       LITELLM_URL: http://litellm:4000
       CLAWDBOT_URL: http://clawdbot:18789
       CLAWDBOT_TOKEN: ${CLAWDBOT_TOKEN?CLAWDBOT_TOKEN is required}
+    volumes:
+      # Mount templates for live reload during development
+      - ../../src/web/templates:/app/templates:ro
+      - ../../src/web/static:/app/static:ro
     ports:
       - "5000:5000"
     depends_on:
@@ -362,6 +366,8 @@ services:
       # Path to OpenClaw cron jobs file (mounted volume)
       OPENCLAW_JOBS_PATH: /openclaw/cron/jobs.json
     volumes:
+      # Mount API source for live reload during development
+      - ../../src/api:/app:ro
       # Mount OpenClaw data for reading cron jobs
       - openclaw_data:/openclaw:ro
       # Docker socket for service control (admin actions)
