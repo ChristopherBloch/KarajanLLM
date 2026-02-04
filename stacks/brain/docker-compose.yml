@@ -157,16 +157,14 @@ services:
         condition: service_started
       aria-api:
         condition: service_started
-      grafana:
-        condition: service_started
-      prometheus:
-        condition: service_started
       clawdbot:
         condition: service_started
       litellm:
         condition: service_started
     networks:
       - aria-net
+    mem_limit: ${TRAEFIK_MEM_LIMIT:-512m}
+    cpus: ${TRAEFIK_CPU_LIMIT:-0.5}
 
   # LiteLLM Router for model management
   litellm:
