@@ -3,6 +3,12 @@ set -e
 
 echo "=== Aria/OpenClaw Entrypoint ==="
 
+# Clean up any stale lock files from previous runs (prevents lock issues after container restart)
+echo "Cleaning up stale lock files..."
+find /root/.openclaw/agents -name "*.lock" -type f 2>/dev/null | while read lock; do
+    rm -f "$lock" && echo "  Removed stale lock: $lock"
+done
+
 # Install system dependencies
 apt-get update && apt-get install -y curl jq python3 python3-pip python3-venv
 
@@ -441,6 +447,17 @@ prepare_awakening &
 
 # Run cron job injection in background (needs gateway to be up)
 (sleep 10 && inject_cron_jobs) &
+
+# Background maintenance loop - cleans stale locks every 5 minutes
+(
+    while true; do
+        sleep 300  # 5 minutes
+        # Clean lock files older than 2 minutes
+        find /root/.openclaw/agents -name "*.lock" -type f -mmin +2 2>/dev/null | while read lock; do
+            rm -f "$lock" && echo "[$(date '+%Y-%m-%d %H:%M:%S')] Maintenance: removed stale lock $lock"
+        done
+    done
+) &
 
 # Start the gateway
 exec /usr/local/bin/openclaw gateway run \

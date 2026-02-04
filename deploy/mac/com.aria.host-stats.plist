@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.aria.host-stats</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/Users/najia/aria/deploy/mac/host-stats-server.py</string>
+    </array>
+    
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <key>KeepAlive</key>
+    <true/>
+    
+    <key>StandardOutPath</key>
+    <string>/tmp/aria-host-stats.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/tmp/aria-host-stats.err</string>
+    
+    <key>WorkingDirectory</key>
+    <string>/Users/najia</string>
+</dict>
+</plist>

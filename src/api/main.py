@@ -201,6 +201,37 @@ async def health_check():
     )
 
 
+@app.get("/host-stats")
+async def host_stats():
+    """
+    Get Mac host system stats: RAM, swap, disk, smart status.
+    Fetches from a stats endpoint on the host (port 8888).
+    Falls back to default values if host stats unavailable.
+    """
+    stats = {
+        "ram": {"used_gb": 0, "total_gb": 16, "percent": 0},
+        "swap": {"used_gb": 0, "total_gb": 0, "percent": 0},
+        "disk": {"used_gb": 0, "total_gb": 500, "percent": 0},
+        "smart": {"status": "unknown", "healthy": True},
+        "timestamp": datetime.utcnow().isoformat(),
+        "source": "unavailable"
+    }
+    
+    # Try to fetch from host stats server
+    try:
+        async with httpx.AsyncClient(timeout=2.0) as client:
+            resp = await client.get(f"http://{DOCKER_HOST_IP}:8888/stats")
+            if resp.status_code == 200:
+                data = resp.json()
+                stats.update(data)
+                stats["source"] = "host"
+    except Exception:
+        # Host stats server not running - return defaults
+        stats["source"] = "unavailable"
+    
+    return stats
+
+
 @app.get("/status")
 async def api_status():
     results = {}
