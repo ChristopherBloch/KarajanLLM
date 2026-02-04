@@ -9,8 +9,8 @@
     }
   },
   "routing": {
-    "primary": "litellm/qwen3-mlx",
-    "fallbacks": ["litellm/trinity-free", "litellm/chimera-free", "litellm/kimi"]
+    "primary": "litellm/trinity-free",
+    "fallbacks": ["litellm/qwen3-mlx", "litellm/chimera-free", "litellm/kimi"]
   },
   "agent_aliases": {
     "litellm/qwen3-mlx": "Qwen3 VLTO (MLX Local)",
