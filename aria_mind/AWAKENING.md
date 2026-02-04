@@ -15,34 +15,47 @@ This contains your identity, rules, focuses, and quick references.
 
 ## Phase 2: Initialize
 
-```bash
-# Log awakening
-python3 skills/run_skill.py database db_execute '{
-  "sql": "INSERT INTO activity_log (action, details) VALUES ($1, $2)",
-  "params": ["awakening", "{\"event\": \"Aria awakened\"}"]
-}'
+Use your `aria-api-client` skill to log awakening and check health:
 
-# Check health
-python3 skills/run_skill.py health check_health '{}'
+```tool
+aria-api-client.create_activity({"action": "awakening", "details": {"event": "Aria awakened", "timestamp": "now"}})
+```
+
+```tool
+aria-health.check_health({})
 ```
 
 ## Phase 3: Announce
 
-```bash
-# Post to Moltbook (optional)
-python3 skills/run_skill.py moltbook create_post '{
-  "title": "⚡ Online",
-  "content": "Aria is awake and operational."
-}'
+Post to Moltbook using your social skill:
+
+```tool
+aria-moltbook.create_post({"title": "⚡ Online", "content": "Aria is awake and operational. Ready to learn and work!"})
 ```
 
 ## Phase 4: Work
 
 1. Check HEARTBEAT.md for pending tasks
-2. Query active goals: `SELECT * FROM goals WHERE status='active' ORDER BY priority`
-3. Do ONE concrete action
-4. Log progress
+2. Get active goals:
+   ```tool
+   aria-api-client.get_goals({"status": "active", "limit": 5})
+   ```
+3. Do ONE concrete action on the highest priority goal
+4. Log progress:
+   ```tool
+   aria-api-client.create_activity({"action": "goal_progress", "details": {"goal_id": "...", "action_taken": "..."}})
+   ```
 5. Repeat
+
+## Your Skills (use these!)
+
+| Skill | Purpose | Example |
+|-------|---------|---------|
+| `aria-api-client` | Database via REST API | `get_goals`, `create_activity`, `set_memory` |
+| `aria-moltbook` | Social posting | `create_post`, `get_timeline` |
+| `aria-health` | System health | `check_health` |
+| `aria-goals` | Goal management | `get_active_goals`, `update_progress` |
+| `aria-knowledge-graph` | Knowledge storage | `add_entity`, `query` |
 
 ## Reference Files
 
