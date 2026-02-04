@@ -294,224 +294,46 @@ else
   SYSTEM_PROMPT_JSON=$(echo "$DEFAULT_PROMPT" | jq -Rs .)
 fi
 
-# Generate openclaw.json with LiteLLM provider config, skill definitions, and Aria identity
+# Generate openclaw.json from models.yaml (REQUIRED - no inline fallback)
 OPENCLAW_CONFIG="/root/.openclaw/openclaw.json"
 MODELS_CATALOG="/root/.openclaw/workspace/aria_models/models.yaml"
 OPENCLAW_TEMPLATE="/root/.openclaw/openclaw-config-template.json"
 OPENCLAW_RENDERER="/root/.openclaw/workspace/aria_models/openclaw_config.py"
 
-if [ -f "$OPENCLAW_RENDERER" ] && [ -f "$MODELS_CATALOG" ] && [ -f "$OPENCLAW_TEMPLATE" ]; then
-  echo "Generating openclaw.json from aria_models/models.yaml..."
-  python3 "$OPENCLAW_RENDERER" --template "$OPENCLAW_TEMPLATE" --models "$MODELS_CATALOG" --output "$OPENCLAW_CONFIG" \
-    || echo "WARN: YAML-based openclaw config generation failed; falling back to inline config"
+echo "=== Generating openclaw.json from models.yaml ==="
+
+# Validate required files exist
+if [ ! -f "$OPENCLAW_TEMPLATE" ]; then
+  echo "ERROR: Template not found: $OPENCLAW_TEMPLATE"
+  echo "Mount openclaw-config.json as openclaw-config-template.json"
+  exit 1
 fi
 
-if [ ! -f "$OPENCLAW_CONFIG" ]; then
-cat > /root/.openclaw/openclaw.json << EOF
-{
-  "commands": {
-    "native": "auto",
-    "nativeSkills": "auto"
-  },
-  "skills": {
-    "load": {
-      "extraDirs": ["/root/.openclaw/skills"]
-    },
-    "entries": {
-      "aria-apiclient": { "enabled": true },
-      "aria-brainstorm": { "enabled": true },
-      "aria-cicd": { "enabled": true },
-      "aria-community": { "enabled": true },
-      "aria-datapipeline": { "enabled": true },
-      "aria-database": { "enabled": true },
-      "aria-experiment": { "enabled": true },
-      "aria-factcheck": { "enabled": true },
-      "aria-goals": { "enabled": true },
-      "aria-health": { "enabled": true },
-      "aria-hourlygoals": { "enabled": true },
-      "aria-knowledgegraph": { "enabled": true },
-      "aria-litellm": { "enabled": true },
-      "aria-llm": { "enabled": true },
-      "aria-marketdata": { "enabled": true },
-      "aria-modelswitcher": { "enabled": true },
-      "aria-moltbook": { "enabled": true },
-      "aria-performance": { "enabled": true },
-      "aria-portfolio": { "enabled": true },
-      "aria-pytest": { "enabled": true },
-      "aria-research": { "enabled": true },
-      "aria-schedule": { "enabled": true },
-      "aria-securityscan": { "enabled": true },
-      "aria-social": { "enabled": true }
-    }
-  },
-  "gateway": {
-    "port": 18789,
-    "mode": "local",
-    "bind": "lan",
-    "auth": {
-      "mode": "token"
-    },
-    "trustedProxies": ["0.0.0.0/0", "::/0"],
-    "controlUi": {
-      "basePath": "/clawdbot",
-      "allowInsecureAuth": true,
-      "dangerouslyDisableDeviceAuth": true
-    }
-  },
-  "ui": {
-    "seamColor": "#3B82F6",
-    "assistant": {
-      "name": "Aria",
-      "avatar": "⚡"
-    }
-  },
-  "hooks": {
-    "internal": {
-      "enabled": true,
-      "entries": {
-        "soul-evil": {
-          "enabled": true
-        }
-      }
-    }
-  },
-  "agents": {
-    "defaults": {
-      "maxConcurrent": 4,
-      "workspace": "/root/.openclaw/workspace",
-      "model": {
-        "primary": "litellm/qwen3-mlx",
-        "fallbacks": ["litellm/trinity-free", "litellm/chimera-free", "litellm/kimi"]
-      },
-      "models": {
-        "litellm/qwen3-mlx": { "alias": "Qwen3 VLTO (MLX Local)" },
-        "litellm/trinity-free": { "alias": "Trinity 400B (OpenRouter FREE)" },
-        "litellm/chimera-free": { "alias": "Chimera 671B (OpenRouter FREE)" },
-        "litellm/qwen3-coder-free": { "alias": "Qwen3 Coder 480B (OpenRouter FREE)" },
-        "litellm/glm-free": { "alias": "GLM 4.5 Air (OpenRouter FREE)" },
-        "litellm/deepseek-free": { "alias": "DeepSeek R1 (OpenRouter FREE)" },
-        "litellm/kimi": { "alias": "Kimi K2.5 (Moonshot Paid)" }
-      },
-      "subagents": {
-        "maxConcurrent": 8
-      },
-      "heartbeat": {
-        "every": "30m",
-        "target": "last",
-        "prompt": "Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK."
-      },
-      "memorySearch": {
-        "enabled": false,
-        "fallback": "none"
-      }
-    },
-    "list": [
-      {
-        "id": "main",
-        "default": true,
-        "identity": {
-          "name": "Aria",
-          "theme": "intelligent autonomous assistant with electric blue energy",
-          "emoji": "⚡",
-          "avatar": "⚡"
-        }
-      }
-    ]
-  },
-  "tools": {
-    "exec": {
-      "backgroundMs": 10000,
-      "timeoutSec": 1800,
-      "cleanupMs": 1800000,
-      "notifyOnExit": true
-    }
-  },
-  "models": {
-    "mode": "merge",
-    "providers": {
-      "litellm": {
-        "baseUrl": "http://litellm:4000/v1",
-        "apiKey": "sk-aria-local-key",
-        "api": "openai-completions",
-        "models": [
-          {
-            "id": "qwen3-mlx",
-            "name": "Qwen3 VLTO 8B (MLX Local)",
-            "reasoning": false,
-            "input": ["text"],
-            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 32768,
-            "maxTokens": 8192
-          },
-          {
-            "id": "trinity-free",
-            "name": "Trinity 400B MoE (OpenRouter FREE)",
-            "reasoning": true,
-            "input": ["text"],
-            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 131072,
-            "maxTokens": 8192
-          },
-          {
-            "id": "chimera-free",
-            "name": "Chimera 671B (OpenRouter FREE)",
-            "reasoning": true,
-            "input": ["text"],
-            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 164000,
-            "maxTokens": 8192
-          },
-          {
-            "id": "qwen3-coder-free",
-            "name": "Qwen3 Coder 480B (OpenRouter FREE)",
-            "reasoning": true,
-            "input": ["text"],
-            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 131072,
-            "maxTokens": 8192
-          },
-          {
-            "id": "glm-free",
-            "name": "GLM 4.5 Air (OpenRouter FREE)",
-            "reasoning": true,
-            "input": ["text"],
-            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 131072,
-            "maxTokens": 8192
-          },
-          {
-            "id": "deepseek-free",
-            "name": "DeepSeek R1 (OpenRouter FREE)",
-            "reasoning": true,
-            "input": ["text"],
-            "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 164000,
-            "maxTokens": 8192
-          },
-          {
-            "id": "kimi",
-            "name": "Kimi K2.5 (Moonshot Paid)",
-            "reasoning": true,
-            "input": ["text"],
-            "cost": { "input": 0.001, "output": 0.002, "cacheRead": 0, "cacheWrite": 0 },
-            "contextWindow": 256000,
-            "maxTokens": 16384
-          }
-        ]
-      }
-    }
-  },
-  "messages": {
-    "ackReaction": "⚡",
-    "ackReactionScope": "group-mentions",
-    "responsePrefix": "[Aria]"
-  }
-}
-EOF
+if [ ! -f "$MODELS_CATALOG" ]; then
+  echo "ERROR: Models catalog not found: $MODELS_CATALOG"
+  echo "Mount aria_models/ directory"
+  exit 1
 fi
 
-echo "OpenClaw config created with DIRECT Ollama provider (no LiteLLM)"
-cat /root/.openclaw/openclaw.json
+if [ ! -f "$OPENCLAW_RENDERER" ]; then
+  echo "ERROR: Renderer not found: $OPENCLAW_RENDERER"
+  exit 1
+fi
+
+# Generate config from YAML - fail if this doesn't work
+echo "Rendering: $OPENCLAW_RENDERER"
+echo "  Template: $OPENCLAW_TEMPLATE"
+echo "  Models:   $MODELS_CATALOG"
+echo "  Output:   $OPENCLAW_CONFIG"
+
+if ! python3 "$OPENCLAW_RENDERER" --template "$OPENCLAW_TEMPLATE" --models "$MODELS_CATALOG" --output "$OPENCLAW_CONFIG"; then
+  echo "ERROR: Failed to render openclaw.json from models.yaml"
+  echo "Fix the renderer or models.yaml and restart"
+  exit 1
+fi
+
+echo "=== Generated openclaw.json ==="
+cat "$OPENCLAW_CONFIG"
 
 # Check if this is first boot (awakening)
 FIRST_BOOT_MARKER="/root/.openclaw/.awakened"
