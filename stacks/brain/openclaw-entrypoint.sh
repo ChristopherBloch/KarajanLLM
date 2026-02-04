@@ -349,7 +349,7 @@ NEEDS_AWAKENING_MARKER="/root/.openclaw/.needs_awakening"
 
 # Function to inject cron jobs from YAML definition
 inject_cron_jobs() {
-    CRON_YAML="/root/.openclaw/workspace/aria_mind/cron_jobs.yaml"
+    CRON_YAML="/root/.openclaw/workspace/cron_jobs.yaml"
     CRON_MARKER="/root/.openclaw/.cron_injected"
     
     if [ ! -f "$CRON_YAML" ]; then
@@ -366,7 +366,7 @@ import yaml
 import subprocess
 import os
 
-cron_yaml = "/root/.openclaw/workspace/aria_mind/cron_jobs.yaml"
+cron_yaml = "/root/.openclaw/workspace/cron_jobs.yaml"
 
 with open(cron_yaml) as f:
     data = yaml.safe_load(f)
