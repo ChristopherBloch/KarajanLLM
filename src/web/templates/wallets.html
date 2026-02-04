@@ -544,14 +544,45 @@ const CNY_TO_USD = 0.14;
 
 let balanceChart = null;
 
-// Model pricing per 1M tokens
+// Model pricing per 1M tokens (in USD)
 const PRICING = {
-    'kimi': { input: 1.68, output: 1.68, currency: 'CNY' },
-    'gemini-free': { input: 0, output: 0, currency: 'USD' },
-    'deepseek-free': { input: 0, output: 0, currency: 'USD' },
-    'llama-free': { input: 0, output: 0, currency: 'USD' },
-    'local': { input: 0, output: 0, currency: 'USD' },
+    'kimi': { input: 0.24, output: 0.24 },
+    'moonshot': { input: 0.24, output: 0.24 },
+    'gemini-free': { input: 0, output: 0 },
+    'deepseek-free': { input: 0, output: 0 },
+    'llama-free': { input: 0, output: 0 },
+    'qwen': { input: 0, output: 0 },
+    'local': { input: 0, output: 0 },
+    'mlx': { input: 0, output: 0 },
+    'ollama': { input: 0, output: 0 },
 };
+
+// Calculate cost from a log entry
+function calculateLogCost(log) {
+    const model = (log.model || '').toLowerCase();
+    const inputTokens = log.prompt_tokens || 0;
+    const outputTokens = log.completion_tokens || 0;
+    
+    // Find matching pricing
+    let pricing = null;
+    for (const [key, price] of Object.entries(PRICING)) {
+        if (model.includes(key)) {
+            pricing = price;
+            break;
+        }
+    }
+    
+    // Default for unknown models
+    if (!pricing) {
+        if (model.includes(':free') || model.includes('local') || model.includes('mlx') || model.includes('ollama')) {
+            pricing = { input: 0, output: 0 };
+        } else {
+            pricing = { input: 0.5, output: 1.0 }; // Default paid rate
+        }
+    }
+    
+    return (inputTokens / 1000000) * pricing.input + (outputTokens / 1000000) * pricing.output;
+}
 
 function formatMoney(amount, currency = 'USD') {
     if (currency === 'CNY') {
@@ -656,24 +687,18 @@ async function loadBalances() {
 
 async function loadSpend() {
     try {
-        // Fetch spend logs to calculate real period data
-        const logsResp = await fetch(`${API_URL}/litellm/spend?limit=1000`);
+        // Fetch all spend logs to calculate real spend from tokens
+        const logsResp = await fetch(`${API_URL}/litellm/spend?limit=5000`);
         const spendLogs = await logsResp.json();
         
-        // Get global spend for total
-        const globalResp = await fetch(`${API_URL}/litellm/global-spend`);
-        const globalData = await globalResp.json();
-        
-        const totalSpend = globalData.spend || 0;
-        document.getElementById('spend-total').textContent = formatMoney(totalSpend);
-        
-        // Calculate period spend from logs
+        // Calculate period boundaries
         const now = new Date();
         const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const weekStart = new Date(now);
         weekStart.setDate(now.getDate() - 7);
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
         
+        let totalSpend = 0;
         let todaySpend = 0;
         let weekSpend = 0;
         let monthSpend = 0;
@@ -681,20 +706,27 @@ async function loadSpend() {
         if (Array.isArray(spendLogs)) {
             spendLogs.forEach(log => {
                 const logDate = new Date(log.startTime || log.created_at);
-                const spend = log.spend || 0;
+                // Calculate actual cost from tokens
+                const cost = calculateLogCost(log);
+                
+                totalSpend += cost;
                 
                 if (logDate >= todayStart) {
-                    todaySpend += spend;
+                    todaySpend += cost;
                 }
                 if (logDate >= weekStart) {
-                    weekSpend += spend;
+                    weekSpend += cost;
                 }
                 if (logDate >= monthStart) {
-                    monthSpend += spend;
+                    monthSpend += cost;
                 }
             });
         }
         
+        // Store logs for chart
+        window._walletSpendLogs = spendLogs;
+        
+        document.getElementById('spend-total').textContent = formatMoney(totalSpend);
         document.getElementById('spend-today').textContent = formatMoney(todaySpend);
         document.getElementById('spend-week').textContent = formatMoney(weekSpend);
         document.getElementById('spend-month').textContent = formatMoney(monthSpend);
@@ -711,112 +743,138 @@ async function loadSpend() {
 async function createBalanceChart() {
     const ctx = document.getElementById('balance-history-chart').getContext('2d');
     
-    // Fetch real spend logs and aggregate by day
-    try {
-        const logsResp = await fetch(`${API_URL}/litellm/spend?limit=500`);
-        const spendLogs = await logsResp.json();
-        
-        // Build daily spend data for the last 30 days
-        const dayData = {};
-        const now = new Date();
-        for (let i = 29; i >= 0; i--) {
-            const d = new Date(now);
-            d.setDate(d.getDate() - i);
-            const key = d.toISOString().split('T')[0];
-            dayData[key] = { kimi: 0, openrouter: 0 };
+    // Use cached logs or fetch
+    let spendLogs = window._walletSpendLogs;
+    if (!spendLogs) {
+        try {
+            const logsResp = await fetch(`${API_URL}/litellm/spend?limit=5000`);
+            spendLogs = await logsResp.json();
+        } catch (e) {
+            spendLogs = [];
         }
-        
-        // Aggregate spend by provider and day
-        if (Array.isArray(spendLogs)) {
-            spendLogs.forEach(log => {
-                const logDate = new Date(log.startTime || log.created_at);
-                const key = logDate.toISOString().split('T')[0];
-                if (dayData.hasOwnProperty(key)) {
-                    const model = (log.model || '').toLowerCase();
-                    const spend = log.spend || 0;
-                    if (model.includes('moonshot') || model.includes('kimi')) {
-                        dayData[key].kimi += spend;
-                    } else {
-                        dayData[key].openrouter += spend;
-                    }
-                }
-            });
-        }
-        
-        // Prepare chart data
-        const labels = Object.keys(dayData).map(d => {
-            const date = new Date(d);
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        });
-        
-        // Calculate cumulative spend (balance = starting - cumulative spend)
-        let kimiCumulative = 0;
-        let orCumulative = 0;
-        const kimiSpendData = [];
-        const orSpendData = [];
-        
-        Object.values(dayData).forEach(day => {
-            kimiCumulative += day.kimi;
-            orCumulative += day.openrouter;
-            kimiSpendData.push(kimiCumulative);
-            orSpendData.push(orCumulative);
-        });
-        
-        balanceChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Kimi Spend (USD)',
-                        data: kimiSpendData,
-                        borderColor: '#8b5cf6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
-                        label: 'OpenRouter Spend (USD)',
-                        data: orSpendData,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                },
-                plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: { color: '#9ca3af' }
-                    }
-                },
-                scales: {
-                    x: {
-                        grid: { color: 'rgba(255,255,255,0.05)' },
-                        ticks: { color: '#9ca3af', maxTicksLimit: 10 }
-                    },
-                    y: {
-                        grid: { color: 'rgba(255,255,255,0.05)' },
-                        ticks: { color: '#9ca3af', callback: v => '$' + v.toFixed(4) }
-                    }
+    }
+    
+    // Build daily spend data for the last 30 days
+    const dayData = {};
+    const now = new Date();
+    for (let i = 29; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().split('T')[0];
+        dayData[key] = { kimi: 0, openrouter: 0, local: 0 };
+    }
+    
+    // Aggregate CALCULATED spend by provider and day
+    if (Array.isArray(spendLogs)) {
+        spendLogs.forEach(log => {
+            const logDate = new Date(log.startTime || log.created_at);
+            const key = logDate.toISOString().split('T')[0];
+            if (dayData.hasOwnProperty(key)) {
+                const model = (log.model || '').toLowerCase();
+                // Calculate actual cost from tokens
+                const cost = calculateLogCost(log);
+                
+                if (model.includes('moonshot') || model.includes('kimi')) {
+                    dayData[key].kimi += cost;
+                } else if (model.includes('local') || model.includes('mlx') || model.includes('ollama')) {
+                    dayData[key].local += cost;
+                } else {
+                    dayData[key].openrouter += cost;
                 }
             }
         });
-    } catch (err) {
-        console.error('Failed to load balance history chart:', err);
-        // Show no data message
-        const container = ctx.canvas.parentElement;
-        container.innerHTML = '<div class="empty-state"><p>Unable to load spend history</p></div>';
     }
-}
+    
+    // Prepare chart data
+    const labels = Object.keys(dayData).map(d => {
+        const date = new Date(d);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+    
+    // Calculate cumulative spend
+    let kimiCumulative = 0;
+    let orCumulative = 0;
+    const kimiSpendData = [];
+    const orSpendData = [];
+    
+    Object.values(dayData).forEach(day => {
+        kimiCumulative += day.kimi;
+        orCumulative += day.openrouter;
+        kimiSpendData.push(kimiCumulative);
+        orSpendData.push(orCumulative);
+    });
+    
+    // Check if there's any data
+    const hasData = kimiCumulative > 0 || orCumulative > 0;
+    
+    if (!hasData) {
+        ctx.canvas.parentElement.innerHTML = `
+            <h3 class="chart-title">📈 Balance History</h3>
+            <div class="empty-state" style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                <p>No spend data available yet</p>
+            </div>`;
+        return;
+    }
+    
+    balanceChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Kimi Spend (USD)',
+                    data: kimiSpendData,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 2
+                },
+                {
+                    label: 'OpenRouter Spend (USD)',
+                    data: orSpendData,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 2
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { color: '#9ca3af' }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `${ctx.dataset.label}: ${formatMoney(ctx.raw)}`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#9ca3af', maxTicksLimit: 10 }
+                },
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { 
+                        color: '#9ca3af', 
+                        callback: v => formatMoney(v)
+                    },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 
 function calculateEstimate() {
     const model = document.getElementById('est-model').value;

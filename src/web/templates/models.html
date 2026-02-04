@@ -579,19 +579,58 @@ let timelineChart = null;
 let spendModelChart = null;
 let costBreakdownChart = null;
 
-// Model pricing (per 1M tokens)
+// Model pricing (per 1M tokens in USD)
 const MODEL_PRICING = {
+    // Free OpenRouter models
     'google/gemini-2.0-flash-exp:free': { input: 0, output: 0 },
     'deepseek/deepseek-chat-v3-0324:free': { input: 0, output: 0 },
     'meta-llama/llama-3.3-70b-instruct:free': { input: 0, output: 0 },
     'qwen/qwen3-235b-a22b:free': { input: 0, output: 0 },
-    'moonshot-v1-8k': { input: 1.68, output: 1.68 },
-    'moonshot-v1-32k': { input: 3.36, output: 3.36 },
-    'moonshot-v1-128k': { input: 8.40, output: 8.40 },
-    'kimi-latest': { input: 1.68, output: 1.68 },
+    // Kimi models (prices in USD, converted from CNY)
+    'moonshot-v1-8k': { input: 0.24, output: 0.24 },
+    'moonshot-v1-32k': { input: 0.48, output: 0.48 },
+    'moonshot-v1-128k': { input: 1.20, output: 1.20 },
+    'moonshot-v1-auto': { input: 0.24, output: 0.24 },
+    'kimi-latest': { input: 0.24, output: 0.24 },
+    'kimi': { input: 0.24, output: 0.24 },
+    // Local models
     'local-mlx': { input: 0, output: 0 },
     'local': { input: 0, output: 0 },
+    'qwen3-mlx': { input: 0, output: 0 },
+    'ollama': { input: 0, output: 0 },
 };
+
+// Calculate cost from log entry
+function calculateLogCost(log) {
+    const model = (log.model || '').toLowerCase();
+    const inputTokens = log.prompt_tokens || 0;
+    const outputTokens = log.completion_tokens || 0;
+    
+    // Find matching pricing
+    let pricing = null;
+    for (const [key, price] of Object.entries(MODEL_PRICING)) {
+        if (model.includes(key.toLowerCase())) {
+            pricing = price;
+            break;
+        }
+    }
+    
+    // Default pricing for unknown models (assume paid OpenRouter)
+    if (!pricing) {
+        // Check if it's a free model (has :free suffix)
+        if (model.includes(':free')) {
+            pricing = { input: 0, output: 0 };
+        } else if (model.includes('local') || model.includes('mlx') || model.includes('ollama')) {
+            pricing = { input: 0, output: 0 };
+        } else {
+            // Default to cheap rate for unknown models
+            pricing = { input: 0.5, output: 1.0 };
+        }
+    }
+    
+    const cost = (inputTokens / 1000000) * pricing.input + (outputTokens / 1000000) * pricing.output;
+    return cost;
+}
 
 // Utility functions
 function formatNumber(num) {
@@ -749,19 +788,33 @@ async function loadBalances() {
     }
 }
 
-// Load global spend
+// Load global spend - calculate from tokens using pricing
 async function loadGlobalSpend() {
     const container = document.getElementById('spend-cards');
     
     try {
-        const response = await fetch(`${API_URL}/litellm/global-spend`);
-        spendData = await response.json();
+        // Fetch all logs to calculate real spend
+        const logsResp = await fetch(`${API_URL}/litellm/spend?limit=5000`);
+        const logs = await logsResp.json();
         
-        const totalSpend = spendData.spend || 0;
-        const totalTokens = spendData.total_tokens || 0;
-        const inputTokens = spendData.input_tokens || 0;
-        const outputTokens = spendData.output_tokens || 0;
-        const requestCount = spendData.api_requests || 0;
+        let totalSpend = 0;
+        let totalTokens = 0;
+        let inputTokens = 0;
+        let outputTokens = 0;
+        const requestCount = Array.isArray(logs) ? logs.length : 0;
+        
+        if (Array.isArray(logs)) {
+            logs.forEach(log => {
+                const cost = calculateLogCost(log);
+                totalSpend += cost;
+                inputTokens += log.prompt_tokens || 0;
+                outputTokens += log.completion_tokens || 0;
+                totalTokens += (log.prompt_tokens || 0) + (log.completion_tokens || 0) + (log.total_tokens || 0);
+            });
+        }
+        
+        // Store for other uses
+        spendData = { spend: totalSpend, total_tokens: totalTokens, input_tokens: inputTokens, output_tokens: outputTokens, api_requests: requestCount };
         
         container.innerHTML = `
             <div class="spend-card">
@@ -789,6 +842,9 @@ async function loadGlobalSpend() {
         // Update stats
         document.getElementById('stat-tokens').textContent = formatNumber(totalTokens);
         document.getElementById('stat-spend').textContent = formatMoney(totalSpend);
+        
+        // Store logs for chart use
+        window._allSpendLogs = logs;
         
     } catch (error) {
         console.error('Error loading spend:', error);
