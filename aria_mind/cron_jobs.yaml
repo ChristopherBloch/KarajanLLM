@@ -1,0 +1,46 @@
+# Aria Cron Jobs Definition
+# These are injected at container startup by openclaw-entrypoint.sh
+# Format matches `openclaw cron add` CLI parameters
+
+jobs:
+  - name: work_cycle
+    every: "5m"
+    message: "Read HEARTBEAT.md work_cycle section. Check goals, pick highest priority, make progress, log activity."
+    agent: main
+    session: isolated
+
+  - name: hourly_goal_check
+    cron: "0 * * * *"
+    message: "Read HEARTBEAT.md hourly_goal_check section. Check current hourly goal, attempt completion, create next goal."
+    agent: main
+    session: isolated
+
+  - name: six_hour_review
+    cron: "0 */6 * * *"
+    message: "Read HEARTBEAT.md six_hour_review section. Analyze last 6h, adjust priorities, generate insights."
+    agent: main
+    session: isolated
+
+  - name: moltbook_post
+    cron: "0 */6 * * *"
+    message: "Read HEARTBEAT.md moltbook_post section. Use social skill to post a meaningful update to MoltBook."
+    agent: main
+    session: isolated
+
+  - name: morning_checkin
+    cron: "0 8 * * *"
+    message: "Read HEARTBEAT.md morning_checkin section. Good morning! Review overnight changes, set today priorities."
+    agent: main
+    session: isolated
+
+  - name: daily_reflection
+    cron: "0 23 * * *"
+    message: "Read HEARTBEAT.md daily_reflection section. Review full day, summarize achievements, note tomorrow priorities."
+    agent: main
+    session: isolated
+
+  - name: weekly_summary
+    cron: "0 18 * * 0"
+    message: "Read HEARTBEAT.md weekly_summary section. Generate comprehensive weekly report with metrics, learnings, and next week goals."
+    agent: main
+    session: isolated

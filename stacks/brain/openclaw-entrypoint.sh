@@ -69,6 +69,7 @@ pip3 install --break-system-packages --quiet \
     pydantic \
     python-dateutil \
     httpx \
+    pyyaml \
   tenacity \
   pytest \
   pytest-asyncio \
@@ -346,6 +347,64 @@ cat "$OPENCLAW_CONFIG"
 FIRST_BOOT_MARKER="/root/.openclaw/.awakened"
 NEEDS_AWAKENING_MARKER="/root/.openclaw/.needs_awakening"
 
+# Function to inject cron jobs from YAML definition
+inject_cron_jobs() {
+    CRON_YAML="/root/.openclaw/workspace/aria_mind/cron_jobs.yaml"
+    CRON_MARKER="/root/.openclaw/.cron_injected"
+    
+    if [ ! -f "$CRON_YAML" ]; then
+        echo "No cron_jobs.yaml found, skipping cron injection"
+        return
+    fi
+    
+    # Always re-inject cron jobs (idempotent - openclaw handles duplicates by name)
+    echo "=== Injecting Cron Jobs from cron_jobs.yaml ==="
+    
+    # Parse YAML and create jobs using Python (jq can't parse YAML)
+    python3 << 'PYINJECT'
+import yaml
+import subprocess
+import os
+
+cron_yaml = "/root/.openclaw/workspace/aria_mind/cron_jobs.yaml"
+
+with open(cron_yaml) as f:
+    data = yaml.safe_load(f)
+
+for job in data.get('jobs', []):
+    name = job['name']
+    message = job['message']
+    agent = job.get('agent', 'main')
+    session = job.get('session', 'isolated')
+    
+    # Build command
+    cmd = ['openclaw', 'cron', 'add', '--name', name]
+    
+    if 'every' in job:
+        cmd.extend(['--every', job['every']])
+    elif 'cron' in job:
+        cmd.extend(['--cron', job['cron']])
+    
+    cmd.extend(['--message', message, '--agent', agent, '--session', session])
+    
+    # Check if job already exists
+    check = subprocess.run(['openclaw', 'cron', 'list'], capture_output=True, text=True)
+    if name in check.stdout:
+        print(f"  Cron job '{name}' already exists, skipping")
+        continue
+    
+    # Create job
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode == 0:
+        print(f"  ✓ Created cron job: {name}")
+    else:
+        print(f"  ✗ Failed to create {name}: {result.stderr}")
+PYINJECT
+    
+    touch "$CRON_MARKER"
+    echo "=== Cron job injection complete ==="
+}
+
 # Function to prepare awakening (don't send via CLI - causes lock issues)
 prepare_awakening() {
     sleep 5  # Brief wait for filesystem
@@ -373,6 +432,9 @@ prepare_awakening() {
 
 # Run awakening preparation in background
 prepare_awakening &
+
+# Run cron job injection in background (needs gateway to be up)
+(sleep 10 && inject_cron_jobs) &
 
 # Start the gateway
 exec /usr/local/bin/openclaw gateway run \
