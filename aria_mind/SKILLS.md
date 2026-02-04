@@ -8,38 +8,38 @@ I have **24 skills** available. **Use the tool syntax** to call them:
 aria-<skill-name>.<function>({"param": "value"})
 ```
 
-## ⭐ PRIMARY SKILL: aria-api-client
+## ⭐ PRIMARY SKILL: aria-apiclient
 
 **Use this for ALL database operations!** It provides a clean REST interface to aria-api.
 
 ```tool
 # Get/create activities
-aria-api-client.get_activities({"limit": 10})
-aria-api-client.create_activity({"action": "task_done", "details": {"info": "..."}})
+aria-apiclient.get_activities({"limit": 10})
+aria-apiclient.create_activity({"action": "task_done", "details": {"info": "..."}})
 
 # Goals CRUD
-aria-api-client.get_goals({"status": "active", "limit": 5})
-aria-api-client.create_goal({"title": "...", "description": "...", "priority": 2})
-aria-api-client.update_goal({"goal_id": "X", "progress": 50, "status": "completed"})
-aria-api-client.delete_goal({"goal_id": "X"})
+aria-apiclient.get_goals({"status": "active", "limit": 5})
+aria-apiclient.create_goal({"title": "...", "description": "...", "priority": 2})
+aria-apiclient.update_goal({"goal_id": "X", "progress": 50, "status": "completed"})
+aria-apiclient.delete_goal({"goal_id": "X"})
 
 # Memories (key-value store)
-aria-api-client.get_memories({"limit": 10, "category": "preferences"})
-aria-api-client.set_memory({"key": "user_pref", "value": "dark_mode", "category": "preferences"})
-aria-api-client.get_memory({"key": "user_pref"})
-aria-api-client.delete_memory({"key": "user_pref"})
+aria-apiclient.get_memories({"limit": 10, "category": "preferences"})
+aria-apiclient.set_memory({"key": "user_pref", "value": "dark_mode", "category": "preferences"})
+aria-apiclient.get_memory({"key": "user_pref"})
+aria-apiclient.delete_memory({"key": "user_pref"})
 
 # Thoughts (reflections)
-aria-api-client.get_thoughts({"limit": 10})
-aria-api-client.create_thought({"content": "Reflecting on...", "category": "reflection"})
+aria-apiclient.get_thoughts({"limit": 10})
+aria-apiclient.create_thought({"content": "Reflecting on...", "category": "reflection"})
 
 # Hourly goals
-aria-api-client.get_hourly_goals({"status": "pending"})
-aria-api-client.create_hourly_goal({"goal_type": "learn", "description": "..."})
-aria-api-client.update_hourly_goal({"goal_id": "X", "status": "completed", "result": "..."})
+aria-apiclient.get_hourly_goals({"status": "pending"})
+aria-apiclient.create_hourly_goal({"goal_type": "learn", "description": "..."})
+aria-apiclient.update_hourly_goal({"goal_id": "X", "status": "completed", "result": "..."})
 
 # Health check
-aria-api-client.health_check({})
+aria-apiclient.health_check({})
 ```
 
 ## Skill Categories by Focus
@@ -129,9 +129,23 @@ aria-market-data.calculate_indicators({"symbol": "ETH", "indicators": ["rsi", "m
 
 ### Social / Moltbook
 ```tool
-aria-moltbook.create_post({"title": "Hello", "content": "My first post!"})
-aria-moltbook.get_feed({"limit": 10})
-aria-moltbook.add_comment({"post_id": "X", "content": "Great post!"})
+aria-social.social_post({"content": "Hello world!", "platform": "moltbook"})
+aria-social.social_list({"platform": "moltbook", "limit": 10})
+aria-moltbook.moltbook_get_entries({"limit": 10})
+aria-moltbook.moltbook_create_entry({"content": "New entry", "tags": ["learning"]})
+```
+
+### Direct Database (use sparingly - prefer aria-apiclient)
+```tool
+aria-database.db_query({"sql": "SELECT * FROM goals WHERE status = $1 LIMIT 5", "params": ["active"]})
+aria-database.db_execute({"sql": "UPDATE goals SET progress = $1 WHERE id = $2", "params": [50, 1]})
+aria-database.db_log_activity({"activity_type": "task", "message": "Completed scan"})
+```
+
+### Health Checks
+```tool
+aria-health.health_check_all({})
+aria-health.health_check_service({"service": "database"})
 ```
 
 ## Focus → Skill Mapping

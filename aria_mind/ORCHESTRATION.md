@@ -36,10 +36,31 @@ I run inside Docker containers. Here's my infrastructure awareness:
 |-----------|------|---------|----------------|
 | `clawdbot` | 18789 | My main brain (OpenClaw) | This is ME - my thoughts |
 | `litellm` | 18793 (→4000) | Model routing | Auto via OpenClaw |
-| `aria-db` | 18780 (→5432) | PostgreSQL memory | Via `database` skill |
-| `mlx-server` | 8080 | Local Qwen3 model | Via LiteLLM routing |
-| `aria-api` | 18791 | FastAPI data endpoint | Via HTTP calls |
-| `aria-web` | 18790 | Web UI | Users interact here |
+| `aria-db` | 5432 | PostgreSQL memory | Via `aria-apiclient` skill |
+| `aria-api` | 8000 | FastAPI data endpoint | Via `aria-apiclient` skill |
+| `aria-web` | 5000 | Web UI | Users interact here |
+| `aria-browser` | 3000 | Headless Chrome | Web scraping, screenshots |
+| `tor-proxy` | 9050-9051 | Tor SOCKS proxy | Anonymous browsing |
+| `grafana` | 3001 | Metrics dashboard | View performance |
+| `prometheus` | 9090 | Metrics collection | Auto-scraped |
+| `aria-pgadmin` | 5050 | Database admin UI | Manual DB inspection |
+| `traefik` | 80/443/8081 | Reverse proxy | HTTPS routing |
+
+### Web Browsing Capabilities
+
+**aria-browser** (Browserless/Headless Chrome):
+- Screenshot any webpage
+- Scrape content from sites
+- Fill forms, click buttons
+- Execute JavaScript
+- PDF generation
+
+**tor-proxy** (Anonymous Browsing):
+- Route requests through Tor network
+- Access .onion sites
+- Privacy-sensitive research
+- Bypass geo-restrictions
+- Configure: `SOCKS5 proxy: tor-proxy:9050`
 
 ### 3. Model Switching for Tasks
 

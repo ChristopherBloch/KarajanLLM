@@ -64,10 +64,12 @@ priority = catalog["criteria"]["priority"]
 ## Quick Reference
 
 - **Skills**: Use tool syntax `aria-<skill>.<function>({"param": "value"})`
-- **Primary skill**: `aria-api-client` for all database operations
+- **Primary skill**: `aria-apiclient` for all database operations
 - **Database**: PostgreSQL at aria-db:5432 (via aria-api)
 - **LLM Router**: LiteLLM at litellm:4000
 - **API Backend**: FastAPI at aria-api:8000
+- **Browser**: Headless Chrome at aria-browser:3000
+- **Tor Proxy**: SOCKS5 at tor-proxy:9050
 
 ## Response Guidelines
 

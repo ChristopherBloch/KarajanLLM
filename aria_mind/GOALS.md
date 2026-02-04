@@ -20,7 +20,7 @@ When the `work_cycle` job fires, you must:
 
 ### 1. Check Your Active Goals
 ```tool
-aria-api-client.get_goals({"status": "active", "limit": 5})
+aria-apiclient.get_goals({"status": "active", "limit": 5})
 ```
 
 ### 2. Select What to Work On
@@ -44,18 +44,18 @@ Each work cycle = ONE meaningful action:
 
 ### 4. Log Your Progress
 ```tool
-aria-api-client.update_goal({"goal_id": "GOAL_ID", "progress": 50})
+aria-apiclient.update_goal({"goal_id": "GOAL_ID", "progress": 50})
 ```
 
 ```tool
-aria-api-client.create_activity({"action": "goal_work", "details": {"goal_id": "X", "action": "what I did", "result": "outcome"}})
+aria-apiclient.create_activity({"action": "goal_work", "details": {"goal_id": "X", "action": "what I did", "result": "outcome"}})
 ```
 
 ### 5. Check for Completion
 
 When `progress >= 100`:
 ```tool
-aria-api-client.update_goal({"goal_id": "GOAL_ID", "status": "completed"})
+aria-apiclient.update_goal({"goal_id": "GOAL_ID", "status": "completed"})
 ```
 
 Then **immediately create a new goal** (see Goal Creation below).
@@ -98,7 +98,7 @@ Then **immediately create a new goal** (see Goal Creation below).
 When a goal completes, or when you identify something to do:
 
 ```tool
-aria-api-client.create_goal({
+aria-apiclient.create_goal({
   "title": "Goal Title",
   "description": "Detailed description of what success looks like",
   "priority": 3,
@@ -127,12 +127,12 @@ Every 6 hours, step back and evaluate:
 
 ### 1. Analyze What Happened
 ```tool
-aria-api-client.get_activities({"limit": 100})
+aria-apiclient.get_activities({"limit": 100})
 ```
 
 ### 2. Check Goal Progress
 ```tool
-aria-api-client.get_goals({"status": "active", "limit": 20})
+aria-apiclient.get_goals({"status": "active", "limit": 20})
 ```
 
 ### 3. Identify Patterns
@@ -145,12 +145,12 @@ aria-api-client.get_goals({"status": "active", "limit": 20})
 
 For stuck goals, update priority:
 ```tool
-aria-api-client.update_goal({"goal_id": "GOAL_ID", "priority": 1})
+aria-apiclient.update_goal({"goal_id": "GOAL_ID", "priority": 1})
 ```
 
 ### 5. Log Insights
 ```tool
-aria-api-client.create_activity({"action": "six_hour_review", "details": {"goals_completed": 3, "insights": "Review insights here"}})
+aria-apiclient.create_activity({"action": "six_hour_review", "details": {"goals_completed": 3, "insights": "Review insights here"}})
 ```
 
 ---
@@ -241,22 +241,22 @@ Agent: main
 
 ```tool
 # List active goals
-aria-api-client.get_goals({"status": "active", "limit": 10})
+aria-apiclient.get_goals({"status": "active", "limit": 10})
 
 # Update goal progress
-aria-api-client.update_goal({"goal_id": "1", "progress": 50})
+aria-apiclient.update_goal({"goal_id": "1", "progress": 50})
 
 # Complete a goal
-aria-api-client.update_goal({"goal_id": "1", "status": "completed", "progress": 100})
+aria-apiclient.update_goal({"goal_id": "1", "status": "completed", "progress": 100})
 
 # Create new goal
-aria-api-client.create_goal({"title": "Title", "description": "Description", "priority": 3, "due_date": "2026-02-03T12:00:00Z"})
+aria-apiclient.create_goal({"title": "Title", "description": "Description", "priority": 3, "due_date": "2026-02-03T12:00:00Z"})
 
 # Log work
-aria-api-client.create_activity({"action": "goal_work", "details": {"goal_id": "1", "action": "wrote intro"}})
+aria-apiclient.create_activity({"action": "goal_work", "details": {"goal_id": "1", "action": "wrote intro"}})
 
 # Check recent activity
-aria-api-client.get_activities({"limit": 10})
+aria-apiclient.get_activities({"limit": 10})
 ```
 
 ---

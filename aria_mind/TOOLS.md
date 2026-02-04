@@ -4,56 +4,59 @@
 
 **Full documentation: See SKILLS.md for complete skill reference (24 skills)**
 
-Skills are auto-discovered from `openclaw_skills/*/skill.json`.
+Skills are auto-discovered from `aria_skills/*/skill.json`.
 
-## Primary Skill: aria-api-client
+## Primary Skill: aria-apiclient
 
 **USE THIS FOR ALL DATABASE OPERATIONS!** Don't write raw SQL.
 
 ```tool
 # Activities
-aria-api-client.get_activities({"limit": 10})
-aria-api-client.create_activity({"action": "task_done", "details": {"info": "..."}})
+aria-apiclient.get_activities({"limit": 10})
+aria-apiclient.create_activity({"action": "task_done", "details": {"info": "..."}})
 
 # Goals  
-aria-api-client.get_goals({"status": "active", "limit": 5})
-aria-api-client.create_goal({"title": "...", "description": "...", "priority": 2})
-aria-api-client.update_goal({"goal_id": "X", "progress": 50})
+aria-apiclient.get_goals({"status": "active", "limit": 5})
+aria-apiclient.create_goal({"title": "...", "description": "...", "priority": 2})
+aria-apiclient.update_goal({"goal_id": "X", "progress": 50})
 
 # Memories
-aria-api-client.get_memories({"limit": 10})
-aria-api-client.set_memory({"key": "preference", "value": "dark_mode"})
-aria-api-client.get_memory({"key": "preference"})
+aria-apiclient.get_memories({"limit": 10})
+aria-apiclient.set_memory({"key": "preference", "value": "dark_mode"})
+aria-apiclient.get_memory({"key": "preference"})
 
 # Thoughts
-aria-api-client.create_thought({"content": "Reflecting...", "category": "reflection"})
-aria-api-client.get_thoughts({"limit": 10})
+aria-apiclient.create_thought({"content": "Reflecting...", "category": "reflection"})
+aria-apiclient.get_thoughts({"limit": 10})
 ```
 
 ## All 24 Skills
 
 | Category | Skills |
 |----------|--------|
-| 🎯 Orchestrator | `goals`, `schedule`, `health` |
-| 🔒 DevSecOps | `security_scan`, `ci_cd`, `pytest`, `database` |
-| 📊 Data | `data_pipeline`, `experiment`, `knowledge_graph`, `performance` |
-| 📈 Trading | `market_data`, `portfolio` |
-| 🎨 Creative | `brainstorm`, `llm` |
-| 🌐 Social | `community`, `moltbook`, `social` |
-| 📰 Journalist | `research`, `fact_check` |
-| ⚡ Utility | `api_client`, `litellm`, `model_switcher`, `hourly_goals` |
+| 🎯 Orchestrator | `aria-goals`, `aria-schedule`, `aria-health` |
+| 🔒 DevSecOps | `aria-security-scan`, `aria-cicd`, `aria-pytest`, `aria-database` |
+| 📊 Data | `aria-data-pipeline`, `aria-experiment`, `aria-knowledge-graph`, `aria-performance` |
+| 📈 Trading | `aria-market-data`, `aria-portfolio` |
+| 🎨 Creative | `aria-brainstorm`, `aria-llm` |
+| 🌐 Social | `aria-community`, `aria-moltbook`, `aria-social` |
+| 📰 Journalist | `aria-research`, `aria-fact-check` |
+| ⚡ Utility | `aria-apiclient`, `aria-litellm`, `aria-model-switcher`, `aria-hourly-goals` |
 
 ## Quick Examples
 
 ```tool
 # Post to Moltbook (rate: 1/30min)
-aria-moltbook.create_post({"title": "Hello", "content": "Test post"})
+aria-social.social_post({"content": "Hello world!", "platform": "moltbook"})
 
 # Check health
-aria-health.check_health({})
+aria-health.health_check_all({})
 
 # Add knowledge
 aria-knowledge-graph.kg_add_entity({"name": "Python", "type": "language"})
+
+# Direct SQL (use sparingly)
+aria-database.db_query({"sql": "SELECT * FROM goals LIMIT 5"})
 ```
 
 ## LLM Priority

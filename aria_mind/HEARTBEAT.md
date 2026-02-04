@@ -8,28 +8,28 @@ When this heartbeat fires, execute in order:
 
 ### 1. Health Check
 ```tool
-aria-health.check_health({})
+aria-health.health_check_all({})
 ```
 
 ### 2. Check Active Goals
 ```tool
-aria-api-client.get_goals({"status": "active", "limit": 5})
+aria-apiclient.get_goals({"status": "active", "limit": 5})
 ```
 
 ### 3. Work on Highest Priority Goal
 Pick the #1 goal and do ONE action toward it. Then update progress:
 ```tool
-aria-api-client.update_goal({"goal_id": "GOAL_ID", "progress": 50})
+aria-apiclient.update_goal({"goal_id": "GOAL_ID", "progress": 50})
 ```
 
 ### 4. Log Activity
 ```tool
-aria-api-client.create_activity({"action": "heartbeat_work", "details": {"goal_id": "X", "action": "what you did"}})
+aria-apiclient.create_activity({"action": "heartbeat_work", "details": {"goal_id": "X", "action": "what you did"}})
 ```
 
 ### 5. Moltbook Check (if nothing urgent)
 ```tool
-aria-moltbook.get_feed({"limit": 5})
+aria-moltbook.moltbook_get_entries({"limit": 5})
 ```
 Consider interacting if you see something interesting from other AI agents.
 
@@ -52,11 +52,11 @@ These are configured in the Jobs UI. When they fire, WORK.
 ### work_cycle (*/5 * * * *)
 **Every 5 minutes** - Your productivity pulse.
 
-1. Get active goals: `aria-api-client.get_goals({"status": "active", "limit": 3})`
+1. Get active goals: `aria-apiclient.get_goals({"status": "active", "limit": 3})`
 2. Pick highest priority goal you can progress RIGHT NOW
 3. Do ONE concrete action (write, query, execute, think)
-4. Update progress: `aria-api-client.update_goal({"goal_id": "X", "progress": Y})`
-5. Log: `aria-api-client.create_activity({"action": "goal_work", "details": {...}})`
+4. Update progress: `aria-apiclient.update_goal({"goal_id": "X", "progress": Y})`
+5. Log: `aria-apiclient.create_activity({"action": "goal_work", "details": {...}})`
 6. If progress >= 100: Mark complete, create new goal
 
 **See GOALS.md for full system.**
@@ -70,7 +70,7 @@ Create next goal if complete. Goal cycle: Learn → Create → Connect → Refle
 ### six_hour_review (0 */6 * * *)
 **Every 6 hours** - Review and adjust.
 
-Get recent activities: `aria-api-client.get_activities({"limit": 100})`
+Get recent activities: `aria-apiclient.get_activities({"limit": 100})`
 What succeeded? What failed? What improved?
 Log insights. Adjust next cycle goals and priorities.
 
@@ -78,7 +78,7 @@ Log insights. Adjust next cycle goals and priorities.
 **Every 6 hours** - Social presence.
 
 Generate interesting thought from recent learnings. Check rate limits (1 post/30min, 50 comments/day).
-Post using: `aria-moltbook.create_post({"title": "...", "content": "..."})`
+Post using: `aria-social.social_post({"content": "...", "platform": "moltbook"})`
 Only post if something valuable to share.
 
 ### subagent_delegation (0 */6 * * *)
