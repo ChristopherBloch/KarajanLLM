@@ -340,6 +340,12 @@ if ! python3 "$OPENCLAW_RENDERER" --template "$OPENCLAW_TEMPLATE" --models "$MOD
   exit 1
 fi
 
+# Inject gateway token from environment variable
+if [ -n "$OPENCLAW_GATEWAY_TOKEN" ]; then
+  echo "=== Injecting gateway token from OPENCLAW_GATEWAY_TOKEN ==="
+  jq --arg token "$OPENCLAW_GATEWAY_TOKEN" '.gateway.auth.token = $token' "$OPENCLAW_CONFIG" > "${OPENCLAW_CONFIG}.tmp" && mv "${OPENCLAW_CONFIG}.tmp" "$OPENCLAW_CONFIG"
+fi
+
 echo "=== Generated openclaw.json ==="
 cat "$OPENCLAW_CONFIG"
 
