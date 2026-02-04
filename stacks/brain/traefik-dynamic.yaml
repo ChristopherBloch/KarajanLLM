@@ -20,6 +20,8 @@ http:
       entryPoints:
         - web
       service: clawdbot
+      middlewares:
+        - clawdbot-auth
 
     portal-http:
       rule: "PathPrefix(`/`)"
@@ -40,13 +42,15 @@ http:
         - api-strip
         - secure-headers
 
-    # Clawdbot - All traffic (HTTP + WebSocket) - No middleware interference
+    # Clawdbot - All traffic (HTTP + WebSocket) - Token auth injected by Traefik
     clawdbot-http:
       rule: "PathPrefix(`/clawdbot`)"
       priority: 90
       entryPoints:
         - web
       service: clawdbot
+      middlewares:
+        - clawdbot-auth
 
     grafana-http:
       rule: "PathPrefix(`/grafana`)"
@@ -108,6 +112,8 @@ http:
       entryPoints:
         - websecure
       service: clawdbot
+      middlewares:
+        - clawdbot-auth
       tls: {}
 
     portal:
@@ -131,13 +137,15 @@ http:
         - secure-headers
       tls: {}
 
-    # Clawdbot HTTPS - All traffic (HTTP + WebSocket) - No strip prefix, OpenClaw handles basePath
+    # Clawdbot HTTPS - All traffic (HTTP + WebSocket) - Token auth injected by Traefik
     clawdbot:
       rule: "PathPrefix(`/clawdbot`)"
       priority: 90
       entryPoints:
         - websecure
       service: clawdbot
+      middlewares:
+        - clawdbot-auth
       tls: {}
 
     grafana:
@@ -197,6 +205,13 @@ http:
       tls: {}
 
   middlewares:
+    # Inject OpenClaw gateway token for transparent browser auth
+    # Token from .env CLAWDBOT_TOKEN - update here if token changes
+    clawdbot-auth:
+      headers:
+        customRequestHeaders:
+          Authorization: "Bearer 94d4c6ed4bb619fe5f5824cc127a158bd23f67dd8363f8c8"
+
     api-strip:
       stripPrefix:
         prefixes:
