@@ -9,9 +9,9 @@
     }
   },
   "routing": {
-    "primary": "litellm/qwen3-mlx",
-    "timeout": 180,
-    "fallbacks": ["litellm/qwen3-next-free", "litellm/trinity-free", "litellm/chimera-free", "litellm/kimi"]
+    "primary": "litellm/kimi",
+    "timeout": 120,
+    "fallbacks": ["litellm/qwen3-next-free", "litellm/trinity-free", "litellm/chimera-free"]
   },
   "agent_aliases": {
     "litellm/qwen3-mlx": "Qwen3 VLTO (MLX Local)",
