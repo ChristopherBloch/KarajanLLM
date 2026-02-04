@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from aria_skills import SkillRegistry
+    from aria_agents.coordinator import AgentCoordinator
 
 
 class AgentRole(Enum):
@@ -70,9 +71,15 @@ class BaseAgent(ABC):
     - Maintain conversation context
     """
     
-    def __init__(self, config: AgentConfig, skill_registry: Optional["SkillRegistry"] = None):
+    def __init__(
+        self, 
+        config: AgentConfig, 
+        skill_registry: Optional["SkillRegistry"] = None,
+        coordinator: Optional["AgentCoordinator"] = None
+    ):
         self.config = config
         self._skill_registry = skill_registry
+        self._coordinator = coordinator  # For peer consultation
         self._context: List[AgentMessage] = []
         self._sub_agents: Dict[str, "BaseAgent"] = {}
         self.logger = logging.getLogger(f"aria.agent.{config.id}")
@@ -175,6 +182,29 @@ class BaseAgent(ABC):
         
         self.logger.debug(f"Delegating to {agent_id}: {message[:50]}...")
         return await sub_agent.process(message, **kwargs)
+    
+    async def consult(self, agent_id: str, question: str, **kwargs) -> AgentMessage:
+        """
+        Consult another agent (peer or any agent in system).
+        
+        Routes through coordinator for proper access - enables cross-focus
+        collaboration without strict parent-child hierarchy.
+        
+        Args:
+            agent_id: ID of the agent to consult
+            question: The question/topic to get their perspective on
+            **kwargs: Additional parameters
+            
+        Returns:
+            Response from the consulted agent
+        """
+        if not self._coordinator:
+            raise RuntimeError("No coordinator available for peer consultation")
+        
+        # Add context about who's asking for proper attribution
+        context_question = f"[Consultation from {self.name} ({self.config.role.value})]: {question}"
+        self.logger.debug(f"Consulting {agent_id}: {question[:50]}...")
+        return await self._coordinator.process(context_question, agent_id=agent_id, **kwargs)
     
     def get_system_prompt(self) -> str:
         """Build the system prompt for this agent."""

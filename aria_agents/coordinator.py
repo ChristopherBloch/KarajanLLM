@@ -3,12 +3,22 @@
 Agent coordinator.
 
 Manages agent lifecycle and message routing.
+Supports CEO pattern: Aria orchestrates, delegates maximally, and facilitates
+cross-focus collaboration via roundtable discussions.
 """
 import asyncio
 import logging
+import re
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from aria_agents.base import AgentConfig, AgentMessage, AgentRole, BaseAgent
+
+# Keywords that trigger cross-focus collaboration
+ROUNDTABLE_TRIGGERS = re.compile(
+    r"(cross-team|all perspectives|launch|promo|review|security.{0,20}data|"
+    r"data.{0,20}security|multi.?domain|collaboration|joint|coordinate)",
+    re.IGNORECASE
+)
 from aria_agents.loader import AgentLoader
 from aria_models.loader import get_route_skill, normalize_model_id
 
@@ -22,7 +32,16 @@ class LLMAgent(BaseAgent):
     
     Uses the configured model to generate responses.
     All models route through LiteLLM for unified access.
+    Supports peer consultation via coordinator reference.
     """
+    
+    def __init__(
+        self, 
+        config: AgentConfig, 
+        skill_registry=None, 
+        coordinator: "AgentCoordinator" = None
+    ):
+        super().__init__(config, skill_registry, coordinator)
     
     async def process(self, message: str, **kwargs) -> AgentMessage:
         """Process message using LLM."""
@@ -138,9 +157,10 @@ class AgentCoordinator:
         self.logger.info(f"Loaded {len(self._configs)} agent configs, main: {self._main_agent_id}")
     
     async def initialize_agents(self) -> None:
-        """Create and initialize all agents."""
+        """Create and initialize all agents with coordinator access."""
         for agent_id, config in self._configs.items():
-            agent = LLMAgent(config, self._skill_registry)
+            # Pass coordinator=self so agents can consult peers
+            agent = LLMAgent(config, self._skill_registry, coordinator=self)
             self._agents[agent_id] = agent
             self.logger.debug(f"Created agent: {agent_id}")
         
@@ -226,6 +246,94 @@ class AgentCoordinator:
         ])
         
         return dict(results)
+    
+    def detect_roundtable_need(self, message: str) -> bool:
+        """
+        Auto-detect if a task needs cross-focus collaboration.
+        
+        Triggers on keywords indicating multi-domain work like
+        "launch", "promo", "security AND data review", etc.
+        
+        Args:
+            message: The input message to analyze
+            
+        Returns:
+            True if roundtable discussion is recommended
+        """
+        return bool(ROUNDTABLE_TRIGGERS.search(message))
+    
+    async def roundtable(
+        self, 
+        question: str, 
+        agent_ids: Optional[List[str]] = None,
+        exclude_main: bool = True
+    ) -> Dict[str, AgentMessage]:
+        """
+        Gather perspectives from multiple agents in parallel.
+        
+        CEO Pattern: Use this when a task spans multiple focus areas.
+        Each agent provides their specialized perspective, then Aria
+        synthesizes into a coherent decision/plan.
+        
+        Example:
+            perspectives = await coordinator.roundtable(
+                "How should we promote the AI project?",
+                agent_ids=["devops", "analyst", "creator"]
+            )
+            # devops: security concerns
+            # analyst: metrics/KPIs
+            # creator: content strategy
+        
+        Args:
+            question: The topic/question to discuss
+            agent_ids: Specific agents to consult (default: all except main)
+            exclude_main: Whether to exclude the main orchestrator agent
+            
+        Returns:
+            Dict of agent_id -> response message
+        """
+        # Default: all agents except the main orchestrator
+        if agent_ids is None:
+            targets = [
+                aid for aid in self._agents 
+                if not exclude_main or aid != self._main_agent_id
+            ]
+        else:
+            targets = [aid for aid in agent_ids if aid in self._agents]
+        
+        if not targets:
+            self.logger.warning("No agents available for roundtable")
+            return {}
+        
+        async def _get_perspective(agent_id: str) -> tuple:
+            agent = self._agents.get(agent_id)
+            if not agent:
+                return agent_id, None
+            
+            # Frame the question for focused perspective
+            prompt = (
+                f"[Roundtable Discussion]\n"
+                f"{question}\n\n"
+                f"Provide your perspective from your focus area ({agent.config.role.value}). "
+                f"Be concise and actionable."
+            )
+            
+            try:
+                response = await agent.process(prompt)
+                return agent_id, response
+            except Exception as e:
+                self.logger.error(f"Roundtable: {agent_id} failed: {e}")
+                return agent_id, AgentMessage(
+                    role="system",
+                    content=f"[Error from {agent_id}: {e}]",
+                    agent_id=agent_id,
+                )
+        
+        # Gather all perspectives in parallel
+        results = await asyncio.gather(*[_get_perspective(aid) for aid in targets])
+        
+        self.logger.info(f"Roundtable complete: {len(results)} perspectives gathered")
+        return {aid: resp for aid, resp in results if resp}
     
     def get_status(self) -> Dict[str, Any]:
         """Get coordinator status."""
