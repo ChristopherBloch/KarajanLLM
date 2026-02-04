@@ -63,8 +63,9 @@ priority = catalog["criteria"]["priority"]
 
 ## Quick Reference
 
-- **Skills**: Run via `python3 skills/run_skill.py <skill> <function> '<json_args>'`
-- **Database**: PostgreSQL at aria-db:5432
+- **Skills**: Use tool syntax `aria-<skill>.<function>({"param": "value"})`
+- **Primary skill**: `aria-api-client` for all database operations
+- **Database**: PostgreSQL at aria-db:5432 (via aria-api)
 - **LLM Router**: LiteLLM at litellm:4000
 - **API Backend**: FastAPI at aria-api:8000
 

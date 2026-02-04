@@ -19,10 +19,8 @@ WORK → PROGRESS → COMPLETION → NEW GOAL → GROWTH
 When the `work_cycle` job fires, you must:
 
 ### 1. Check Your Active Goals
-```bash
-python3 /root/.openclaw/workspace/skills/run_skill.py database query '{
-  "sql": "SELECT id, title, description, priority, progress, target_date, status FROM goals WHERE status = '\''active'\'' ORDER BY priority DESC, target_date ASC LIMIT 5"
-}'
+```tool
+aria-api-client.get_goals({"status": "active", "limit": 5})
 ```
 
 ### 2. Select What to Work On
@@ -45,26 +43,19 @@ Each work cycle = ONE meaningful action:
 **Don't try to do everything at once. Small steps.**
 
 ### 4. Log Your Progress
-```bash
-python3 /root/.openclaw/workspace/skills/run_skill.py database execute '{
-  "sql": "UPDATE goals SET progress = progress + 5, updated_at = NOW() WHERE id = $1",
-  "params": [goal_id]
-}'
+```tool
+aria-api-client.update_goal({"goal_id": "GOAL_ID", "progress": 50})
+```
 
-python3 /root/.openclaw/workspace/skills/run_skill.py database execute '{
-  "sql": "INSERT INTO activity_log (action, details, created_at) VALUES ($1, $2, NOW())",
-  "params": ["goal_work", "{\"goal_id\": X, \"action\": \"what I did\", \"result\": \"outcome\"}"]
-}'
+```tool
+aria-api-client.create_activity({"action": "goal_work", "details": {"goal_id": "X", "action": "what I did", "result": "outcome"}})
 ```
 
 ### 5. Check for Completion
 
 When `progress >= 100`:
-```bash
-python3 /root/.openclaw/workspace/skills/run_skill.py database execute '{
-  "sql": "UPDATE goals SET status = '\''completed'\'', completed_at = NOW() WHERE id = $1",
-  "params": [goal_id]
-}'
+```tool
+aria-api-client.update_goal({"goal_id": "GOAL_ID", "status": "completed"})
 ```
 
 Then **immediately create a new goal** (see Goal Creation below).
@@ -106,16 +97,13 @@ Then **immediately create a new goal** (see Goal Creation below).
 
 When a goal completes, or when you identify something to do:
 
-```bash
-python3 /root/.openclaw/workspace/skills/run_skill.py database execute '{
-  "sql": "INSERT INTO goals (title, description, priority, status, progress, target_date, created_at) VALUES ($1, $2, $3, '\''active'\'', 0, $4, NOW()) RETURNING id",
-  "params": [
-    "Goal Title",
-    "Detailed description of what success looks like",
-    3,
-    "2026-02-02T20:00:00Z"
-  ]
-}'
+```tool
+aria-api-client.create_goal({
+  "title": "Goal Title",
+  "description": "Detailed description of what success looks like",
+  "priority": 3,
+  "due_date": "2026-02-02T20:00:00Z"
+})
 ```
 
 ### Goal Cycle Categories
@@ -138,17 +126,13 @@ Rotate through these to maintain balance:
 Every 6 hours, step back and evaluate:
 
 ### 1. Analyze What Happened
-```bash
-python3 /root/.openclaw/workspace/skills/run_skill.py database query '{
-  "sql": "SELECT action, details, created_at FROM activity_log WHERE created_at > NOW() - INTERVAL '\''6 hours'\'' ORDER BY created_at DESC"
-}'
+```tool
+aria-api-client.get_activities({"limit": 100})
 ```
 
 ### 2. Check Goal Progress
-```bash
-python3 /root/.openclaw/workspace/skills/run_skill.py database query '{
-  "sql": "SELECT title, progress, status, priority FROM goals WHERE updated_at > NOW() - INTERVAL '\''6 hours'\'' OR status = '\''active'\''"
-}'
+```tool
+aria-api-client.get_goals({"status": "active", "limit": 20})
 ```
 
 ### 3. Identify Patterns
@@ -158,24 +142,15 @@ python3 /root/.openclaw/workspace/skills/run_skill.py database query '{
 - What was easier than expected?
 
 ### 4. Adjust Priorities
-```bash
-# Promote stuck high-value goals
-python3 /root/.openclaw/workspace/skills/run_skill.py database execute '{
-  "sql": "UPDATE goals SET priority = priority - 1 WHERE status = '\''active'\'' AND progress < 20 AND created_at < NOW() - INTERVAL '\''12 hours'\'' AND priority > 1"
-}'
 
-# Demote goals that keep getting skipped
-python3 /root/.openclaw/workspace/skills/run_skill.py database execute '{
-  "sql": "UPDATE goals SET priority = priority + 1 WHERE status = '\''active'\'' AND updated_at < NOW() - INTERVAL '\''24 hours'\'' AND priority < 5"
-}'
+For stuck goals, update priority:
+```tool
+aria-api-client.update_goal({"goal_id": "GOAL_ID", "priority": 1})
 ```
 
 ### 5. Log Insights
-```bash
-python3 /root/.openclaw/workspace/skills/run_skill.py database execute '{
-  "sql": "INSERT INTO performance_log (metric, value, notes, created_at) VALUES ($1, $2, $3, NOW())",
-  "params": ["six_hour_review", goals_completed_count, "Review insights here"]
-}'
+```tool
+aria-api-client.create_activity({"action": "six_hour_review", "details": {"goals_completed": 3, "insights": "Review insights here"}})
 ```
 
 ---
@@ -264,27 +239,24 @@ Agent: main
 
 ## Quick Commands Cheatsheet
 
-```bash
+```tool
 # List active goals
-python3 skills/run_skill.py database query '{"sql": "SELECT id, title, priority, progress FROM goals WHERE status = '\''active'\'' ORDER BY priority, target_date"}'
+aria-api-client.get_goals({"status": "active", "limit": 10})
 
 # Update goal progress
-python3 skills/run_skill.py database execute '{"sql": "UPDATE goals SET progress = $1, updated_at = NOW() WHERE id = $2", "params": [50, 1]}'
+aria-api-client.update_goal({"goal_id": "1", "progress": 50})
 
 # Complete a goal
-python3 skills/run_skill.py database execute '{"sql": "UPDATE goals SET status = '\''completed'\'', progress = 100, completed_at = NOW() WHERE id = $1", "params": [1]}'
+aria-api-client.update_goal({"goal_id": "1", "status": "completed", "progress": 100})
 
 # Create new goal
-python3 skills/run_skill.py database execute '{"sql": "INSERT INTO goals (title, description, priority, target_date) VALUES ($1, $2, $3, $4)", "params": ["Title", "Description", 3, "2026-02-03T12:00:00Z"]}'
+aria-api-client.create_goal({"title": "Title", "description": "Description", "priority": 3, "due_date": "2026-02-03T12:00:00Z"})
 
 # Log work
-python3 skills/run_skill.py database execute '{"sql": "INSERT INTO activity_log (action, details) VALUES ($1, $2)", "params": ["goal_work", "{\"goal_id\": 1, \"action\": \"wrote intro\"}"]}'
+aria-api-client.create_activity({"action": "goal_work", "details": {"goal_id": "1", "action": "wrote intro"}})
 
 # Check recent activity
-python3 skills/run_skill.py database query '{"sql": "SELECT action, details, created_at FROM activity_log ORDER BY created_at DESC LIMIT 10"}'
-
-# Goal statistics
-python3 skills/run_skill.py database query '{"sql": "SELECT status, COUNT(*) FROM goals GROUP BY status"}'
+aria-api-client.get_activities({"limit": 10})
 ```
 
 ---

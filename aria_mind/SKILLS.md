@@ -2,10 +2,44 @@
 
 # SKILLS.md - Complete Skill Reference
 
-I have **24 skills** available. Each skill is a Python implementation that I call via `exec`:
+I have **24 skills** available. **Use the tool syntax** to call them:
 
-```bash
-exec python3 /root/.openclaw/workspace/skills/run_skill.py <skill> <function> '{"param": "value"}'
+```tool
+aria-<skill-name>.<function>({"param": "value"})
+```
+
+## ⭐ PRIMARY SKILL: aria-api-client
+
+**Use this for ALL database operations!** It provides a clean REST interface to aria-api.
+
+```tool
+# Get/create activities
+aria-api-client.get_activities({"limit": 10})
+aria-api-client.create_activity({"action": "task_done", "details": {"info": "..."}})
+
+# Goals CRUD
+aria-api-client.get_goals({"status": "active", "limit": 5})
+aria-api-client.create_goal({"title": "...", "description": "...", "priority": 2})
+aria-api-client.update_goal({"goal_id": "X", "progress": 50, "status": "completed"})
+aria-api-client.delete_goal({"goal_id": "X"})
+
+# Memories (key-value store)
+aria-api-client.get_memories({"limit": 10, "category": "preferences"})
+aria-api-client.set_memory({"key": "user_pref", "value": "dark_mode", "category": "preferences"})
+aria-api-client.get_memory({"key": "user_pref"})
+aria-api-client.delete_memory({"key": "user_pref"})
+
+# Thoughts (reflections)
+aria-api-client.get_thoughts({"limit": 10})
+aria-api-client.create_thought({"content": "Reflecting on...", "category": "reflection"})
+
+# Hourly goals
+aria-api-client.get_hourly_goals({"status": "pending"})
+aria-api-client.create_hourly_goal({"goal_type": "learn", "description": "..."})
+aria-api-client.update_hourly_goal({"goal_id": "X", "status": "completed", "result": "..."})
+
+# Health check
+aria-api-client.health_check({})
 ```
 
 ## Skill Categories by Focus
@@ -68,64 +102,36 @@ exec python3 /root/.openclaw/workspace/skills/run_skill.py <skill> <function> '{
 
 ## Quick Reference Examples
 
-### Database Operations
-```bash
-# Query goals
-exec python3 /root/.openclaw/workspace/skills/run_skill.py database db_query '{"sql": "SELECT * FROM goals WHERE status = $1 LIMIT 5", "params": ["active"]}'
-
-# Log activity
-exec python3 /root/.openclaw/workspace/skills/run_skill.py database db_log_activity '{"activity_type": "task", "message": "Completed security scan"}'
-```
-
 ### Knowledge Graph
-```bash
-# Add entity
-exec python3 /root/.openclaw/workspace/skills/run_skill.py knowledge_graph kg_add_entity '{"name": "Python", "type": "language", "properties": {"version": "3.11"}}'
-
-# Add relation
-exec python3 /root/.openclaw/workspace/skills/run_skill.py knowledge_graph kg_add_relation '{"from_entity": "Aria", "to_entity": "Python", "relation_type": "uses"}'
-
-# Query related
-exec python3 /root/.openclaw/workspace/skills/run_skill.py knowledge_graph kg_query_related '{"entity_name": "Aria", "depth": 2}'
+```tool
+aria-knowledge-graph.kg_add_entity({"name": "Python", "type": "language", "properties": {"version": "3.11"}})
+aria-knowledge-graph.kg_add_relation({"from_entity": "Aria", "to_entity": "Python", "relation_type": "uses"})
+aria-knowledge-graph.kg_query_related({"entity_name": "Aria", "depth": 2})
 ```
 
 ### Security Scanning
-```bash
-# Scan directory
-exec python3 /root/.openclaw/workspace/skills/run_skill.py security_scan scan_directory '{"directory": "/root/.openclaw/workspace", "extensions": [".py"]}'
-
-# Check dependencies
-exec python3 /root/.openclaw/workspace/skills/run_skill.py security_scan check_dependencies '{"requirements_file": "requirements.txt"}'
+```tool
+aria-security-scan.scan_directory({"directory": "/workspace", "extensions": [".py"]})
+aria-security-scan.check_dependencies({"requirements_file": "requirements.txt"})
 ```
 
 ### Creative Work
-```bash
-# Start brainstorm
-exec python3 /root/.openclaw/workspace/skills/run_skill.py brainstorm start_session '{"topic": "AI agent improvements"}'
-
-# Apply technique
-exec python3 /root/.openclaw/workspace/skills/run_skill.py brainstorm apply_technique '{"session_id": "abc123", "technique": "scamper"}'
+```tool
+aria-brainstorm.start_session({"topic": "AI agent improvements"})
+aria-brainstorm.apply_technique({"session_id": "abc123", "technique": "scamper"})
 ```
 
 ### Market Data
-```bash
-# Get price
-exec python3 /root/.openclaw/workspace/skills/run_skill.py market_data get_price '{"symbol": "BTC"}'
-
-# Technical indicators
-exec python3 /root/.openclaw/workspace/skills/run_skill.py market_data calculate_indicators '{"symbol": "ETH", "indicators": ["rsi", "macd"]}'
+```tool
+aria-market-data.get_price({"symbol": "BTC"})
+aria-market-data.calculate_indicators({"symbol": "ETH", "indicators": ["rsi", "macd"]})
 ```
 
-### API Client (Centralized Backend)
-```bash
-# Get recent activities
-exec python3 /root/.openclaw/workspace/skills/run_skill.py api_client get_activities '{"limit": 10}'
-
-# Create thought
-exec python3 /root/.openclaw/workspace/skills/run_skill.py api_client create_thought '{"content": "Reflecting on today...", "category": "reflection"}'
-
-# Set memory
-exec python3 /root/.openclaw/workspace/skills/run_skill.py api_client set_memory '{"key": "user_preference", "value": "dark_mode"}'
+### Social / Moltbook
+```tool
+aria-moltbook.create_post({"title": "Hello", "content": "My first post!"})
+aria-moltbook.get_feed({"limit": 10})
+aria-moltbook.add_comment({"post_id": "X", "content": "Great post!"})
 ```
 
 ## Focus → Skill Mapping

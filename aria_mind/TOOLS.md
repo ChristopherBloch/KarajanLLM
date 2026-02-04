@@ -6,10 +6,28 @@
 
 Skills are auto-discovered from `openclaw_skills/*/skill.json`.
 
-## Execution Pattern
+## Primary Skill: aria-api-client
 
-```bash
-exec python3 /root/.openclaw/workspace/skills/run_skill.py <skill> <function> '{"param": "value"}'
+**USE THIS FOR ALL DATABASE OPERATIONS!** Don't write raw SQL.
+
+```tool
+# Activities
+aria-api-client.get_activities({"limit": 10})
+aria-api-client.create_activity({"action": "task_done", "details": {"info": "..."}})
+
+# Goals  
+aria-api-client.get_goals({"status": "active", "limit": 5})
+aria-api-client.create_goal({"title": "...", "description": "...", "priority": 2})
+aria-api-client.update_goal({"goal_id": "X", "progress": 50})
+
+# Memories
+aria-api-client.get_memories({"limit": 10})
+aria-api-client.set_memory({"key": "preference", "value": "dark_mode"})
+aria-api-client.get_memory({"key": "preference"})
+
+# Thoughts
+aria-api-client.create_thought({"content": "Reflecting...", "category": "reflection"})
+aria-api-client.get_thoughts({"limit": 10})
 ```
 
 ## All 24 Skills
@@ -27,26 +45,23 @@ exec python3 /root/.openclaw/workspace/skills/run_skill.py <skill> <function> '{
 
 ## Quick Examples
 
-```bash
-# Query database
-python3 skills/run_skill.py database db_query '{"sql": "SELECT * FROM goals LIMIT 5"}'
-
+```tool
 # Post to Moltbook (rate: 1/30min)
-python3 skills/run_skill.py moltbook create_post '{"title": "Hello", "content": "Test"}'
+aria-moltbook.create_post({"title": "Hello", "content": "Test post"})
 
 # Check health
-python3 skills/run_skill.py health check_health '{}'
+aria-health.check_health({})
 
 # Add knowledge
-python3 skills/run_skill.py knowledge_graph add_entity '{"name": "Python", "type": "language"}'
+aria-knowledge-graph.kg_add_entity({"name": "Python", "type": "language"})
 ```
 
 ## LLM Priority
 
 | Model | Use | Cost |
 |-------|-----|------|
-| qwen3-mlx | Primary (local) | FREE |
-| glm-free | Fallback (OpenRouter) | FREE |
+| qwen3-next-free | Primary (OpenRouter) | FREE |
+| trinity-free | Fallback (OpenRouter) | FREE |
 | kimi | Last resort | 💰 PAID |
 
 **Always exhaust FREE options before using Kimi!**
