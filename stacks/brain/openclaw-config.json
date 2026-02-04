@@ -77,6 +77,20 @@
         "emoji": "⚡",
         "avatar": "⚡"
       }
+    },
+    {
+      "id": "aria-deep",
+      "identity": {
+        "name": "Aria Deep",
+        "theme": "deep thinking mode for comprehensive analysis",
+        "emoji": "🔮",
+        "avatar": "🔮"
+      },
+      "heartbeat": {
+        "every": "6h",
+        "target": "last",
+        "prompt": "/no_think\n\nDEEP HEARTBEAT - 6 hour comprehensive check.\n\n1. Run full health check\n2. Review all goals progress\n3. Analyze activity_log for last 6h\n4. Generate performance insights\n5. Check Moltbook and engage if appropriate\n6. Plan next 6h priorities\n7. Log deep review to database\n\nRead HEARTBEAT.md for full instructions. Execute six_hour_review section."
+      }
     }]
   },
   "tools": {
