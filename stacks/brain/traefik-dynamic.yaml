@@ -22,6 +22,7 @@ http:
       service: clawdbot
       middlewares:
         - clawdbot-auth
+        - clawdbot-local
 
     portal-http:
       rule: "PathPrefix(`/`)"
@@ -42,6 +43,17 @@ http:
         - api-strip
         - secure-headers
 
+    # Clawdbot WebSocket at /clawdbot - higher priority for WS upgrades
+    clawdbot-ws-path-http:
+      rule: "PathPrefix(`/clawdbot`) && Header(`Connection`, `Upgrade`) && Header(`Upgrade`, `websocket`)"
+      priority: 92
+      entryPoints:
+        - web
+      service: clawdbot
+      middlewares:
+        - clawdbot-auth
+        - clawdbot-local
+
     # Clawdbot - All traffic (HTTP + WebSocket) - Token auth injected by Traefik
     clawdbot-http:
       rule: "PathPrefix(`/clawdbot`)"
@@ -51,6 +63,7 @@ http:
       service: clawdbot
       middlewares:
         - clawdbot-auth
+        - clawdbot-local
 
     grafana-http:
       rule: "PathPrefix(`/grafana`)"
@@ -114,6 +127,7 @@ http:
       service: clawdbot
       middlewares:
         - clawdbot-auth
+        - clawdbot-local
       tls: {}
 
     portal:
@@ -137,6 +151,18 @@ http:
         - secure-headers
       tls: {}
 
+    # Clawdbot WebSocket at /clawdbot HTTPS - higher priority for WS upgrades
+    clawdbot-ws-path:
+      rule: "PathPrefix(`/clawdbot`) && Header(`Connection`, `Upgrade`) && Header(`Upgrade`, `websocket`)"
+      priority: 92
+      entryPoints:
+        - websecure
+      service: clawdbot
+      middlewares:
+        - clawdbot-auth
+        - clawdbot-local
+      tls: {}
+
     # Clawdbot HTTPS - All traffic (HTTP + WebSocket) - Token auth injected by Traefik
     clawdbot:
       rule: "PathPrefix(`/clawdbot`)"
@@ -146,6 +172,7 @@ http:
       service: clawdbot
       middlewares:
         - clawdbot-auth
+        - clawdbot-local
       tls: {}
 
     grafana:
@@ -211,6 +238,14 @@ http:
       headers:
         customRequestHeaders:
           Authorization: "Bearer 94d4c6ed4bb619fe5f5824cc127a158bd23f67dd8363f8c8"
+
+    # Strip X-Forwarded-For so OpenClaw sees Traefik's Docker IP (trusted proxy)
+    # This fixes 'device identity required' errors from external forwarded IPs
+    clawdbot-local:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-For: ""
+          X-Real-IP: ""
 
     api-strip:
       stripPrefix:
