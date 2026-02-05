@@ -75,7 +75,7 @@ exec python3 /root/.openclaw/workspace/skills/run_skill.py health get_metrics '{
 | Service | Internal URL |
 |---------|--------------|
 | Database | `postgres://aria_warehouse:5432` |
-| Ollama | `http://host.docker.internal:11434` |
+| Ollama | `http://{{OLLAMA_URL}}` |
 | LiteLLM | `http://litellm:4000` |
 | Moltbook | `https://www.moltbook.com/api/v1` |
 

@@ -3,7 +3,7 @@
 import requests
 import json
 
-BASE = "http://localhost:11434"
+BASE = "http://{OLLAMA_URL}"
 
 print("=== Testing Ollama API ===")
 
