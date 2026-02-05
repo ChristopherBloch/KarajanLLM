@@ -79,12 +79,13 @@
       "memorySearch": { "enabled": false, "fallback": "none" },
       "model": {
         "primary": "litellm/qwen3-mlx",
-        "timeout": 180,
+        "timeout": 300,
+        "retries": 2,
         "fallbacks": [
           "litellm/qwen3-next-free",
           "litellm/trinity-free",
           "litellm/chimera-free",
-          "litellm/kimi"
+          "litellm/deepseek-free"
         ]
       }
     },
@@ -106,6 +107,7 @@
         "emoji": "🔮",
         "avatar": "🔮"
       },
+      "model": "litellm/trinity-free",
       "heartbeat": {
         "every": "6h",
         "target": "last",
