@@ -34,10 +34,15 @@ DOCKER_HOST_IP = os.getenv("DOCKER_HOST_IP", "host.docker.internal")
 MLX_ENABLED = os.getenv("MLX_ENABLED", "true").lower() == "true"
 
 # Service URLs with specific health check paths
+# Service URLs with specific health check paths
+# Default to host.docker.internal if not set
+DEFAULT_OLLAMA_URL = "http://192.168.1.106:11434"
+OLLAMA_URL_ENV = os.getenv("OLLAMA_URL", DEFAULT_OLLAMA_URL)
+
 SERVICE_URLS = {
     "grafana": (os.getenv("GRAFANA_URL", "http://grafana:3000"), "/api/health"),
     "prometheus": (os.getenv("PROMETHEUS_URL", "http://prometheus:9090"), "/prometheus/-/healthy"),
-    "ollama": (os.getenv("OLLAMA_URL", f"http://{DOCKER_HOST_IP}:11434"), "/api/tags"),
+    "ollama": (OLLAMA_URL_ENV, "/api/tags"),
     "mlx": (os.getenv("MLX_URL", f"http://{DOCKER_HOST_IP}:8080"), "/v1/models") if MLX_ENABLED else (None, None),
     "litellm": (os.getenv("LITELLM_URL", "http://litellm:4000"), "/health/liveliness"),
     "clawdbot": (os.getenv("CLAWDBOT_URL", "http://clawdbot:18789"), "/"),
@@ -236,14 +241,22 @@ async def host_stats():
 async def api_status():
     results = {}
     
+
     # Check HTTP services
     async with httpx.AsyncClient(timeout=3.0) as client:
         for name, (base_url, health_path) in SERVICE_URLS.items():
+            if not base_url:
+                results[name] = {"status": "disabled", "code": None}
+                continue
             try:
                 url = base_url.rstrip('/') + health_path
                 resp = await client.get(url)
+                # Reverted strict check: consider service UP if we get any response, 
+                # even 403/404 (common for auth-protected or root-path services)
+                # But mark 500+ as down/degraded if needed. For now, matching original behavior (any resp = up).
                 results[name] = {"status": "up", "code": resp.status_code}
             except Exception as e:
+                print(f"⚠️ Service check failed for {name} ({base_url}): {e}")
                 results[name] = {"status": "down", "code": None, "error": str(e)[:50]}
     
     # Check PostgreSQL via DB pool
@@ -252,8 +265,9 @@ async def api_status():
             async with db_pool.acquire() as conn:
                 await conn.execute("SELECT 1")
             results["postgres"] = {"status": "up", "code": 200}
-        except Exception:
-            results["postgres"] = {"status": "down", "code": None}
+        except Exception as e:
+             print(f"⚠️ Postgres check failed: {e}")
+             results["postgres"] = {"status": "down", "code": None}
     else:
         results["postgres"] = {"status": "down", "code": None}
     
@@ -278,12 +292,22 @@ async def api_status_service(service_id: str):
     if not service_info:
         raise HTTPException(status_code=404, detail="Unknown service")
     base_url, health_path = service_info
+    
+    if not base_url:
+         return {"status": "disabled", "code": None}
+         
+    # Log OLLAMA_URL for debugging
+    if service_id == "ollama":
+        print(f"🔍 Checking Ollama status at: {base_url}")
+
     try:
         async with httpx.AsyncClient(timeout=3.0) as client:
             url = base_url.rstrip('/') + health_path
             resp = await client.get(url)
-        return {"status": "online", "code": resp.status_code}
-    except Exception:
+            # Reverted strict check: any response = online
+            return {"status": "online", "code": resp.status_code}
+    except Exception as e:
+        print(f"⚠️ Single service check failed for {service_id}: {e}")
         return {"status": "offline", "code": None}
 
 

@@ -102,7 +102,7 @@
             </div>
             <span class="service-status loading" id="status-prometheus">...</span>
         </a>
-        <a href="http://{{ request.host.split(':')[0] }}:11434" target="_blank" class="service-card">
+        <a href="http://{{ OLLAMA_URL }}" target="_blank" class="service-card">
             <div class="service-icon ollama">🦙</div>
             <div class="service-info">
                 <h3>Ollama</h3>
@@ -167,7 +167,7 @@
                 document.getElementById('stat-last').textContent = d.toLocaleTimeString();
             }
         })
-        .catch(() => {});
+        .catch(() => { });
 
     // Load service status
     fetch(`${window.ARIA_API_BASE_URL}/status`)

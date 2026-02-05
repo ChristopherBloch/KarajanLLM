@@ -147,7 +147,7 @@ class OllamaSkill(BaseSkill):
     Ollama local LLM interface.
     
     Config:
-        host: Ollama server URL (default: http://localhost:11434)
+        host: Ollama server URL (default: http://{{OLLAMA_URL}})
         model: Model name (default: llama2)
     """
     
@@ -170,7 +170,7 @@ class OllamaSkill(BaseSkill):
         
         self._host = self.config.config.get(
             "host", 
-            os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+            os.environ.get("OLLAMA_HOST", "http://{{OLLAMA_URL}}")
         ).rstrip("/")
         
         self._model = self.config.config.get("model", "llama2")
