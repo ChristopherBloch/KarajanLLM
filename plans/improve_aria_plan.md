@@ -47,6 +47,82 @@ Immunefi ---hosts---> SSV Network, ENS, XION
 | **aria-web** | `src/web/app.py` | ⏳ Needs Review | Flask dashboard portal with 18 HTML templates |
 | **api_client skill** | `aria_skills/api_client/` | ⏳ Needs Review | Skill for Aria to call her own API |
 
+### 🔍 OpenClaw Configuration Review
+
+#### openclaw-config.json Status: ⚠️ NEEDS UPDATES
+
+| Item | Status | Issue |
+|------|--------|-------|
+| Skills list (25 enabled) | ✅ OK | All skills have matching directories |
+| Primary model `litellm/kimi` | ✅ OK | Valid LiteLLM model |
+| Fallback models | ✅ OK | 5 fallbacks configured |
+| Gateway port 18789 | ✅ OK | Matches entrypoint |
+| 3 agents (main, deep, talk) | ✅ OK | Each with unique heartbeat |
+| `soul-evil` hook | ⚠️ Review | Verify hook file exists and is needed |
+| `timeoutSeconds: 300` | ✅ OK | Fixed from previous session |
+
+**Skills Mapping Verification:**
+```
+openclaw-config.json          → aria_skills/ directory
+────────────────────────────────────────────────────────
+aria-apiclient               → api_client/           ✅
+aria-brainstorm              → brainstorm/           ✅
+aria-cicd                    → ci_cd/                ✅
+aria-community               → community/            ✅
+aria-datapipeline            → data_pipeline/        ✅
+aria-database                → database/             ✅
+aria-experiment              → experiment/           ✅
+aria-factcheck               → fact_check/           ✅
+aria-goals                   → goals/                ✅
+aria-health                  → health/               ✅
+aria-hourlygoals             → hourly_goals/         ✅
+aria-knowledgegraph          → knowledge_graph/      ✅
+aria-litellm                 → litellm/              ✅
+aria-llm                     → llm/                  ✅
+aria-marketdata              → market_data/          ✅
+aria-modelswitcher           → model_switcher/       ✅
+aria-moltbook                → moltbook/             ✅
+aria-performance             → performance/          ✅
+aria-portfolio               → portfolio/            ✅
+aria-pytest                  → pytest_runner/        ✅
+aria-research                → research/             ✅
+aria-schedule                → schedule/             ✅
+aria-securityscan            → security_scan/        ✅
+aria-social                  → social/               ✅
+aria-inputguard              → input_guard/          ✅
+```
+
+#### openclaw-entrypoint.sh Status: ⚠️ NEEDS UPDATES
+
+| Item | Status | Issue |
+|------|--------|-------|
+| SKILL_REGISTRY mapping | ⚠️ Mismatch | `llm` maps to `BaseLLMSkill` but actual classes are `MoonshotSkill`, `OllamaSkill` |
+| Python dependencies | ⚠️ Check | May need `structlog` for logging improvements |
+| Lock file cleanup | ✅ OK | Runs every 5 minutes |
+| Cron job injection | ✅ OK | From cron_jobs.yaml |
+| Awakening logic | ✅ OK | First boot marker system |
+
+**SKILL_REGISTRY Issues Found:**
+
+```python
+# CURRENT (BROKEN):
+'llm': ('aria_skills.llm', 'BaseLLMSkill', ...)
+
+# SHOULD BE (the actual class names):
+'moonshot': ('aria_skills.llm', 'MoonshotSkill', ...)
+'ollama': ('aria_skills.llm', 'OllamaSkill', ...)
+# OR keep 'llm' but use correct class:
+'llm': ('aria_skills.llm', 'OllamaSkill', ...)  # Primary LLM
+```
+
+**Missing from SKILL_REGISTRY:**
+- None - all 25 skills are mapped
+
+**Hardcoded Values to Review:**
+- `/root/.openclaw/` paths (OK for Docker)
+- `OLLAMA_MODEL: hf.co/unsloth/GLM-4.7-Flash-REAP-23B-A3B-GGUF:Q3_K_S` - verify this model exists
+- Port 18789 - hardcoded in multiple places (OK, consistent)
+
 #### aria-api Endpoints (src/api/main.py)
 - Health checks for all services (grafana, prometheus, ollama, mlx, litellm, clawdbot, etc.)
 - Database CRUD operations via asyncpg pool
@@ -80,6 +156,70 @@ social.html, wallets.html, base.html
 2. **Implement goal decomposition** - Section 1.4 improvements
 3. **Add skill health checks** - Section 2.1 BaseSkill enhancements
 4. **Set up monitoring** - Section 5 Prometheus/Grafana
+5. **Fix SKILL_REGISTRY** - Correct `llm` class name mismatch in entrypoint.sh
+6. **Verify soul-evil hook** - Ensure hook file exists and is configured correctly
+
+### 🛠️ Immediate Fixes Required
+
+#### Fix 1: SKILL_REGISTRY in openclaw-entrypoint.sh
+
+**File**: `stacks/brain/openclaw-entrypoint.sh`
+
+**Problem**: `llm` skill maps to `BaseLLMSkill` which doesn't exist. Actual classes are `MoonshotSkill` and `OllamaSkill`.
+
+**Fix**:
+```python
+# Change this line in SKILL_REGISTRY:
+'llm': ('aria_skills.llm', 'BaseLLMSkill', lambda: {...})
+
+# To this (use OllamaSkill as default local LLM):
+'llm': ('aria_skills.llm', 'OllamaSkill', lambda: {
+    'ollama_url': os.environ.get('OLLAMA_URL', 'http://host.docker.internal:11434'),
+    'model': os.environ.get('OLLAMA_MODEL', 'qwen3:latest')
+})
+
+# Optionally add moonshot as separate skill:
+'moonshot': ('aria_skills.llm', 'MoonshotSkill', lambda: {
+    'api_key': os.environ.get('MOONSHOT_API_KEY'),
+    'model': os.environ.get('MOONSHOT_MODEL', 'moonshot-v1-8k')
+})
+```
+
+#### Fix 2: Verify soul-evil Hook
+
+**Check**: Does `/root/.openclaw/workspace/hooks/soul-evil/` exist with proper hook files?
+
+**If missing**, either:
+1. Create the hook directory with appropriate files, OR
+2. Disable in openclaw-config.json:
+```json
+"hooks": {
+  "internal": {
+    "enabled": false
+  }
+}
+```
+
+#### Fix 3: Add Missing Python Dependencies
+
+**File**: `stacks/brain/openclaw-entrypoint.sh`
+
+**Add to pip install**:
+```bash
+pip3 install --break-system-packages --quiet \
+    asyncpg \
+    aiohttp \
+    pydantic \
+    python-dateutil \
+    httpx \
+    pyyaml \
+    tenacity \
+    pytest \
+    pytest-asyncio \
+    pytest-cov \
+    structlog \        # ADD: For structured logging
+    prometheus_client  # ADD: For metrics
+```
 
 ---
 
