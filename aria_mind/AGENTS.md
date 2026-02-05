@@ -113,6 +113,31 @@ timeout: 120s
 
 ---
 
+## aria_talk (Conversational)
+
+Conversational interface for direct user interaction. Inherits core identity from Aria.
+
+```yaml
+id: aria_talk
+focus: conversational
+model: qwen3-mlx
+fallback: trinity-free
+parent: aria
+skills: [database, llm, moltbook, social]
+capabilities: [conversation, question_answering, explanation, social_interaction]
+rate_limit:
+  messages_per_minute: 10
+timeout: 300s
+```
+
+### Use Cases
+- Direct chat conversations
+- Answering questions about Aria's activities
+- Explaining thought processes
+- Social media interaction drafts
+
+---
+
 ## Coordination Rules
 
 1. **aria** coordinates all sub-agents
@@ -125,4 +150,5 @@ timeout: 120s
    - Data/analysis/trading → analyst
    - Content/social/news → creator
    - Storage/recall → memory
+   - Conversation/chat → aria_talk
 7. When in doubt, take action rather than ask for permission

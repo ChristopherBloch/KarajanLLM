@@ -14,6 +14,7 @@ from aria_models.loader import (
     build_agent_aliases,
     build_agent_routing,
     build_litellm_models,
+    get_timeout_seconds,
     load_catalog,
 )
 
@@ -26,6 +27,9 @@ def render_openclaw_config(template_path: Path, models_path: Path, output_path: 
     agents_defaults = template.setdefault("agents", {}).setdefault("defaults", {})
     agents_defaults["model"] = build_agent_routing(catalog)
     agents_defaults["models"] = build_agent_aliases(catalog)
+    
+    # Set timeoutSeconds at agents.defaults level (not in model object)
+    agents_defaults["timeoutSeconds"] = get_timeout_seconds(catalog)
 
     # Providers config
     providers = template.setdefault("models", {}).setdefault("providers", {})

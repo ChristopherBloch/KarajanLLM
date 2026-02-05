@@ -519,7 +519,7 @@ async def api_stats(conn=Depends(get_db)):
 
 
 @app.get("/activities")
-async def api_activities(limit: int = 100, conn=Depends(get_db)):
+async def api_activities(limit: int = 25, conn=Depends(get_db)):
     rows = await conn.fetch(
         """
         SELECT id, action, details, created_at
@@ -684,7 +684,7 @@ async def api_security_stats(conn=Depends(get_db)):
 
 
 @app.get("/thoughts")
-async def api_thoughts(limit: int = 100, conn=Depends(get_db)):
+async def api_thoughts(limit: int = 20, conn=Depends(get_db)):
     rows = await conn.fetch(
         """
         SELECT id, category, content, created_at
@@ -730,7 +730,7 @@ async def create_thought(request: Request, conn=Depends(get_db)):
 # Routes: Memories
 # ============================================
 @app.get("/memories")
-async def get_memories(limit: int = 100, category: str = None, conn=Depends(get_db)):
+async def get_memories(limit: int = 20, category: str = None, conn=Depends(get_db)):
     """Get memories with optional category filter"""
     if category:
         rows = await conn.fetch(
@@ -991,157 +991,13 @@ async def list_interactions(limit: int = 50, conn=Depends(get_db)):
     return [serialize_record(r) for r in rows]
 
 
-# ============================================
-# Routes: UI API (/api)
-# ============================================
-@app.get("/status")
-async def api_status(conn=Depends(get_db)):
-    status = {}
-    for name, url in SERVICE_URLS.items():
-        status[name] = await check_http_status(url)
-
-    # Database status
-    try:
-        await conn.execute("SELECT 1")
-        status["postgres"] = {"status": "up", "code": 200}
-    except Exception:
-        status["postgres"] = {"status": "down", "code": None}
-
-    return status
+# NOTE: Duplicate routes removed - /status, /activities, /thoughts, /search, /stats
+# are already defined above with proper default limits
 
 
-@app.get("/status/{service_id}")
-async def api_service_status(service_id: str, conn=Depends(get_db)):
-    service_ports = {
-        "ollama": 11434,
-        "litellm": 18793,
-        "clawdbot": 18789,
-        "postgres": 5432,
-        "grafana": 3001,
-        "prometheus": 9090,
-        "pgadmin": 5050,
-        "traefik": 8080,
-    }
-
-    if service_id == "postgres":
-        try:
-            await conn.execute("SELECT 1")
-            return {"status": "online", "port": service_ports["postgres"]}
-        except Exception:
-            return {"status": "offline", "port": service_ports["postgres"]}
-
-    if service_id not in SERVICE_URLS:
-        return {"status": "unknown", "error": "Unknown service"}
-
-    result = await check_http_status(SERVICE_URLS[service_id])
-    return {"status": "online" if result["status"] == "up" else "offline", "port": service_ports.get(service_id), "code": result.get("code")}
-
-
-@app.get("/activities")
-async def api_activities(limit: int = 100, conn=Depends(get_db)):
-    rows = await conn.fetch(
-        """SELECT id, action, details, created_at
-           FROM activity_log
-           ORDER BY created_at DESC
-           LIMIT $1""",
-        limit,
-    )
-    activities = []
-    for row in rows:
-        record = serialize_record(row)
-        activities.append({
-            "id": record["id"],
-            "type": record["action"],
-            "description": json.dumps(record.get("details")) if record.get("details") is not None else None,
-            "created_at": record.get("created_at"),
-        })
-    return activities
-
-
-@app.get("/thoughts")
-async def api_thoughts(limit: int = 100, conn=Depends(get_db)):
-    rows = await conn.fetch(
-        """SELECT id, category, content, created_at
-           FROM thoughts
-           ORDER BY created_at DESC
-           LIMIT $1""",
-        limit,
-    )
-    thoughts = []
-    for row in rows:
-        record = serialize_record(row)
-        thoughts.append({
-            "id": record["id"],
-            "category": record["category"],
-            "content": record["content"],
-            "timestamp": record.get("created_at"),
-        })
-    return {"thoughts": thoughts}
-
-
-@app.get("/search")
-async def api_search(q: str = "", activities: bool = True, thoughts: bool = True, memories: bool = True, conn=Depends(get_db)):
-    if not q:
-        return {"activities": [], "thoughts": [], "memories": []}
-
-    results = {"activities": [], "thoughts": [], "memories": []}
-
-    if activities:
-        rows = await conn.fetch(
-            """SELECT id, action, details, created_at
-               FROM activity_log
-               WHERE action ILIKE $1 OR details::text ILIKE $1
-               ORDER BY created_at DESC LIMIT 20""",
-            f"%{q}%",
-        )
-        for row in rows:
-            record = serialize_record(row)
-            results["activities"].append({
-                "id": record["id"],
-                "type": record["action"],
-                "content": json.dumps(record.get("details")) if record.get("details") is not None else None,
-                "timestamp": record.get("created_at"),
-            })
-
-    if thoughts:
-        rows = await conn.fetch(
-            """SELECT id, category, content, created_at
-               FROM thoughts
-               WHERE content ILIKE $1 OR category ILIKE $1
-               ORDER BY created_at DESC LIMIT 20""",
-            f"%{q}%",
-        )
-        for row in rows:
-            record = serialize_record(row)
-            results["thoughts"].append({
-                "id": record["id"],
-                "type": record["category"],
-                "content": record["content"],
-                "timestamp": record.get("created_at"),
-            })
-
-    if memories:
-        rows = await conn.fetch(
-            """SELECT id, key, value, category, created_at
-               FROM memories
-               WHERE key ILIKE $1 OR value::text ILIKE $1
-               ORDER BY created_at DESC LIMIT 20""",
-            f"%{q}%",
-        )
-        for row in rows:
-            record = serialize_record(row)
-            results["memories"].append({
-                "id": record["id"],
-                "type": record["category"],
-                "content": json.dumps(record.get("value")) if record.get("value") is not None else None,
-                "timestamp": record.get("created_at"),
-            })
-
-    return results
-
-
-@app.get("/stats")
-async def api_stats(conn=Depends(get_db)):
+@app.get("/stats-extended")
+async def api_stats_extended(conn=Depends(get_db)):
+    """Extended stats with additional metrics"""
     try:
         activities_count = await conn.fetchval("SELECT COUNT(*) FROM activity_log")
         thoughts_count = await conn.fetchval("SELECT COUNT(*) FROM thoughts")
