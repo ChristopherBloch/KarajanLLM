@@ -70,6 +70,7 @@
     "defaults": {
       "maxConcurrent": 4,
       "workspace": "/root/.openclaw/workspace",
+      "timeoutSeconds": 300,
       "subagents": { "maxConcurrent": 8 },
       "heartbeat": {
         "every": "30m",
@@ -78,9 +79,7 @@
       },
       "memorySearch": { "enabled": false, "fallback": "none" },
       "model": {
-        "primary": "litellm/qwen3-mlx",
-        "timeout": 300,
-        "retries": 2,
+        "primary": "litellm/kimi",
         "fallbacks": [
           "litellm/qwen3-next-free",
           "litellm/trinity-free",

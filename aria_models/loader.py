@@ -85,15 +85,21 @@ def build_agent_aliases(catalog: Optional[Dict[str, Any]] = None) -> Dict[str, D
 
 
 def build_agent_routing(catalog: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Build agent model routing (primary + fallbacks only).
+    
+    Note: OpenClaw expects model object to contain ONLY primary and fallbacks.
+    Timeout should be set at agents.defaults.timeoutSeconds level, not in model object.
+    """
     catalog = catalog or load_catalog()
     routing = catalog.get("routing", {}) if catalog else {}
-    result = {
+    return {
         "primary": routing.get("primary"),
         "fallbacks": routing.get("fallbacks", []),
     }
-    # Include optional timeout and retries if specified
-    if "timeout" in routing:
-        result["timeout"] = routing["timeout"]
-    if "retries" in routing:
-        result["retries"] = routing["retries"]
-    return result
+
+
+def get_timeout_seconds(catalog: Optional[Dict[str, Any]] = None) -> int:
+    """Get timeout from routing config (for agents.defaults.timeoutSeconds)."""
+    catalog = catalog or load_catalog()
+    routing = catalog.get("routing", {}) if catalog else {}
+    return routing.get("timeout", 600)  # Default 600s per OpenClaw docs
