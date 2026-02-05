@@ -87,7 +87,13 @@ def build_agent_aliases(catalog: Optional[Dict[str, Any]] = None) -> Dict[str, D
 def build_agent_routing(catalog: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     catalog = catalog or load_catalog()
     routing = catalog.get("routing", {}) if catalog else {}
-    return {
+    result = {
         "primary": routing.get("primary"),
         "fallbacks": routing.get("fallbacks", []),
     }
+    # Include optional timeout and retries if specified
+    if "timeout" in routing:
+        result["timeout"] = routing["timeout"]
+    if "retries" in routing:
+        result["retries"] = routing["retries"]
+    return result
