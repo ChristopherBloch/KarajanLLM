@@ -34,6 +34,14 @@ http:
       middlewares:
         - secure-headers
 
+    # Traefik internal API - dashboard JS calls /api/overview, /api/http/*, etc.
+    traefik-api-http:
+      rule: "Path(`/api/overview`) || Path(`/api/entrypoints`) || Path(`/api/version`) || Path(`/api/rawdata`) || PathPrefix(`/api/http/`) || PathPrefix(`/api/tcp/`) || PathPrefix(`/api/udp/`)"
+      priority: 110
+      entryPoints:
+        - web
+      service: api@internal
+
     api-http:
       rule: "PathPrefix(`/api/`) || Path(`/api`)"
       priority: 100
@@ -139,6 +147,15 @@ http:
       service: portal
       middlewares:
         - secure-headers
+      tls: {}
+
+    # Traefik internal API - dashboard JS calls /api/overview, /api/http/*, etc.
+    traefik-api:
+      rule: "Path(`/api/overview`) || Path(`/api/entrypoints`) || Path(`/api/version`) || Path(`/api/rawdata`) || PathPrefix(`/api/http/`) || PathPrefix(`/api/tcp/`) || PathPrefix(`/api/udp/`)"
+      priority: 110
+      entryPoints:
+        - websecure
+      service: api@internal
       tls: {}
 
     api:
