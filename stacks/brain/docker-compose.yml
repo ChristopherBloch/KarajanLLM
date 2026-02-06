@@ -55,6 +55,8 @@ services:
       OPENCLAW_GATEWAY_TOKEN: ${CLAWDBOT_TOKEN:-default-clawdbot-token}
       OPENCLAW_NO_ONBOARD: "1"
       OPENCLAW_NO_PROMPT: "1"
+      # Remote browser (aria-browser container via CDP)
+      BROWSER_CDP_URL: http://aria-browser:3000
       # LiteLLM credentials for local model routing
       LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-sk-change-me}
       # Cloud fallbacks

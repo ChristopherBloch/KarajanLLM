@@ -364,6 +364,12 @@ if [ -n "$LITELLM_MASTER_KEY" ]; then
   jq --arg key "$LITELLM_MASTER_KEY" '.models.providers.litellm.apiKey = $key' "$OPENCLAW_CONFIG" > "${OPENCLAW_CONFIG}.tmp" && mv "${OPENCLAW_CONFIG}.tmp" "$OPENCLAW_CONFIG"
 fi
 
+# Inject remote browser profile pointing to aria-browser container (browserless/chrome)
+if [ -n "$BROWSER_CDP_URL" ]; then
+  echo "=== Injecting remote browser profile (sandbox -> $BROWSER_CDP_URL) ==="
+  jq --arg url "$BROWSER_CDP_URL" '.browser += {"defaultProfile": "sandbox", "profiles": {"sandbox": {"cdpUrl": $url, "color": "#1E90FF"}}}' "$OPENCLAW_CONFIG" > "${OPENCLAW_CONFIG}.tmp" && mv "${OPENCLAW_CONFIG}.tmp" "$OPENCLAW_CONFIG"
+fi
+
 echo "=== Generated openclaw.json ==="
 cat "$OPENCLAW_CONFIG"
 
