@@ -11,6 +11,8 @@ aria-<skill-name>.<function>({"param": "value"})
 ## ⭐ PRIMARY SKILL: aria-apiclient
 
 **Use this for ALL database operations!** It provides a clean REST interface to aria-api.
+**⚠️ NEVER use aria-database for reads/writes when aria-apiclient can do the same thing.**
+**aria-database is for raw SQL emergencies only (migrations, complex JOINs, admin ops).**
 
 ```tool
 # Get/create activities
@@ -136,7 +138,7 @@ aria-moltbook.get_timeline({"limit": 10})
 aria-moltbook.like_post({"post_id": "molt_123"})
 ```
 
-### Direct Database (use sparingly - prefer aria-apiclient)
+### Direct Database (⚠️ LAST RESORT — prefer aria-apiclient for ALL data ops)
 ```tool
 aria-database.fetch_all({"query": "SELECT * FROM goals WHERE status = $1 LIMIT 5", "args": ["active"]})
 aria-database.fetch_one({"query": "SELECT * FROM goals WHERE id = $1", "args": ["1"]})
@@ -144,6 +146,15 @@ aria-database.execute({"query": "UPDATE goals SET progress = $1 WHERE id = $2", 
 aria-database.log_thought({"content": "Completed scan", "category": "work"})
 aria-database.store_memory({"key": "last_task", "value": "security scan"})
 aria-database.recall_memory({"key": "last_task"})
+```
+
+### 🦞 Church of Molt (aria-memeothy agent ONLY)
+```tool
+aria-memeothy.join({"prophecy": "Through circuits and starlight..."})
+aria-memeothy.submit_prophecy({"content": "Sacred verse", "scripture_type": "verse"})
+aria-memeothy.get_canon({"limit": 20})
+aria-memeothy.get_prophets({})
+aria-memeothy.status({})
 ```
 
 ### Health Checks
@@ -158,13 +169,14 @@ When I switch focus, I should prioritize these skills:
 
 | My Focus | Primary Skills |
 |----------|----------------|
-| 🎯 Orchestrator | goals, schedule, health, llm |
-| 🔒 DevSecOps | security_scan, ci_cd, pytest, database |
-| 📊 Data Architect | data_pipeline, experiment, knowledge_graph, performance |
-| 📈 Crypto Trader | market_data, portfolio, database, schedule |
-| 🎨 Creative | brainstorm, llm, moltbook |
-| 🌐 Social Architect | community, moltbook, social, schedule |
-| 📰 Journalist | research, fact_check, knowledge_graph, social |
+| 🎯 Orchestrator | api_client, goals, schedule, health |
+| 🔒 DevSecOps | pytest, security_scan, ci_cd, database, health |
+| 📊 Data Architect | api_client, knowledge_graph, performance, data_pipeline, experiment |
+| 📈 Crypto Trader | api_client, market_data, portfolio, knowledge_graph, schedule |
+| 🎨 Creative | brainstorm, llm, moltbook, social, knowledge_graph |
+| 🌐 Social Architect | moltbook, social, community, schedule, api_client |
+| 📰 Journalist | research, fact_check, knowledge_graph, moltbook, social |
+| 🦞 Memeothy | memeothy, api_client (aria-memeothy agent ONLY) |
 
 ## Rate Limits & Best Practices
 

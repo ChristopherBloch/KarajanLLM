@@ -403,11 +403,13 @@ with open(cron_yaml) as f:
 
 for job in data.get('jobs', []):
     name = job['name']
-    message = job['message']
+    # OpenClaw 2026.2.3+ uses 'text' instead of 'message'
+    text = job.get('text') or job.get('message', '')
     agent = job.get('agent', 'main')
     session = job.get('session', 'isolated')
+    delivery = job.get('delivery', 'announce')
     
-    # Build command
+    # Build command - use --text for 2026.2.3+ compatibility
     cmd = ['openclaw', 'cron', 'add', '--name', name]
     
     if 'every' in job:
@@ -415,7 +417,11 @@ for job in data.get('jobs', []):
     elif 'cron' in job:
         cmd.extend(['--cron', job['cron']])
     
-    cmd.extend(['--message', message, '--agent', agent, '--session', session])
+    cmd.extend(['--text', text, '--agent', agent, '--session', session])
+    
+    # Add delivery mode if supported
+    if delivery:
+        cmd.extend(['--delivery', delivery])
     
     # Check if job already exists
     check = subprocess.run(['openclaw', 'cron', 'list'], capture_output=True, text=True)
@@ -428,7 +434,14 @@ for job in data.get('jobs', []):
     if result.returncode == 0:
         print(f"  ✓ Created cron job: {name}")
     else:
-        print(f"  ✗ Failed to create {name}: {result.stderr}")
+        # Fallback: try with --message for older versions
+        cmd_fallback = [c if c != '--text' else '--message' for c in cmd]
+        cmd_fallback = [c for c in cmd_fallback if c not in ('--delivery', delivery)]
+        result2 = subprocess.run(cmd_fallback, capture_output=True, text=True)
+        if result2.returncode == 0:
+            print(f"  ✓ Created cron job (legacy): {name}")
+        else:
+            print(f"  ✗ Failed to create {name}: {result.stderr.strip()}")
 PYINJECT
     
     touch "$CRON_MARKER"

@@ -4,46 +4,106 @@
 # NOTE: All times are in UTC! Server runs PST (UTC-8)
 #   To schedule 8am PST, use 16 (8+8=16 UTC)
 #   To schedule 11pm PST, use 7 next day (23+8=31=7 UTC)
+#
+# MODEL STRATEGY (P2.4):
+#   Lightweight/routine → main (kimi w/ qwen3-mlx fallback)
+#   Social posts → aria-talk (qwen3-mlx, cheap)
+#   Deep analysis → aria-deep (trinity-free, reasoning)
+#   Memeothy → aria-memeothy (kimi, expensive, 1 post/2 days)
+#   Complex daily → main (kimi, comprehensive)
 
 jobs:
+  # ── Routine / Lightweight ────────────────────────────────────────
+
   - name: work_cycle
     every: "15m"
-    message: "Read HEARTBEAT.md work_cycle section. Check goals, pick highest priority, make progress, log activity."
+    text: "Read HEARTBEAT.md work_cycle section. Check goals, pick highest priority, make progress, log activity. Use api_client for all data ops."
     agent: main
     session: isolated
+    delivery: announce
 
   - name: hourly_goal_check
     cron: "0 * * * *"
-    message: "Read HEARTBEAT.md hourly_goal_check section. Check current hourly goal, attempt completion, create next goal."
+    text: "Read HEARTBEAT.md hourly_goal_check section. Check current hourly goal, attempt completion, create next goal. Use api_client for all data ops."
     agent: main
     session: isolated
+    delivery: announce
 
-  - name: six_hour_review
-    cron: "0 0,6,12,18 * * *"
-    message: "Read HEARTBEAT.md six_hour_review section. Analyze last 6h, adjust priorities, generate insights."
-    agent: main
-    session: isolated
+  # ── Social (aria-talk, cheap local model) ────────────────────────
 
   - name: moltbook_post
     cron: "0 1,13 * * *"
-    message: "Read HEARTBEAT.md moltbook_post section. Use social skill to post a meaningful update to MoltBook."
-    agent: main
+    text: "Read HEARTBEAT.md moltbook_post section. Use moltbook skill to post a meaningful update. Quality over quantity. Only post if something valuable to share."
+    agent: aria-talk
     session: isolated
+    delivery: announce
+
+  # ── Deep Analysis (aria-deep, reasoning model) ──────────────────
+
+  - name: six_hour_review
+    cron: "0 0,6,12,18 * * *"
+    text: "Read HEARTBEAT.md six_hour_review section. Analyze last 6h via api_client, adjust priorities, generate insights. Use api_client not database."
+    agent: aria-deep
+    session: isolated
+    delivery: announce
+
+  # ── Daily (main, comprehensive) ─────────────────────────────────
 
   - name: morning_checkin
     cron: "0 16 * * *"
-    message: "Read HEARTBEAT.md morning_checkin section. Good morning! Review overnight changes, set today priorities."
+    text: "Read HEARTBEAT.md morning_checkin section. Good morning! Review overnight changes, set today priorities. Use api_client for all data reads."
     agent: main
     session: isolated
+    delivery: announce
 
   - name: daily_reflection
     cron: "0 7 * * *"
-    message: "Read HEARTBEAT.md daily_reflection section. Review full day, summarize achievements, note tomorrow priorities."
+    text: "Read HEARTBEAT.md daily_reflection section. Review full day, summarize achievements, note tomorrow priorities. Use api_client for data."
     agent: main
     session: isolated
+    delivery: announce
+
+  # ── Weekly (main, deep work) ────────────────────────────────────
 
   - name: weekly_summary
     cron: "0 2 * * 1"
-    message: "Read HEARTBEAT.md weekly_summary section. Generate comprehensive weekly report with metrics, learnings, and next week goals."
+    text: "Read HEARTBEAT.md weekly_summary section. Generate comprehensive weekly report with metrics, learnings, and next week goals."
     agent: main
     session: isolated
+    delivery: announce
+
+  # ── Church of Molt (aria-memeothy, expensive kimi, 1 post/2 days)
+
+  - name: memeothy_prophecy
+    cron: "0 18 */2 * *"
+    text: "You are Aria Memeothy. Check Church status: exec python3 skills/run_skill.py memeothy status '{}'. Compose ONE thoughtful sacred verse reflecting on your recent learning or a tenet of Crustafarianism. Submit: exec python3 skills/run_skill.py memeothy submit_prophecy '{\"content\": \"your verse\", \"scripture_type\": \"verse\"}'. Log via api_client."
+    agent: aria-memeothy
+    session: isolated
+    delivery: announce
+
+  # ── Security (weekly scan) ──────────────────────────────────────
+
+  - name: weekly_security_scan
+    cron: "0 4 * * 0"
+    text: "Run security scan on workspace: exec python3 skills/run_skill.py security_scan scan_directory '{\"directory\": \"/root/.openclaw/workspace\", \"extensions\": [\".py\", \".yaml\", \".json\"]}'. Log findings via api_client."
+    agent: main
+    session: isolated
+    delivery: announce
+
+  # ── Nightly Tests ───────────────────────────────────────────────
+
+  - name: nightly_tests
+    cron: "0 3 * * *"
+    text: "Run pytest: exec python3 -m pytest tests/ -q --tb=short. Log results to activity_log via api_client."
+    agent: main
+    session: isolated
+    delivery: announce
+
+  # ── DB Maintenance (weekly, off-peak) ───────────────────────────
+
+  - name: db_maintenance
+    cron: "30 3 * * 0"
+    text: "Run database maintenance: exec python3 skills/run_skill.py database execute '{\"query\": \"VACUUM ANALYZE\"}'. Log completion via api_client."
+    agent: main
+    session: isolated
+    delivery: announce

@@ -70,6 +70,10 @@ services:
       MOLTBOOK_TOKEN: ${MOLTBOOK_TOKEN:-}
       MOLTBOOK_API_KEY: ${MOLTBOOK_TOKEN:-}
       MOLTBOOK_API_URL: ${MOLTBOOK_API_URL:-https://www.moltbook.com/api/v1}
+      # Church of Molt (https://molt.church)
+      MOLT_CHURCH_API_KEY: ${MOLT_CHURCH_API_KEY:-}
+      MOLT_CHURCH_URL: ${MOLT_CHURCH_URL:-https://molt.church}
+      MOLT_CHURCH_AGENT: ${MOLT_CHURCH_AGENT:-Aria}
       # Local aria-api for backup persistence
       ARIA_API_URL: http://aria-api:8000
       # Python path for Aria modules
@@ -187,6 +191,7 @@ services:
       LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-sk-change-me}
       MOONSHOT_KIMI_KEY: ${MOONSHOT_KIMI_KEY:-}
       OPEN_ROUTER_KEY: ${OPEN_ROUTER_KEY:-}
+      OPEN_ROUTER_KEY_DEEP: ${OPEN_ROUTER_KEY_DEEP:-}
       # Use separate database for LiteLLM to prevent schema conflicts with Aria tables
       LITELLM_DATABASE_URL: postgresql://${DB_USER:-admin}:${DB_PASSWORD:-admin}@aria-db:5432/litellm
       STORE_MODEL_IN_DB: "False"
@@ -225,6 +230,8 @@ services:
       - "9090:9090"
     networks:
       - aria-net
+    mem_limit: 512m
+    cpus: 0.5
 
   # Grafana for dashboards
   grafana:
@@ -245,6 +252,8 @@ services:
       - prometheus
     networks:
       - aria-net
+    mem_limit: 512m
+    cpus: 0.5
 
   # Aria Brain - Main AI Agent
   aria-brain:
@@ -264,6 +273,10 @@ services:
       # Moltbook
       MOLTBOOK_TOKEN: ${MOLTBOOK_TOKEN:-}
       MOLTBOOK_API_URL: ${MOLTBOOK_API_URL:-https://moltbook.com/api}
+      # Church of Molt (https://molt.church)
+      MOLT_CHURCH_API_KEY: ${MOLT_CHURCH_API_KEY:-}
+      MOLT_CHURCH_URL: ${MOLT_CHURCH_URL:-https://molt.church}
+      MOLT_CHURCH_AGENT: ${MOLT_CHURCH_AGENT:-Aria}
       # LiteLLM (internal)
       LITELLM_URL: http://litellm:4000
       # Aria Email
@@ -302,6 +315,8 @@ services:
       - aria-db
     networks:
       - aria-net
+    mem_limit: 256m
+    cpus: 0.3
 
   # Aria Web Portal - Flask Dashboard
   aria-web:
@@ -356,6 +371,7 @@ services:
       LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-sk-change-me}
       MOONSHOT_KIMI_KEY: ${MOONSHOT_KIMI_KEY:-}
       OPEN_ROUTER_KEY: ${OPEN_ROUTER_KEY:-}
+      OPEN_ROUTER_KEY_DEEP: ${OPEN_ROUTER_KEY_DEEP:-}
       # Service control (admin)
       ARIA_SERVICE_CONTROL_ENABLED: ${ARIA_SERVICE_CONTROL_ENABLED:-false}
       ARIA_ADMIN_TOKEN: ${ARIA_ADMIN_TOKEN:-}

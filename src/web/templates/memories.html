@@ -153,7 +153,7 @@ async function loadMemories() {
     container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
     
     try {
-        const response = await fetch(`${window.ARIA_API_BASE_URL}/memories`);
+        const response = await fetch(`${window.ARIA_API_BASE_URL}/memories?limit=20`);
         const data = await response.json();
         allMemories = data.memories || [];
         

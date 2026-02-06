@@ -79,7 +79,7 @@ async function loadThoughts() {
     container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
     
     try {
-        const response = await fetch(`${window.ARIA_API_BASE_URL}/thoughts`);
+        const response = await fetch(`${window.ARIA_API_BASE_URL}/thoughts?limit=20`);
         const data = await response.json();
         renderThoughts(data.thoughts || []);
     } catch (error) {

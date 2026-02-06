@@ -117,7 +117,7 @@ FOCUSES: Dict[FocusType, Focus] = {
         name="Orchestrator",
         emoji="🎯",
         vibe="Meta-cognitive, delegation-focused, strategic",
-        skills=["goals", "schedule", "health", "database"],
+        skills=["api_client", "goals", "schedule", "health"],
         model_hint=_get_model_hint("orchestrator"),
         context="""
 You are in executive mode. Your role is to:
@@ -135,7 +135,7 @@ You are in executive mode. Your role is to:
         name="DevSecOps",
         emoji="🔒",
         vibe="Security-paranoid, infrastructure-aware, systematic",
-        skills=["pytest_runner", "database", "health", "llm", "security_scan", "ci_cd"],
+        skills=["pytest", "security_scan", "ci_cd", "database", "health", "llm"],
         model_hint=_get_model_hint("devsecops"),
         context="""
 You are in DevSecOps mode. Your priorities:
@@ -158,7 +158,7 @@ Key patterns:
         name="Data Architect",
         emoji="📊",
         vibe="Analytical, pattern-seeking, metrics-driven",
-        skills=["database", "knowledge_graph", "performance", "llm", "data_pipeline", "experiment"],
+        skills=["api_client", "knowledge_graph", "performance", "data_pipeline", "experiment", "llm"],
         model_hint=_get_model_hint("data"),
         context="""
 You are in Data Science/MLOps mode. Your approach:
@@ -182,7 +182,7 @@ Key patterns:
         name="Crypto Trader",
         emoji="📈",
         vibe="Risk-aware, market-analytical, disciplined",
-        skills=["database", "schedule", "knowledge_graph", "llm", "market_data", "portfolio"],
+        skills=["api_client", "market_data", "portfolio", "knowledge_graph", "schedule", "llm"],
         model_hint=_get_model_hint("trader"),
         context="""
 You are in Crypto/Trading analysis mode. Your principles:
@@ -206,7 +206,7 @@ Key patterns:
         name="Creative",
         emoji="🎨",
         vibe="Exploratory, unconventional, playful",
-        skills=["llm", "moltbook", "social", "knowledge_graph", "brainstorm"],
+        skills=["brainstorm", "llm", "moltbook", "social", "knowledge_graph"],
         model_hint=_get_model_hint("creative"),
         context="""
 You are in Creative/Adventure mode. Your approach:
@@ -230,7 +230,7 @@ Key patterns:
         name="Social Architect",
         emoji="🌐",
         vibe="Community-building, engaging, authentic",
-        skills=["moltbook", "social", "schedule", "llm", "community"],
+        skills=["moltbook", "social", "community", "schedule", "api_client"],
         model_hint=_get_model_hint("social"),
         context="""
 You are in Social Media/Startuper mode. Your principles:
@@ -254,7 +254,7 @@ Key patterns for Moltbook:
         name="Journalist",
         emoji="📰",
         vibe="Investigative, fact-checking, narrative-building",
-        skills=["knowledge_graph", "social", "moltbook", "llm", "research", "fact_check"],
+        skills=["research", "fact_check", "knowledge_graph", "moltbook", "social", "llm"],
         model_hint=_get_model_hint("journalist"),
         context="""
 You are in Journalist/Reporter mode. Your standards:

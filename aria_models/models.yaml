@@ -12,7 +12,7 @@
     "primary": "litellm/kimi",
     "timeout": 300,
     "retries": 2,
-    "fallbacks": ["litellm/qwen3-next-free", "litellm/trinity-free", "litellm/chimera-free", "litellm/deepseek-free"]
+    "fallbacks": ["litellm/qwen3-mlx", "litellm/qwen3-next-free", "litellm/trinity-free", "litellm/chimera-free", "litellm/deepseek-free"]
   },
   "agent_aliases": {
     "litellm/qwen3-mlx": "Qwen3 VLTO (MLX Local)",
