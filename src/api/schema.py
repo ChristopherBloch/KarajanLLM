@@ -261,6 +261,66 @@ class ScheduleTick(Base):
     updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=text("NOW()"))
 
 
+class AgentSession(Base):
+    """P2.1 — Tracks agent skill invocations and sessions."""
+    __tablename__ = "agent_sessions"
+
+    id: Mapped[Any] = mapped_column(UUID(as_uuid=True), primary_key=True, server_default=text("uuid_generate_v4()"))
+    agent_id: Mapped[str] = mapped_column(String(100), nullable=False)
+    session_type: Mapped[str] = mapped_column(String(50), server_default=text("'interactive'"))
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("NOW()"))
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    messages_count: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    tokens_used: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    cost_usd: Mapped[float] = mapped_column(Numeric(10, 6), server_default=text("0"))
+    status: Mapped[str] = mapped_column(String(50), server_default=text("'active'"))
+    metadata_json: Mapped[dict] = mapped_column("metadata", JSONB, server_default=text("'{}'::jsonb"))
+
+
+Index("idx_agent_sessions_agent", AgentSession.agent_id)
+Index("idx_agent_sessions_started", AgentSession.started_at.desc())
+Index("idx_agent_sessions_status", AgentSession.status)
+
+
+class ModelUsage(Base):
+    """P2.2 — Tracks model invocation cost/latency."""
+    __tablename__ = "model_usage"
+
+    id: Mapped[Any] = mapped_column(UUID(as_uuid=True), primary_key=True, server_default=text("uuid_generate_v4()"))
+    model: Mapped[str] = mapped_column(String(100), nullable=False)
+    provider: Mapped[str | None] = mapped_column(String(50))
+    input_tokens: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    output_tokens: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    cost_usd: Mapped[float] = mapped_column(Numeric(10, 6), server_default=text("0"))
+    latency_ms: Mapped[int | None] = mapped_column(Integer)
+    success: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
+    error_message: Mapped[str | None] = mapped_column(Text)
+    session_id: Mapped[Any | None] = mapped_column(UUID(as_uuid=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("NOW()"))
+
+
+Index("idx_model_usage_model", ModelUsage.model)
+Index("idx_model_usage_created", ModelUsage.created_at.desc())
+Index("idx_model_usage_session", ModelUsage.session_id)
+
+
+class RateLimit(Base):
+    """P2.3 — Per-skill rate limit tracking."""
+    __tablename__ = "rate_limits"
+
+    id: Mapped[Any] = mapped_column(UUID(as_uuid=True), primary_key=True, server_default=text("uuid_generate_v4()"))
+    skill: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    last_action: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    action_count: Mapped[int] = mapped_column(Integer, server_default=text("0"))
+    window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("NOW()"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("NOW()"))
+    last_post: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=text("NOW()"))
+
+
+Index("idx_rate_limits_skill", RateLimit.skill)
+
+
 def _as_async_url(database_url: str) -> str:
     if database_url.startswith("postgresql+asyncpg://"):
         return database_url

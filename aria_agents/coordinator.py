@@ -50,25 +50,36 @@ class LLMAgent(BaseAgent):
         self.add_to_context(user_msg)
         
         # Get the right LLM skill based on model config
-        # Priority: Local MLX > OpenRouter FREE > Kimi (paid)
+        # All models route through litellm proxy now (single gateway)
         llm_skill = None
         if self._skill_registry:
             model_id = normalize_model_id(self.config.model)
             route_skill = get_route_skill(model_id)
 
-            if route_skill == "moonshot":
-                llm_skill = self._skill_registry.get("moonshot")
+            if route_skill == "litellm":
+                # Preferred: everything through litellm proxy
+                llm_skill = self._skill_registry.get("litellm")
+            elif route_skill == "moonshot":
+                # Legacy: direct moonshot SDK (fallback if litellm down)
+                llm_skill = self._skill_registry.get("litellm") or self._skill_registry.get("moonshot")
             elif route_skill == "ollama":
-                llm_skill = self._skill_registry.get("ollama")
-            elif route_skill == "auto":
-                llm_skill = self._skill_registry.get("ollama") or self._skill_registry.get("moonshot")
+                # Legacy: direct ollama (fallback if litellm down)
+                llm_skill = self._skill_registry.get("litellm") or self._skill_registry.get("ollama")
             else:
-                # Default: try local first, then cloud
-                llm_skill = self._skill_registry.get("ollama") or self._skill_registry.get("moonshot")
+                # Default: litellm → ollama → moonshot
+                llm_skill = (
+                    self._skill_registry.get("litellm")
+                    or self._skill_registry.get("ollama")
+                    or self._skill_registry.get("moonshot")
+                )
 
-            # Fallback if routed skill is missing
+            # Final fallback chain
             if not llm_skill:
-                llm_skill = self._skill_registry.get("moonshot") or self._skill_registry.get("ollama")
+                llm_skill = (
+                    self._skill_registry.get("litellm")
+                    or self._skill_registry.get("moonshot")
+                    or self._skill_registry.get("ollama")
+                )
         
         if not llm_skill:
             self.logger.warning("No LLM skill available, returning placeholder")

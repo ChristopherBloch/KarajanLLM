@@ -254,18 +254,18 @@ class ModelSwitcherSkill(BaseSkill):
         """
         mode_name = "thinking" if self._thinking_enabled else "no_think"
         
+        # Read supported models from aria_models catalog (single source of truth)
+        try:
+            from aria_models.loader import list_models_with_reasoning
+            supported = list_models_with_reasoning()
+        except Exception:
+            supported = list(self._available_models.keys())
+        
         return SkillResult.ok({
             "thinking_enabled": self._thinking_enabled,
             "mode": mode_name,
             "current_model": self._current_model,
-            "supported_models": [
-                "deepseek-free",   # DeepSeek R1 - native thinking
-                "chimera-free",    # R1T2 Chimera - reasoning
-                "qwen3-mlx",       # Qwen3 - /think support
-                "qwen3-coder-free", # Qwen3 Coder - /think support
-                "qwen3-next-free", # Qwen3 Next - /think support
-                "glm-free",        # GLM 4.5 - thinking mode
-            ],
+            "supported_models": supported,
             "usage": {
                 "thinking_on": "Complex reasoning, code review, math, analysis, debugging",
                 "thinking_off": "Simple queries, status checks, facts, faster responses",

@@ -14,13 +14,13 @@
     },
     {
       "name": "switch_model",
-      "description": "Switch to a different LLM model. Use trinity-free for creative, qwen3-coder-free for code, deepseek-free for reasoning.",
+      "description": "Switch to a different LLM model. All models defined in aria_models/models.yaml. Use list_models to see current catalog.",
       "parameters": {
         "type": "object",
         "properties": {
           "model": {
             "type": "string",
-            "description": "Model alias (trinity-free, chimera-free, qwen3-coder-free, deepseek-free, etc.)"
+            "description": "Model ID from aria_models/models.yaml catalog (use list_models to see available)"
           },
           "reason": {
             "type": "string",

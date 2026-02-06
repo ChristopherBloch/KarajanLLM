@@ -1,10 +1,13 @@
 from .loader import (
     build_agent_aliases,
     build_agent_routing,
+    build_litellm_config_entries,
     build_litellm_models,
     get_focus_default,
     get_model_entry,
     get_route_skill,
+    list_all_model_ids,
+    list_models_with_reasoning,
     load_catalog,
     normalize_model_id,
 )
@@ -12,10 +15,13 @@ from .loader import (
 __all__ = [
     "build_agent_aliases",
     "build_agent_routing",
+    "build_litellm_config_entries",
     "build_litellm_models",
     "get_focus_default",
     "get_model_entry",
     "get_route_skill",
+    "list_all_model_ids",
+    "list_models_with_reasoning",
     "load_catalog",
     "normalize_model_id",
 ]

@@ -98,6 +98,63 @@ def build_agent_routing(catalog: Optional[Dict[str, Any]] = None) -> Dict[str, A
     }
 
 
+def list_all_model_ids(catalog: Optional[Dict[str, Any]] = None) -> list[str]:
+    """Return all model IDs from the catalog (including aliases)."""
+    catalog = catalog or load_catalog()
+    models = catalog.get("models", {}) if catalog else {}
+    ids: list[str] = []
+    for model_id, entry in models.items():
+        ids.append(model_id)
+        for alias in entry.get("aliases", []):
+            ids.append(alias)
+    return ids
+
+
+def list_models_with_reasoning(catalog: Optional[Dict[str, Any]] = None) -> list[str]:
+    """Return model IDs that support reasoning/thinking mode."""
+    catalog = catalog or load_catalog()
+    models = catalog.get("models", {}) if catalog else {}
+    return [mid for mid, entry in models.items() if entry.get("reasoning")]
+
+
+def build_litellm_config_entries(catalog: Optional[Dict[str, Any]] = None) -> list[dict[str, Any]]:
+    """Generate litellm model_list entries from models.yaml.
+    
+    Each model with a 'litellm' key produces one entry (plus one per alias).
+    This is the bridge that means you only need to edit models.yaml to add a model.
+    """
+    catalog = catalog or load_catalog()
+    models = catalog.get("models", {}) if catalog else {}
+    entries: list[dict[str, Any]] = []
+    
+    for model_id, entry in models.items():
+        litellm_params = entry.get("litellm")
+        if not litellm_params:
+            continue
+        
+        item: dict[str, Any] = {
+            "model_name": model_id,
+            "litellm_params": dict(litellm_params),  # copy
+            "model_info": {"max_tokens": entry.get("contextWindow", 0)},
+        }
+        cost = entry.get("cost", {})
+        if cost.get("input", 0) == 0 and cost.get("output", 0) == 0:
+            item["model_info"]["input_cost_per_token"] = 0
+            item["model_info"]["output_cost_per_token"] = 0
+        entries.append(item)
+        
+        # Also emit alias entries (e.g. kimi-k2.5 → same litellm_params)
+        for alias in entry.get("aliases", []):
+            alias_item = {
+                "model_name": alias,
+                "litellm_params": dict(litellm_params),
+                "model_info": dict(item["model_info"]),
+            }
+            entries.append(alias_item)
+    
+    return entries
+
+
 def get_timeout_seconds(catalog: Optional[Dict[str, Any]] = None) -> int:
     """Get timeout from routing config (for agents.defaults.timeoutSeconds)."""
     catalog = catalog or load_catalog()

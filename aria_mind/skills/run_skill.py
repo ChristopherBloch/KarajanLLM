@@ -66,11 +66,11 @@ SKILL_REGISTRY = {
     # === LLM & Model Management ===
     'llm': ('aria_skills.llm', 'OllamaSkill', lambda: {
         'host': os.environ.get('OLLAMA_URL', 'http://host.docker.internal:11434'),
-        'model': os.environ.get('OLLAMA_MODEL', 'qwen3:latest')
+        'model': os.environ.get('OLLAMA_MODEL', 'qwen3-vl:8b')
     }),
     'moonshot': ('aria_skills.llm', 'MoonshotSkill', lambda: {
-        'api_key': os.environ.get('MOONSHOT_API_KEY'),
-        'model': os.environ.get('MOONSHOT_MODEL', 'moonshot-v1-8k')
+        'api_key': os.environ.get('MOONSHOT_API_KEY') or os.environ.get('MOONSHOT_KIMI_KEY'),
+        'model': os.environ.get('MOONSHOT_MODEL', 'kimi-k2.5')
     }),
     'litellm': ('aria_skills.litellm', 'LiteLLMSkill', lambda: {
         'litellm_url': os.environ.get('LITELLM_URL', 'http://litellm:4000'),

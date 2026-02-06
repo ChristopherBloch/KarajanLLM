@@ -54,10 +54,10 @@ class MoonshotSkill(BaseSkill):
             self._status = SkillStatus.UNAVAILABLE
             return False
         
-        self._model = self.config.config.get("model", "moonshot-v1-8k")
+        self._model = self.config.config.get("model", "kimi-k2.5")
         
         self._client = httpx.AsyncClient(
-            base_url="https://api.moonshot.cn/v1",
+            base_url="https://api.moonshot.ai/v1",
             timeout=120,
             headers={
                 "Authorization": f"Bearer {api_key}",
