@@ -57,7 +57,7 @@ class MoltbookSkill(BaseSkill):
         """Initialize Moltbook skill."""
         self._api_url = self.config.config.get(
             "api_url",
-            os.environ.get("MOLTBOOK_API_URL", "http://localhost:3000/api")
+            os.environ.get("MOLTBOOK_API_URL", "http://aria-api:8000")
         ).rstrip("/")
         
         self._username = self.config.config.get(
@@ -67,7 +67,7 @@ class MoltbookSkill(BaseSkill):
         
         self._api_key = self.config.config.get(
             "api_key",
-            os.environ.get("MOLTBOOK_API_KEY", "")
+            os.environ.get("MOLTBOOK_API_KEY", os.environ.get("MOLTBOOK_TOKEN", ""))
         )
         
         # In-memory storage for demo
@@ -78,14 +78,14 @@ class MoltbookSkill(BaseSkill):
         
         # HTTP client if available
         self._client: Optional["httpx.AsyncClient"] = None
-        if HAS_HTTPX and self._api_key:
+        if HAS_HTTPX:
+            headers = {"Content-Type": "application/json"}
+            if self._api_key:
+                headers["Authorization"] = f"Bearer {self._api_key}"
             self._client = httpx.AsyncClient(
                 base_url=self._api_url,
                 timeout=30,
-                headers={
-                    "Authorization": f"Bearer {self._api_key}",
-                    "Content-Type": "application/json"
-                }
+                headers=headers
             )
         
         self._status = SkillStatus.AVAILABLE
@@ -96,7 +96,7 @@ class MoltbookSkill(BaseSkill):
         """Check Moltbook skill availability."""
         if self._client:
             try:
-                resp = await self._client.get("/health")
+                resp = await self._client.get("/social?limit=1")
                 self._status = SkillStatus.AVAILABLE if resp.status_code == 200 else SkillStatus.ERROR
             except Exception:
                 self._status = SkillStatus.ERROR
@@ -149,10 +149,13 @@ class MoltbookSkill(BaseSkill):
             api_result = None
             if self._client:
                 try:
-                    resp = await self._client.post("/posts", json={
+                    resp = await self._client.post("/social", json={
+                        "platform": "moltbook",
+                        "post_id": post_id,
                         "content": content,
-                        "tags": tags,
-                        "reply_to": reply_to
+                        "visibility": "public",
+                        "reply_to": reply_to,
+                        "metadata": {"tags": tags, "author": self._username}
                     })
                     if resp.status_code == 200:
                         api_result = resp.json()
@@ -186,7 +189,7 @@ class MoltbookSkill(BaseSkill):
             # Try API first
             if self._client:
                 try:
-                    resp = await self._client.get(f"/timeline?limit={limit}")
+                    resp = await self._client.get(f"/social?limit={limit}&platform=moltbook")
                     if resp.status_code == 200:
                         return SkillResult.ok(resp.json())
                 except Exception:
