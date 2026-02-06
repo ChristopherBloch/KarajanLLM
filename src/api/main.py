@@ -2023,7 +2023,7 @@ async def get_jobs_live():
                 "session_target": job.get("sessionTarget"),
                 "wake_mode": job.get("wakeMode"),
                 "payload_kind": payload.get("kind"),
-                "payload_text": payload.get("text"),
+                "payload_text": payload.get("message") or payload.get("text"),
                 "next_run_at": datetime.fromtimestamp(state.get("nextRunAtMs", 0) / 1000).isoformat() if state.get("nextRunAtMs") else None,
                 "last_run_at": datetime.fromtimestamp(state.get("lastRunAtMs", 0) / 1000).isoformat() if state.get("lastRunAtMs") else None,
                 "last_status": state.get("lastStatus"),
