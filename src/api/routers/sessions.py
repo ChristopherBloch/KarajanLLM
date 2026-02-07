@@ -124,6 +124,22 @@ async def get_session_stats(db: AsyncSession = Depends(get_db)):
         for r in by_agent_result.all()
     ]
 
+    by_status_result = await db.execute(
+        select(
+            AgentSession.status,
+            func.count(AgentSession.id).label("count"),
+        ).group_by(AgentSession.status)
+    )
+    by_status = [{"status": r[0], "count": r[1]} for r in by_status_result.all()]
+
+    by_type_result = await db.execute(
+        select(
+            AgentSession.session_type,
+            func.count(AgentSession.id).label("count"),
+        ).group_by(AgentSession.session_type)
+    )
+    by_type = [{"type": r[0], "count": r[1]} for r in by_type_result.all()]
+
     # Enrich with LiteLLM totals
     litellm_tokens = 0
     litellm_cost = 0.0
@@ -153,6 +169,8 @@ async def get_session_stats(db: AsyncSession = Depends(get_db)):
         "total_tokens": total_tokens + litellm_tokens,
         "total_cost": float(total_cost) + litellm_cost,
         "by_agent": by_agent,
+        "by_status": by_status,
+        "by_type": by_type,
         "litellm": {
             "sessions": litellm_sessions,
             "tokens": litellm_tokens,

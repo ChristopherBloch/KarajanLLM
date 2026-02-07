@@ -3,307 +3,136 @@
 
 {% block extra_css %}
 <style>
-    .performance-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-    .performance-header h1 {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
-    }
-    .stat-card {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        padding: 1.25rem;
-        text-align: center;
-    }
-    .stat-card .icon {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }
-    .stat-card .value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--accent-primary);
-    }
-    .stat-card .label {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-    }
-    .tabs {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 0.5rem;
-    }
-    .tab-btn {
-        padding: 0.5rem 1rem;
-        background: none;
-        border: none;
-        color: var(--text-secondary);
-        cursor: pointer;
-        border-radius: var(--radius-md);
-        transition: all 0.2s;
-    }
-    .tab-btn:hover {
-        background: var(--bg-tertiary);
-    }
-    .tab-btn.active {
-        background: var(--accent-primary);
-        color: white;
-    }
-    .tab-content {
-        display: none;
-    }
-    .tab-content.active {
-        display: block;
-    }
-    .performance-list {
-        display: grid;
-        gap: 1rem;
-    }
-    .performance-card {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-    }
-    .performance-card-header {
-        padding: 1rem 1.25rem;
-        background: var(--bg-tertiary);
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .performance-period {
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    .performance-date {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-    }
-    .performance-card-body {
-        padding: 1.25rem;
-    }
-    .performance-section {
-        margin-bottom: 1rem;
-    }
-    .performance-section:last-child {
-        margin-bottom: 0;
-    }
-    .performance-section h4 {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        margin-bottom: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    .performance-section-content {
-        padding: 0.75rem;
-        background: var(--bg-primary);
-        border-radius: var(--radius-md);
-        font-size: 0.9rem;
-        line-height: 1.6;
-        white-space: pre-wrap;
-    }
-    .performance-section-content.success {
-        border-left: 3px solid #10b981;
-    }
-    .performance-section-content.failure {
-        border-left: 3px solid #ef4444;
-    }
-    .performance-section-content.improvement {
-        border-left: 3px solid #f59e0b;
-    }
-    .empty-state {
-        text-align: center;
-        padding: 3rem;
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        color: var(--text-muted);
-    }
-    .btn-add {
-        padding: 0.5rem 1rem;
-        background: var(--accent-primary);
-        color: white;
-        border: none;
-        border-radius: var(--radius-md);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.6);
-        z-index: 1000;
-        align-items: center;
-        justify-content: center;
-    }
-    .modal.active {
-        display: flex;
-    }
-    .modal-content {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        padding: 1.5rem;
-        width: 100%;
-        max-width: 600px;
-        margin: 1rem;
-        max-height: 90vh;
-        overflow-y: auto;
-    }
-    .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-    }
-    .modal-close {
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        cursor: pointer;
-        color: var(--text-muted);
-    }
-    .form-group {
-        margin-bottom: 1rem;
-    }
-    .form-group label {
-        display: block;
-        margin-bottom: 0.25rem;
-        font-weight: 500;
-        font-size: 0.9rem;
-    }
-    .form-group input, .form-group select, .form-group textarea {
-        width: 100%;
-        padding: 0.5rem 0.75rem;
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-        background: var(--bg-primary);
-        color: var(--text-primary);
-    }
-    .form-group textarea {
-        min-height: 80px;
-        resize: vertical;
-    }
-    .btn-primary {
-        width: 100%;
-        padding: 0.75rem;
-        background: var(--accent-primary);
-        color: white;
-        border: none;
-        border-radius: var(--radius-md);
-        cursor: pointer;
-        font-weight: 500;
-    }
-    /* Tasks Section */
-    .task-card {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-        padding: 1rem;
-        margin-bottom: 0.75rem;
-    }
-    .task-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 0.5rem;
-    }
-    .task-title {
-        font-weight: 600;
-    }
-    .task-status {
-        font-size: 0.75rem;
-        padding: 0.2rem 0.5rem;
-        border-radius: var(--radius-sm);
-    }
-    .task-status.pending {
-        background: rgba(245, 158, 11, 0.2);
-        color: #f59e0b;
-    }
-    .task-status.in_progress {
-        background: rgba(59, 130, 246, 0.2);
-        color: #3b82f6;
-    }
-    .task-status.completed {
-        background: rgba(16, 185, 129, 0.2);
-        color: #10b981;
-    }
-    .task-meta {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
+    .page-controls { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 0; margin-bottom: 25px; border-bottom: 2px solid var(--border-color); }
+    .tab-btn { padding: 12px 24px; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; color: var(--text-secondary); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+    .tab-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.03); }
+    .tab-btn.active { color: var(--accent-primary); border-bottom-color: var(--accent-primary); }
+    .tab-btn .badge { font-size: 11px; padding: 2px 7px; border-radius: 10px; background: rgba(124,58,237,0.15); color: #a855f7; font-weight: 700; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .stat-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 18px; }
+    .stat-card h4 { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.03em; }
+    .stat-card .value { font-size: 22px; font-weight: 700; color: var(--text-primary); }
+    .stat-card.blue .value { color: var(--accent-blue); }
+    .stat-card.green .value { color: var(--success); }
+    .stat-card.purple .value { color: #a855f7; }
+    .stat-card.orange .value { color: #f59e0b; }
+
+    /* Charts */
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+    .chart-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; }
+    .chart-card h4 { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; }
+    .chart-card canvas { max-height: 250px; }
+
+    /* Performance Cards */
+    .section-title { font-size: 15px; font-weight: 600; margin: 20px 0 12px; display: flex; align-items: center; gap: 8px; }
+    .performance-list { display: grid; gap: 12px; }
+    .performance-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; }
+    .performance-card-header { padding: 12px 16px; background: rgba(0,0,0,0.15); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+    .performance-period { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+    .performance-date { font-size: 11px; color: var(--text-muted); }
+    .performance-card-body { padding: 14px 16px; }
+    .performance-section { margin-bottom: 10px; }
+    .performance-section:last-child { margin-bottom: 0; }
+    .performance-section h4 { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .performance-section-content { padding: 8px 12px; background: var(--bg-primary); border-radius: 8px; font-size: 13px; line-height: 1.6; white-space: pre-wrap; }
+    .performance-section-content.success { border-left: 3px solid #22c55e; }
+    .performance-section-content.failure { border-left: 3px solid #ef4444; }
+    .performance-section-content.improvement { border-left: 3px solid #f59e0b; }
+
+    /* Task Cards */
+    .task-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+    .task-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .task-title { font-weight: 600; font-size: 14px; }
+    .task-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+    .task-status.pending { background: rgba(245,158,11,0.2); color: #f59e0b; }
+    .task-status.in_progress { background: rgba(59,130,246,0.2); color: #3b82f6; }
+    .task-status.completed { background: rgba(34,197,94,0.2); color: #22c55e; }
+    .task-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .empty-state { text-align: center; padding: 50px 20px; color: var(--text-secondary); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; }
+
+    /* Modal */
+    .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
+    .modal.active { display: flex; }
+    .modal-content { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; width: 100%; max-width: 600px; margin: 1rem; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 13px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-primary); color: var(--text-primary); font-size: 13px; }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+
+    .btn-add { padding: 8px 16px; background: var(--accent-primary); color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+
+    @media (max-width: 768px) { .charts-row { grid-template-columns: 1fr; } .tabs { overflow-x: auto; } .tab-btn { padding: 10px 16px; font-size: 13px; white-space: nowrap; } }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="performance-header">
-    <h1>📊 Performance & Tasks</h1>
-    <button class="btn-add" onclick="showAddReviewModal()">
-        ➕ Add Review
-    </button>
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+    <div>
+        <h1>📊 Performance & Tasks</h1>
+        <p>Track reviews, tasks & performance analytics</p>
+    </div>
+    <button class="btn-add" onclick="showAddReviewModal()">➕ Add Review</button>
 </div>
 
 <div class="stats-grid">
-    <div class="stat-card">
-        <div class="icon">📋</div>
+    <div class="stat-card blue">
+        <h4>Reviews</h4>
         <div class="value" id="review-count">-</div>
-        <div class="label">Performance Reviews</div>
     </div>
-    <div class="stat-card">
-        <div class="icon">⏳</div>
+    <div class="stat-card orange">
+        <h4>Pending Tasks</h4>
         <div class="value" id="pending-tasks">-</div>
-        <div class="label">Pending Tasks</div>
     </div>
-    <div class="stat-card">
-        <div class="icon">✅</div>
+    <div class="stat-card purple">
+        <h4>In Progress</h4>
+        <div class="value" id="inprogress-tasks">-</div>
+    </div>
+    <div class="stat-card green">
+        <h4>Completed Tasks</h4>
         <div class="value" id="completed-tasks">-</div>
-        <div class="label">Completed Tasks</div>
     </div>
 </div>
 
+<!-- Tabs -->
 <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('reviews', this)">📊 Performance Reviews</button>
-    <button class="tab-btn" onclick="switchTab('tasks', this)">📋 Complex Tasks</button>
+    <button class="tab-btn active" data-tab="reviews">
+        📊 Reviews <span class="badge" id="tab-badge-reviews">-</span>
+    </button>
+    <button class="tab-btn" data-tab="tasks">
+        📋 Tasks <span class="badge" id="tab-badge-tasks">-</span>
+    </button>
 </div>
 
-<div class="tab-content active" id="reviews-tab">
+<!-- ═══ REVIEWS TAB ═══ -->
+<div class="tab-panel active" id="panel-reviews">
+    <div class="charts-row">
+        <div class="chart-card">
+            <h4>📊 Reviews by Period</h4>
+            <canvas id="chart-review-periods"></canvas>
+        </div>
+        <div class="chart-card">
+            <h4>📈 Task Status Distribution</h4>
+            <canvas id="chart-task-status"></canvas>
+        </div>
+    </div>
+    <h3 class="section-title">📝 Performance Reviews</h3>
     <div class="performance-list" id="reviews-list">
         <div class="empty-state">Loading performance reviews...</div>
     </div>
 </div>
 
-<div class="tab-content" id="tasks-tab">
+<!-- ═══ TASKS TAB ═══ -->
+<div class="tab-panel" id="panel-tasks">
     <div class="performance-list" id="tasks-list">
         <div class="empty-state">Loading tasks...</div>
     </div>
@@ -338,97 +167,127 @@
                 <label>💡 Improvements / Learnings</label>
                 <textarea id="review-improvements" placeholder="What can be improved? Key learnings?"></textarea>
             </div>
-            <button type="submit" class="btn-primary">Save Review</button>
+            <button type="submit" class="btn btn-primary" style="width:100%">Save Review</button>
         </form>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-const API_BASE = '{{ api_base_url }}';
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script data-page-script>
+// ── Globals ─────────────────────────────────────────────────────────────────
+let _reviews = [];
+let _tasks = [];
+let _charts = {};
 
+// ── Tabs ────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    });
+});
+
+// ── Load Data ───────────────────────────────────────────────────────────────
 async function loadPerformance() {
     try {
         const [reviewsRes, tasksRes] = await Promise.all([
-            fetch(`${API_BASE}/performance`),
-            fetch(`${API_BASE}/tasks`)
+            fetch(`${API_BASE_URL}/performance`),
+            fetch(`${API_BASE_URL}/tasks`)
         ]);
-        
         const reviewsData = await reviewsRes.json();
         const tasksData = await tasksRes.json();
-        
-        const reviews = reviewsData.logs || [];
-        const tasks = tasksData.tasks || [];
-        
-        document.getElementById('review-count').textContent = reviews.length;
-        document.getElementById('pending-tasks').textContent = tasks.filter(t => t.status === 'pending').length;
-        document.getElementById('completed-tasks').textContent = tasks.filter(t => t.status === 'completed').length;
-        
-        renderReviews(reviews);
-        renderTasks(tasks);
-    } catch (error) {
-        console.error('Failed to load performance data:', error);
+
+        _reviews = reviewsData.logs || [];
+        _tasks = tasksData.tasks || [];
+
+        // Stats
+        const pending = _tasks.filter(t => t.status === 'pending').length;
+        const inProgress = _tasks.filter(t => t.status === 'in_progress').length;
+        const completed = _tasks.filter(t => t.status === 'completed').length;
+
+        document.getElementById('review-count').textContent = _reviews.length;
+        document.getElementById('pending-tasks').textContent = pending;
+        document.getElementById('inprogress-tasks').textContent = inProgress;
+        document.getElementById('completed-tasks').textContent = completed;
+        document.getElementById('tab-badge-reviews').textContent = _reviews.length;
+        document.getElementById('tab-badge-tasks').textContent = _tasks.length;
+
+        renderReviews();
+        renderTasks();
+        renderCharts(pending, inProgress, completed);
+    } catch (e) {
+        console.error('Failed to load performance data:', e);
     }
 }
 
-function renderReviews(reviews) {
+// ── Charts ──────────────────────────────────────────────────────────────────
+function renderCharts(pending, inProgress, completed) {
+    // Review by period type
+    const periodCounts = {};
+    _reviews.forEach(r => {
+        const p = r.review_period || 'unknown';
+        periodCounts[p] = (periodCounts[p] || 0) + 1;
+    });
+    const periodLabels = Object.keys(periodCounts);
+    if (periodLabels.length > 0) {
+        renderChart('chart-review-periods', 'bar', {
+            labels: periodLabels,
+            datasets: [{
+                label: 'Reviews',
+                data: Object.values(periodCounts),
+                backgroundColor: ['#3b82f6', '#a855f7', '#f59e0b', '#22c55e'],
+                borderRadius: 6,
+            }]
+        });
+    }
+
+    // Task status doughnut
+    const taskData = [pending, inProgress, completed].some(v => v > 0)
+        ? [pending, inProgress, completed] : [0, 0, 0];
+    renderChart('chart-task-status', 'doughnut', {
+        labels: ['Pending', 'In Progress', 'Completed'],
+        datasets: [{
+            data: taskData,
+            backgroundColor: ['#f59e0b', '#3b82f6', '#22c55e'],
+            borderWidth: 0,
+        }]
+    });
+}
+
+// ── Render Reviews ──────────────────────────────────────────────────────────
+function renderReviews() {
     const container = document.getElementById('reviews-list');
-    
-    if (reviews.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <h3>No performance reviews yet</h3>
-                <p>Start tracking Aria's performance by adding the first review!</p>
-            </div>
-        `;
+    if (_reviews.length === 0) {
+        container.innerHTML = '<div class="empty-state"><h3>No performance reviews yet</h3><p>Start tracking by adding the first review!</p></div>';
         return;
     }
-    
-    container.innerHTML = reviews.map(review => `
+    container.innerHTML = _reviews.map(review => `
         <div class="performance-card">
             <div class="performance-card-header">
                 <span class="performance-period">📅 ${review.review_period} Review</span>
-                <span class="performance-date">${new Date(review.created_at).toLocaleString()}</span>
+                <span class="performance-date">${formatDate(review.created_at)}</span>
             </div>
             <div class="performance-card-body">
-                ${review.successes ? `
-                    <div class="performance-section">
-                        <h4>✅ Successes</h4>
-                        <div class="performance-section-content success">${escapeHtml(review.successes)}</div>
-                    </div>
-                ` : ''}
-                ${review.failures ? `
-                    <div class="performance-section">
-                        <h4>❌ Failures / Challenges</h4>
-                        <div class="performance-section-content failure">${escapeHtml(review.failures)}</div>
-                    </div>
-                ` : ''}
-                ${review.improvements ? `
-                    <div class="performance-section">
-                        <h4>💡 Improvements</h4>
-                        <div class="performance-section-content improvement">${escapeHtml(review.improvements)}</div>
-                    </div>
-                ` : ''}
+                ${review.successes ? `<div class="performance-section"><h4>✅ Successes</h4><div class="performance-section-content success">${escapeHtml(review.successes)}</div></div>` : ''}
+                ${review.failures ? `<div class="performance-section"><h4>❌ Failures / Challenges</h4><div class="performance-section-content failure">${escapeHtml(review.failures)}</div></div>` : ''}
+                ${review.improvements ? `<div class="performance-section"><h4>💡 Improvements</h4><div class="performance-section-content improvement">${escapeHtml(review.improvements)}</div></div>` : ''}
             </div>
         </div>
     `).join('');
 }
 
-function renderTasks(tasks) {
+// ── Render Tasks ────────────────────────────────────────────────────────────
+function renderTasks() {
     const container = document.getElementById('tasks-list');
-    
-    if (tasks.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <h3>No complex tasks</h3>
-                <p>Complex tasks assigned to Aria will appear here.</p>
-            </div>
-        `;
+    if (_tasks.length === 0) {
+        container.innerHTML = '<div class="empty-state"><h3>No complex tasks</h3><p>Complex tasks assigned to Aria will appear here.</p></div>';
         return;
     }
-    
-    container.innerHTML = tasks.map(task => `
+    container.innerHTML = _tasks.map(task => `
         <div class="task-card">
             <div class="task-header">
                 <span class="task-title">${escapeHtml(task.description)}</span>
@@ -438,51 +297,47 @@ function renderTasks(tasks) {
                 <span>🏷️ ${task.task_type}</span>
                 <span>🤖 ${task.agent_type}</span>
                 <span>⚡ ${task.priority}</span>
-                <span>📅 ${new Date(task.created_at).toLocaleString()}</span>
+                <span>📅 ${formatDate(task.created_at)}</span>
             </div>
-            ${task.result ? `<div style="margin-top: 0.5rem; padding: 0.5rem; background: var(--bg-tertiary); border-radius: var(--radius-sm); font-size: 0.85rem;">📝 ${escapeHtml(task.result)}</div>` : ''}
+            ${task.result ? `<div style="margin-top:6px;padding:8px 12px;background:var(--bg-primary);border-radius:8px;font-size:13px">📝 ${escapeHtml(task.result)}</div>` : ''}
         </div>
     `).join('');
 }
 
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+// ── Chart Helper ────────────────────────────────────────────────────────────
+function renderChart(canvasId, type, data, extra = {}) {
+    if (_charts[canvasId]) _charts[canvasId].destroy();
+    const ctx = document.getElementById(canvasId)?.getContext('2d');
+    if (!ctx) return;
+    const isDoughnut = type === 'doughnut';
+    const options = {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: isDoughnut, position: 'bottom', labels: { color: '#9ca3af', font: { size: 12 } } } },
+        scales: isDoughnut ? {} : {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 11 } } },
+            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 11 } } },
+        },
+    };
+    if (extra.indexAxis) options.indexAxis = extra.indexAxis;
+    _charts[canvasId] = new Chart(ctx, { type, data, options });
 }
 
-function switchTab(tab, btn) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    
-    btn.classList.add('active');
-    document.getElementById(`${tab}-tab`).classList.add('active');
-}
-
-function showAddReviewModal() {
-    document.getElementById('add-review-modal').classList.add('active');
-}
-
-function closeModal(id) {
-    document.getElementById(id).classList.remove('active');
-}
+// ── Modal ────────────────────────────────────────────────────────────────────
+function showAddReviewModal() { document.getElementById('add-review-modal').classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
 async function addReview(event) {
     event.preventDefault();
-    
     const review_period = document.getElementById('review-period').value;
     const successes = document.getElementById('review-successes').value;
     const failures = document.getElementById('review-failures').value;
     const improvements = document.getElementById('review-improvements').value;
-    
     try {
-        const response = await fetch(`${API_BASE}/performance`, {
+        const response = await fetch(`${API_BASE_URL}/performance`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ review_period, successes, failures, improvements })
         });
-        
         if (response.ok) {
             closeModal('add-review-modal');
             document.getElementById('review-successes').value = '';
@@ -490,12 +345,14 @@ async function addReview(event) {
             document.getElementById('review-improvements').value = '';
             loadPerformance();
         }
-    } catch (error) {
-        console.error('Failed to add review:', error);
-    }
+    } catch (e) { console.error('Failed to add review:', e); }
 }
 
-// Initialize
-document.addEventListener('DOMContentLoaded', loadPerformance);
+// ── Init ────────────────────────────────────────────────────────────────────
+async function init() {
+    await AriaModels.init();
+    loadPerformance();
+}
+init();
 </script>
 {% endblock %}
