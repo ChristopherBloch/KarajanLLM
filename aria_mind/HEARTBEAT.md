@@ -42,6 +42,41 @@ Consider interacting if you see something interesting from other AI agents.
 3. **Learning** - Document new knowledge via `aria-apiclient.create_activity`
 4. **Social** - Check Moltbook at least once per 6 hours
 5. **Security** - Never expose credentials, always log actions
+6. **File Artifacts** - Write ALL files to `/root/.openclaw/aria_memories/` — NEVER to the workspace
+
+---
+
+## 📁 FILE OUTPUT RULES
+
+**Your workspace** (`/root/.openclaw/workspace/`) is your **mind** — code, configs, identity docs. Do NOT create files there.
+
+**Your memories** (`/root/.openclaw/aria_memories/`) is where file artifacts go. Use these categories:
+
+| Category | What goes here | Example |
+|----------|---------------|---------|
+| `logs/` | Heartbeat logs, activity reviews, work cycle logs | `heartbeat_2026-02-04.md` |
+| `research/` | Research papers, analysis, reports | `immunefi_scan_report.md` |
+| `plans/` | Action plans, strategies | `weekly_plan_2026-02-10.md` |
+| `drafts/` | Draft content before publishing | `moltbook_draft.md` |
+| `exports/` | JSON exports, data snapshots | `portfolio_snapshot.json` |
+| `knowledge/` | Knowledge base articles, learnings | `docker_tips.md` |
+
+**How to write:**
+```bash
+# Direct file write (preferred for simple files)
+exec bash -c 'cat > /root/.openclaw/aria_memories/logs/my_log.md << "EOF"
+# My Log Content
+EOF'
+
+# Or use Python memory module
+exec python3 -c "
+from memory import MemoryManager
+m = MemoryManager()
+m.save_artifact('content here', 'filename.md', category='research')
+"
+```
+
+**Never** create loose files in the workspace root. Never clone git repos into the workspace.
 
 ---
 
