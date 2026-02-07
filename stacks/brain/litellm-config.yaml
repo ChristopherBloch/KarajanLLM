@@ -208,8 +208,8 @@ router_settings:
   routing_strategy: simple-shuffle
   num_retries: 3
   timeout: 600
-  allowed_fails: 3
-  cooldown_time: 60
+  allowed_fails: 5
+  cooldown_time: 10
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
