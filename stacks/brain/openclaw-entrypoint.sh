@@ -50,6 +50,27 @@ else
     echo "OpenClaw installed: $(openclaw --version 2>/dev/null)"
 fi
 
+# ── Fix: OpenClaw UI sends NaN for empty optional number fields ──────
+# The Control UI form serialises empty number inputs as NaN via Number("").
+# Zod's z.coerce.number().positive().optional() rejects NaN before
+# applyModelDefaults() can fill in sensible values.
+# Fix: append .catch(undefined) so NaN gracefully becomes undefined.
+# Upstream bug: https://github.com/openclaw/openclaw  (ui/src/ui/views/config-form.node.ts renderNumberInput)
+# Affects: config-*.js in dist/ (3 files, identical schema)
+OC_DIST="/usr/local/lib/node_modules/openclaw/dist"
+if [ -d "$OC_DIST" ]; then
+    echo "Applying NaN-safe Zod fix to OpenClaw config schemas..."
+    for f in "$OC_DIST"/config-*.js; do
+        [ -f "$f" ] || continue
+        sed -i \
+            -e 's/z\.coerce\.number()\.int()\.positive()\.optional()/z.coerce.number().int().positive().optional().catch(undefined)/g' \
+            -e 's/z\.coerce\.number()\.positive()\.optional()/z.coerce.number().positive().optional().catch(undefined)/g' \
+            -e 's/z\.coerce\.number()\.optional()/z.coerce.number().optional().catch(undefined)/g' \
+            "$f"
+    done
+    echo "  NaN-safe fix applied to config-*.js"
+fi
+
 # Create directories
 mkdir -p /root/.openclaw
 mkdir -p /root/.openclaw/workspace/skills
@@ -114,20 +135,6 @@ pip3 install --break-system-packages --quiet \
     pytest-cov \
     structlog \
     prometheus_client || echo "Warning: Some Python packages failed to install"
-
-# Apply OpenClaw patch if present (idempotent)
-# PATCH_MARKER_DIR="/root/.openclaw/.patches"
-# PATCH_MARKER="$PATCH_MARKER_DIR/openclaw-litellm-fix"
-# PATCH_SCRIPT="/root/.openclaw/patches/openclaw_patch.js"
-# if [ -f "$PATCH_SCRIPT" ]; then
-#   mkdir -p "$PATCH_MARKER_DIR"
-#   if [ ! -f "$PATCH_MARKER" ]; then
-#     echo "Applying OpenClaw patch..."
-#     node "$PATCH_SCRIPT" && touch "$PATCH_MARKER"
-#   else
-#     echo "OpenClaw patch already applied"
-#   fi
-# fi
 
 # Create a Python skill runner script with DYNAMIC skill loading
 cat > /root/.openclaw/workspace/skills/run_skill.py << 'PYEOF'
