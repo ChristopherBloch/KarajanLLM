@@ -28,7 +28,7 @@ Usage:
     await moltbook.post_status("Hello world!")
 """
 
-__version__ = "2.0.0"
+__version__ = "3.0.0"
 
 from aria_skills.base import BaseSkill, SkillConfig, SkillResult, SkillStatus
 from aria_skills.registry import SkillRegistry

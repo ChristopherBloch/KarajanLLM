@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from typing import Any, Optional
 
 from aria_skills.base import BaseSkill, SkillConfig, SkillResult, SkillStatus
+from aria_skills.registry import SkillRegistry
 
 
 @dataclass
@@ -38,6 +39,7 @@ class Campaign:
     status: str = "planned"  # planned, active, completed
 
 
+@SkillRegistry.register
 class CommunitySkill(BaseSkill):
     """
     Community management and growth.

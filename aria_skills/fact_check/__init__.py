@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Any, Optional
 
 from aria_skills.base import BaseSkill, SkillConfig, SkillResult, SkillStatus
+from aria_skills.registry import SkillRegistry
 
 
 @dataclass
@@ -45,6 +46,7 @@ class FactCheckResult:
     checked_at: datetime = field(default_factory=datetime.utcnow)
 
 
+@SkillRegistry.register
 class FactCheckSkill(BaseSkill):
     """
     Fact verification and claim checking.

@@ -691,6 +691,174 @@ class AriaAPIClient(BaseSkill):
             return SkillResult.fail(f"Failed to sync jobs: {e}")
     
     # ========================================
+    # Agent Sessions
+    # ========================================
+    async def get_sessions(
+        self,
+        limit: int = 100,
+        status: Optional[str] = None,
+    ) -> SkillResult:
+        """Get agent sessions."""
+        try:
+            url = f"/sessions?limit={limit}"
+            if status:
+                url += f"&status={status}"
+            resp = await self._client.get(url)
+            resp.raise_for_status()
+            return SkillResult.ok(resp.json())
+        except Exception as e:
+            return SkillResult.fail(f"Failed to get sessions: {e}")
+
+    async def create_session(
+        self,
+        agent_id: str,
+        session_type: str = "interactive",
+        metadata: Optional[Dict] = None,
+    ) -> SkillResult:
+        """Start a new agent session."""
+        try:
+            resp = await self._client.post("/sessions", json={
+                "agent_id": agent_id,
+                "session_type": session_type,
+                "metadata": metadata or {},
+            })
+            resp.raise_for_status()
+            return SkillResult.ok(resp.json())
+        except Exception as e:
+            return SkillResult.fail(f"Failed to create session: {e}")
+
+    async def update_session(
+        self,
+        session_id: str,
+        status: Optional[str] = None,
+        messages_count: Optional[int] = None,
+        tokens_used: Optional[int] = None,
+        cost_usd: Optional[float] = None,
+    ) -> SkillResult:
+        """Update agent session."""
+        try:
+            data = {}
+            if status is not None:
+                data["status"] = status
+            if messages_count is not None:
+                data["messages_count"] = messages_count
+            if tokens_used is not None:
+                data["tokens_used"] = tokens_used
+            if cost_usd is not None:
+                data["cost_usd"] = cost_usd
+            resp = await self._client.patch(f"/sessions/{session_id}", json=data)
+            resp.raise_for_status()
+            return SkillResult.ok(resp.json())
+        except Exception as e:
+            return SkillResult.fail(f"Failed to update session: {e}")
+
+    async def get_session_stats(self) -> SkillResult:
+        """Get session statistics."""
+        try:
+            resp = await self._client.get("/sessions/stats")
+            resp.raise_for_status()
+            return SkillResult.ok(resp.json())
+        except Exception as e:
+            return SkillResult.fail(f"Failed to get session stats: {e}")
+
+    # ========================================
+    # Model Usage
+    # ========================================
+    async def get_model_usage(self, limit: int = 100) -> SkillResult:
+        """Get model usage records."""
+        try:
+            resp = await self._client.get(f"/model-usage?limit={limit}")
+            resp.raise_for_status()
+            return SkillResult.ok(resp.json())
+        except Exception as e:
+            return SkillResult.fail(f"Failed to get model usage: {e}")
+
+    async def create_model_usage(
+        self,
+        model: str,
+        provider: Optional[str] = None,
+        input_tokens: int = 0,
+        output_tokens: int = 0,
+        cost_usd: float = 0.0,
+        latency_ms: Optional[int] = None,
+        success: bool = True,
+        error_message: Optional[str] = None,
+        session_id: Optional[str] = None,
+    ) -> SkillResult:
+        """Log model usage."""
+        try:
+            data: Dict[str, Any] = {
+                "model": model,
+                "provider": provider,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "cost_usd": cost_usd,
+                "success": success,
+            }
+            if latency_ms is not None:
+                data["latency_ms"] = latency_ms
+            if error_message:
+                data["error_message"] = error_message
+            if session_id:
+                data["session_id"] = session_id
+            resp = await self._client.post("/model-usage", json=data)
+            resp.raise_for_status()
+            return SkillResult.ok(resp.json())
+        except Exception as e:
+            return SkillResult.fail(f"Failed to log model usage: {e}")
+
+    async def get_model_usage_stats(self, hours: int = 24) -> SkillResult:
+        """Get model usage statistics (merged with LiteLLM data)."""
+        try:
+            resp = await self._client.get(f"/model-usage/stats?hours={hours}")
+            resp.raise_for_status()
+            return SkillResult.ok(resp.json())
+        except Exception as e:
+            return SkillResult.fail(f"Failed to get model usage stats: {e}")
+
+    # ========================================
+    # LiteLLM
+    # ========================================
+    async def get_litellm_models(self) -> SkillResult:
+        """Get available LiteLLM models."""
+        try:
+            resp = await self._client.get("/litellm/models")
+            resp.raise_for_status()
+            return SkillResult.ok(resp.json())
+        except Exception as e:
+            return SkillResult.fail(f"Failed to get LiteLLM models: {e}")
+
+    async def get_litellm_health(self) -> SkillResult:
+        """Get LiteLLM health status."""
+        try:
+            resp = await self._client.get("/litellm/health")
+            resp.raise_for_status()
+            return SkillResult.ok(resp.json())
+        except Exception as e:
+            return SkillResult.fail(f"Failed to get LiteLLM health: {e}")
+
+    async def get_litellm_spend(self, limit: int = 100) -> SkillResult:
+        """Get LiteLLM spend logs."""
+        try:
+            resp = await self._client.get(f"/litellm/spend?limit={limit}")
+            resp.raise_for_status()
+            return SkillResult.ok(resp.json())
+        except Exception as e:
+            return SkillResult.fail(f"Failed to get LiteLLM spend: {e}")
+
+    # ========================================
+    # Provider Balances
+    # ========================================
+    async def get_provider_balances(self) -> SkillResult:
+        """Get provider balance info (Kimi, OpenRouter, local)."""
+        try:
+            resp = await self._client.get("/providers/balances")
+            resp.raise_for_status()
+            return SkillResult.ok(resp.json())
+        except Exception as e:
+            return SkillResult.fail(f"Failed to get provider balances: {e}")
+
+    # ========================================
     # Generic / Raw
     # ========================================
     async def get(self, path: str, params: Optional[Dict] = None) -> SkillResult:

@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Callable, Optional
 
 from aria_skills.base import BaseSkill, SkillConfig, SkillResult, SkillStatus
+from aria_skills.registry import SkillRegistry
 
 
 @dataclass
@@ -32,6 +33,7 @@ class DataSchema:
     constraints: Optional[dict] = None
 
 
+@SkillRegistry.register
 class DataPipelineSkill(BaseSkill):
     """
     Data pipeline management and ETL operations.

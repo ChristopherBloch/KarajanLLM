@@ -82,7 +82,10 @@ class InputGuardSkill(BaseSkill):
         self._query_builder = SafeQueryBuilder(
             allowed_tables={
                 "goals", "hourly_goals", "thoughts", "memories",
-                "activity_log", "social_posts", "kg_entities", "kg_relationships"
+                "activity_log", "social_posts",
+                "knowledge_entities", "knowledge_relations",
+                "model_usage", "agent_sessions", "security_events",
+                "heartbeat_log", "performance_log", "scheduled_jobs",
             }
         )
         

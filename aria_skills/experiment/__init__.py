@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Any, Optional
 
 from aria_skills.base import BaseSkill, SkillConfig, SkillResult, SkillStatus
+from aria_skills.registry import SkillRegistry
 
 
 @dataclass
@@ -38,6 +39,7 @@ class Experiment:
     tags: list[str] = field(default_factory=list)
 
 
+@SkillRegistry.register
 class ExperimentSkill(BaseSkill):
     """
     Experiment tracking and management.

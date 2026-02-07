@@ -14,6 +14,7 @@ from typing import Any, Optional
 from urllib.parse import quote
 
 from aria_skills.base import BaseSkill, SkillConfig, SkillResult, SkillStatus
+from aria_skills.registry import SkillRegistry
 
 try:
     import httpx
@@ -25,6 +26,7 @@ except ImportError:
 MOLTBOOK_DEFAULT_URL = "https://www.moltbook.com/api/v1"
 
 
+@SkillRegistry.register
 class MoltbookSkill(BaseSkill):
     """
     Moltbook social network integration.

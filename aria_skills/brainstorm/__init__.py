@@ -11,6 +11,7 @@ from datetime import datetime
 from typing import Any, Optional
 
 from aria_skills.base import BaseSkill, SkillConfig, SkillResult, SkillStatus
+from aria_skills.registry import SkillRegistry
 
 
 @dataclass
@@ -35,6 +36,7 @@ class BrainstormSession:
     started_at: datetime = field(default_factory=datetime.utcnow)
 
 
+@SkillRegistry.register
 class BrainstormSkill(BaseSkill):
     """
     Creative brainstorming and ideation.

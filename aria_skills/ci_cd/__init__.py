@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 from aria_skills.base import BaseSkill, SkillConfig, SkillResult, SkillStatus
+from aria_skills.registry import SkillRegistry
 
 
 @dataclass 
@@ -27,6 +28,7 @@ class PipelineStatus:
     url: Optional[str] = None
 
 
+@SkillRegistry.register
 class CICDSkill(BaseSkill):
     """
     CI/CD pipeline management and automation.
