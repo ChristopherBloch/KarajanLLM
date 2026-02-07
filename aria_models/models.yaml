@@ -15,7 +15,7 @@
     "fallbacks": ["litellm/qwen3-mlx", "litellm/qwen3-next-free", "litellm/trinity-free", "litellm/chimera-free", "litellm/deepseek-free"]
   },
   "agent_aliases": {
-    "litellm/qwen3-mlx": "Qwen3-VLTO 8B Instruct (MLX Local)",
+    "litellm/qwen3-mlx": "Qwen3 4B Instruct (MLX Local)",
     "litellm/trinity-free": "Trinity 400B (OpenRouter FREE)",
     "litellm/chimera-free": "Chimera 671B (OpenRouter FREE)",
     "litellm/qwen3-coder-free": "Qwen3 Coder 480B (OpenRouter FREE)",
@@ -30,17 +30,17 @@
   "models": {
     "qwen3-mlx": {
       "provider": "litellm",
-      "name": "Qwen3-VLTO 8B Instruct (MLX Local)",
-      "_note": "ACTIVE: 8B (5GB). To switch to 4B: change model to openai/mlx-community/Qwen3-4B-Instruct-2507-4bit and update plist",
+      "name": "Qwen3 4B Instruct (MLX Local)",
+      "_note": "ACTIVE: 4B (2.1GB). 8B needs 24GB+ RAM with Docker. To switch: change model + plist",
       "reasoning": false,
-      "input": ["text", "image"],
+      "input": ["text"],
       "cost": { "input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0 },
       "contextWindow": 32768,
       "maxTokens": 8192,
       "tier": "local",
       "routeSkill": "litellm",
       "litellm": {
-        "model": "openai/nightmedia/Qwen3-VLTO-8B-Instruct-qx86x-hi-mlx",
+        "model": "openai/mlx-community/Qwen3-4B-Instruct-2507-4bit",
         "api_base": "http://host.docker.internal:8080/v1",
         "api_key": "not-needed"
       }
