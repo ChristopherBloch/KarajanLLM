@@ -62,10 +62,15 @@ if [ -d "$OC_DIST" ]; then
     echo "Applying NaN-safe Zod fix to OpenClaw config schemas..."
     for f in "$OC_DIST"/config-*.js; do
         [ -f "$f" ] || continue
+        # Handle both z.number() and z.coerce.number() variants (build output varies)
+        # Order matters: longest match first to avoid double-replacement
         sed -i \
             -e 's/z\.coerce\.number()\.int()\.positive()\.optional()/z.coerce.number().int().positive().optional().catch(undefined)/g' \
             -e 's/z\.coerce\.number()\.positive()\.optional()/z.coerce.number().positive().optional().catch(undefined)/g' \
             -e 's/z\.coerce\.number()\.optional()/z.coerce.number().optional().catch(undefined)/g' \
+            -e 's/z\.number()\.int()\.positive()\.optional()/z.number().int().positive().optional().catch(undefined)/g' \
+            -e 's/z\.number()\.positive()\.optional()/z.number().positive().optional().catch(undefined)/g' \
+            -e 's/z\.number()\.optional()/z.number().optional().catch(undefined)/g' \
             "$f"
     done
     echo "  NaN-safe fix applied to config-*.js"
