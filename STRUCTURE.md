@@ -46,7 +46,7 @@ Aria_moltbot/
 │   ├── hooks/                    # Behavioral hooks
 │   └── tests/                    # Mind-specific tests
 │
-├── aria_skills/                  # Skill modules (25 directories, 26 classes)
+├── aria_skills/                  # Skill modules (26 directories)
 │   ├── __init__.py               # Package exports (v2.0.0)
 │   ├── base.py                   # BaseSkill, SkillConfig, SkillResult (362 lines)
 │   ├── registry.py               # SkillRegistry with auto-discovery (171 lines)
@@ -66,6 +66,7 @@ Aria_moltbot/
 │   ├── litellm/                  # LiteLLM proxy management
 │   ├── llm/                      # Multi-provider LLM routing (2 classes)
 │   ├── market_data/              # Cryptocurrency market data
+│   ├── memeothy/                 # Meme generation & content
 │   ├── model_switcher/           # Dynamic LLM model switching
 │   ├── moltbook/                 # Moltbook social platform
 │   ├── performance/              # Performance reviews
@@ -97,7 +98,7 @@ Aria_moltbot/
 │   ├── plans/                    # Planning documents
 │   └── research/                 # Research archives
 │
-├── stacks/brain/                 # Docker deployment (13 services)
+├── stacks/brain/                 # Docker deployment (12 services)
 │   ├── docker-compose.yml        # Full stack orchestration
 │   ├── .env                      # Environment configuration
 │   ├── .env.example              # Template for .env
@@ -107,22 +108,51 @@ Aria_moltbot/
 │   ├── prometheus.yml            # Prometheus scrape config
 │   ├── init-scripts/             # PostgreSQL initialization
 │   │   ├── 00-create-litellm-db.sh  # Creates separate litellm database
-│   │   └── 01-schema.sql            # 8 core tables + seed data
-│   ├── grafana/                  # Grafana provisioning
-│   │   └── provisioning/
-│   │       └── datasources/
-│   │           └── datasources.yml
-│   └── api/                      # FastAPI backend source
-│       ├── main.py
-│       └── requirements.txt
+│   │   └── 01-schema.sql            # Core tables + seed data
+│   └── grafana/                  # Grafana provisioning
+│       └── provisioning/
+│           └── datasources/
+│               └── datasources.yml
 │
 ├── src/                          # Application source
-│   ├── api/                      # FastAPI backend
-│   │   ├── main.py
-│   │   └── requirements.txt
+│   ├── api/                      # FastAPI v3.0 backend
+│   │   ├── main.py               # App factory, middleware, 16 routers
+│   │   ├── config.py             # Environment config + service endpoints
+│   │   ├── db.py                 # SQLAlchemy 2.0 async + psycopg 3
+│   │   ├── gql.py                # Strawberry GraphQL schema
+│   │   ├── security_middleware.py # Rate limiter, injection scanner, headers
+│   │   ├── requirements.txt
+│   │   └── routers/              # 16 REST routers
+│   │       ├── activities.py     # Activity log CRUD + stats
+│   │       ├── admin.py          # Admin operations
+│   │       ├── goals.py          # Goal tracking + progress
+│   │       ├── health.py         # Liveness, readiness, service status
+│   │       ├── knowledge.py      # Knowledge graph entities
+│   │       ├── litellm.py        # LiteLLM proxy stats + spend
+│   │       ├── memories.py       # Long-term memory storage
+│   │       ├── models_config.py  # Dynamic model config from models.yaml
+│   │       ├── model_usage.py    # LLM usage metrics + cost tracking
+│   │       ├── operations.py     # Operational metrics
+│   │       ├── providers.py      # Model provider management
+│   │       ├── records.py        # General record management
+│   │       ├── security.py       # Security audit log + threats
+│   │       ├── sessions.py       # Session management + analytics
+│   │       ├── social.py         # Social posts + community
+│   │       └── thoughts.py       # Thought stream + analysis
 │   ├── database/                 # Database utilities
-│   └── web/                      # Flask dashboard UI
-│       └── index.html
+│   └── web/                      # Flask dashboard (22 pages)
+│       ├── app.py                # Flask app + 20 routes
+│       ├── static/               # CSS, JS (pricing.js, helpers)
+│       └── templates/            # Jinja2 templates + Chart.js
+│           ├── base.html         # Layout with nav, API_BASE_URL
+│           ├── dashboard.html    # Overview + host stats
+│           ├── model_usage.html  # 3 tabs, 6 charts, cost tracking
+│           ├── sessions.html     # 3 tabs, agent breakdown
+│           ├── performance.html  # 2 tabs, reviews + tasks
+│           ├── rate_limits.html  # Progress bars, action counts
+│           ├── wallets.html      # Wallet balances + transactions
+│           ├── heartbeat.html    # Health indicators
+│           └── ...               # 14 more page templates
 │
 ├── scripts/                      # Utility scripts
 │   ├── export_tables.sh          # Database export
